@@ -1,0 +1,66 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, _ */
+var filterProxyComponent = function (_Component) {
+    _inherits(filterProxyComponent, _Component);
+
+    function filterProxyComponent() {
+        _classCallCheck(this, filterProxyComponent);
+
+        return _possibleConstructorReturn(this, (filterProxyComponent.__proto__ || Object.getPrototypeOf(filterProxyComponent)).apply(this, arguments));
+    }
+
+    _createClass(filterProxyComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField', 'open_by_default'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                excludeCategories: function excludeCategories() {
+                    return this.filterField.ExcludeCategories ? this.filterField.ExcludeCategories.split(',') : [];
+                },
+                isExclude: function isExclude() {
+                    if (this.$store.getters.getCategorySelected && this.excludeCategories.length > 0) {
+                        var paths = this.$store.getters.getCategorySelectedPath(this.$store.getters.getCategorySelected.code).map(function (x) {
+                            return x.code;
+                        });
+                        var isExcludeCode = _.intersection(this.excludeCategories, paths);
+                        if (isExcludeCode.length > 0) return true;
+                    }
+                    return false;
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div v-if=\"!isExclude\">\n                   <template v-if=\"filterField.FilterType=='Range_Number'\" >\n                        <rangeFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></rangeFilterComponent>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='Classification_List'\" >\n                        <classificationFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></classificationFilterComponent>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='Variant_List'\" >\n                        <variantsFilter :filterField=\"filterField\" :open_by_default=\"open_by_default\"></variantsFilter>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='Value_List'\" >\n                        <valueFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></valueFilterComponent>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='MultiValue_List'\" >\n                        <multiValueFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></multiValueFilterComponent>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='Conditional_Filter'\" >\n                        <conditionalFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></conditionalFilterComponent>\n                   </template>\n                   <template v-else-if=\"filterField.FilterType=='Color_Filter'\" >\n                        <colorFilterComponent :filterField=\"filterField\" :open_by_default=\"open_by_default\"></colorFilterComponent>\n                   </template>\n                   <template v-else>\n                        <p class=\"filter-title\">filtro desconocido{{filterField.FilterType}}</p>\n                   </template>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "filterProxyComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "filterProxyComponent";
+        }
+    }]);
+
+    return filterProxyComponent;
+}(Component);
+
+filterProxyComponent.registerComponent();
+//# sourceMappingURL=filterProxyComponent.js.map

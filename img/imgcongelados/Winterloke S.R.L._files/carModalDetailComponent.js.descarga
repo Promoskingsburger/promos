@@ -1,0 +1,84 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var carModalDetailComponent = function (_Component) {
+    _inherits(carModalDetailComponent, _Component);
+
+    function carModalDetailComponent() {
+        _classCallCheck(this, carModalDetailComponent);
+
+        return _possibleConstructorReturn(this, (carModalDetailComponent.__proto__ || Object.getPrototypeOf(carModalDetailComponent)).apply(this, arguments));
+    }
+
+    _createClass(carModalDetailComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['item', 'backToList', 'closeCallback'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                itemStore: function itemStore() {
+                    return this.$store.getters.getItemByCode(this.item.fields.ArtCode);
+                },
+                Currency: function Currency() {
+                    return this.$store.getters.getCurrency;
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.subscribeEvent('modal-detail-open', this.modalOpen);
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                modalOpen: this.modalOpen,
+                modalClose: this.modalClose
+            };
+        }
+    }, {
+        key: "modalOpen",
+        value: function modalOpen() {
+            $("#carItemDetailModal").modal('show');
+        }
+    }, {
+        key: "modalClose",
+        value: function modalClose() {
+            if (this.closeCallback) this.closeCallback.call();
+            this.emitEvent('modal-detail-close');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div :key=\"item.Code\" class=\"modal fade item-detail-modal\" id=\"carItemDetailModal\" tabindex=\"-1\" role=\"dialog\">\n                  <div class=\"modal-dialog modal-lg\" role=\"document\">\n                      <div class=\"modal-content\">\n                          <div class=\"modal-header\">\n                              <h5 class=\"modal-title\">{{tr(\"Item Detail\")}}</h5>\n                              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                                  <span aria-hidden=\"true\">&times;</span>\n                              </button>\n                          </div>\n                          <div class=\"modal-body\">\n                              <div class=\"row\">\n                                  <div class=\"col-md-4 col-sm-12 text-center text-md-left mb-3 md-md-0\">\n                                      <itemSliderComponent :item=\"itemStore\" :container=\"false\" :showCarusel=\"true\" :itemInSlider=\"1\"></itemSliderComponent>\n                                  </div>\n                                  <div class=\"col-md-8 col-sm-12\">\n                                      <h5>{{itemStore.Name}}</h5>\n                                      <p>{{itemStore.Comment2}}</p>\n                                      <p class=\"item-price\"><strong>$ {{parseFloat(itemStore.Price || 0).toFixed(2)}}</strong><small v-if=\"Currency\"> {{Currency}}</small></p>\n                                      <!--button class=\"btn green btn-flat white-text\" @click=\"backToList(item)\" data-dismiss=\"modal\">{{tr('Back to List')}}</button-->\n                                  </div>\n                              </div>\n                          </div>\n                      </div>\n                  </div>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "carModalDetailComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "carModalDetailComponent";
+        }
+    }]);
+
+    return carModalDetailComponent;
+}(Component);
+
+carModalDetailComponent.registerComponent();
+//# sourceMappingURL=carModalDetailComponent.js.map

@@ -1,0 +1,1434 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global __lodash__, moment, axios, Component */
+// eslint-disable-next-line no-undef
+var CarComponentB2C = function (_Component) {
+    _inherits(CarComponentB2C, _Component);
+
+    function CarComponentB2C() {
+        _classCallCheck(this, CarComponentB2C);
+
+        return _possibleConstructorReturn(this, (CarComponentB2C.__proto__ || Object.getPrototypeOf(CarComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(CarComponentB2C, [{
+        key: 'type',
+        value: function type() {
+            return "component";
+        }
+    }, {
+        key: 'data',
+        value: function data() {
+            return {
+                currentStep: 1,
+                minStep: 1,
+                maxStep: 3,
+                pricesLoaded: false,
+                status: 'view',
+                result: '',
+                detailItem: null,
+                showDetail: true,
+                sucessCreate: false,
+                completeDetail: false,
+                salesOrder: '',
+                orderComment: '',
+                // eslint-disable-next-line no-undef
+                orderCampaign: null,
+                deliveryDate: moment().format('YYYY-MM-DD'),
+                TaxRegTypes: ['Reg.Company', 'Final Consumer', 'IVA No Resp.', 'Exempt', 'Resp. no Insc.', 'Monotributo', 'International Exempt', '', 'Sujeto no Categorizado'],
+                errors: [],
+                successMessage: "Congratulation, Sales Order #({{$1}}) was created",
+                paymentMsg: null,
+                paymentIsProcess: false,
+                doOnlinePayment: false,
+                orderTemplateCopy: null,
+                mpdata: {
+                    salesorder: null,
+                    amount: 0,
+                    email: "test@dos.com" //Mail del cliente comprados.
+                },
+                searchMessage: null,
+                tempItemCode: null,
+                tempItemQty: 0,
+                currentPayTerm: null,
+                discountAmount: null,
+                shipCostAmount: null,
+                giftCardCode: null,
+                payTermSelectedCode: null
+            };
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var eventObj;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.subscribeEvent('deliveryselected', this.calculateOrderTotals);
+                                this.subscribeEvent('shipModeChange', this.calculateShipCost);
+
+                                this.discountThrottled = __lodash__.throttle(this.addDiscount, 1800, { 'trailing': false });
+
+                                this.checkItemInCar();
+                                this.loadPrices();
+                                eventObj = {};
+
+                                eventObj['order_PayTerm'] = this.payTerms[0].fields.PayTermCode;
+                                this.$store.dispatch('updateOrderDeliveryData', eventObj);
+                                if (this.$store.state.order_Campaign) {
+                                    this.orderCampaign = this.$store.state.order_Campaign;
+                                    this.calculateDiscount();
+                                }
+                                if (!this.$store.state.carOrderTemplate) {
+                                    this.calculateOrderTotals(true);
+                                }
+
+                            case 10:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: 'goToShop',
+        value: function goToShop() {
+            this.$router.push('/items');
+        }
+    }, {
+        key: 'loadDefaultPayTerm',
+        value: function loadDefaultPayTerm() {
+            if (this.$store.state.order_PayTerm) this.payTermSelectedCode = this.$store.state.order_PayTerm;
+
+            if (!this.payTermSelectedCode) {
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = this.payTerms[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var payterm = _step.value;
+
+                        if (payterm.fields.RequireOnlinePayment) {
+                            this.payTermSelectedCode = payterm.fields.PayTermCode;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+            }
+        }
+    }, {
+        key: 'updated',
+        value: function updated() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                if (!this.$store.state.session && this.$store.state.appState === 'ready') {
+                                    this.$store.state.redirectAfterLogin = "/badges";
+                                    this.$router.push('/login');
+                                }
+
+                            case 1:
+                            case 'end':
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: 'activeDayByZone',
+        value: function activeDayByZone() {
+            var selectedShipMode = this.$store.state.order_ShipMode;
+            var shipMode = __lodash__.find(this.$store.state.shipModes, function (shipMode) {
+                return shipMode.ShipModeCode === selectedShipMode;
+            });
+
+            if (shipMode && shipMode.OfficeCode) return false;
+
+            var dayMap = this.$store.getters.getDaysByZone;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = Object.keys(dayMap)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var day = _step2.value;
+
+                    if (dayMap[day]) return true;
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            return false;
+        }
+    }, {
+        key: 'checkStepConditions',
+        value: function checkStepConditions() {
+
+            if (this.currentStep === 2) {
+                if (this.$store.getters.getShipModes.length > 0 && !this.$store.state.order_ShipMode) {
+                    this.$store.dispatch('showNotificacion', {
+                        title: this.tr('Ship Mode'),
+                        message: this.tr(["Please select a {{$1}}", this.tr('Ship Mode')]),
+                        type: 'info'
+                    });
+                    return false;
+                }
+
+                if (this.$store.state.order_PayTerm === null) {
+                    this.$store.dispatch('showNotificacion', {
+                        title: this.tr('Pay Mode'),
+                        message: this.tr(["Please select a {{$1}}", this.tr('Pay Mode')]),
+                        type: 'info'
+                    });
+                    return false;
+                }
+
+                if (this.$store.state.requireCenterCost && (!this.$store.state.order_CenterCost || this.$store.state.order_CenterCost === '')) {
+                    this.$store.dispatch('showNotificacion', {
+                        title: this.tr('Cost Center'),
+                        message: this.tr(["Please select a {{$1}}", this.tr('Cost Center')]),
+                        type: 'info'
+                    });
+                    return false;
+                }
+                var checkPaymentDay = this.activeDayByZone();
+                if (checkPaymentDay && (!this.$store.state.order_DelDay || this.$store.state.order_DelDay === '')) {
+                    this.$store.dispatch('showNotificacion', {
+                        title: this.tr('Delivery Day'),
+                        message: this.tr(["Please select a {{$1}}", this.tr('Delivery Day')]),
+                        type: 'info'
+                    });
+                    return false;
+                }
+            }
+            return true;
+        }
+    }, {
+        key: 'payAndClose',
+        value: function payAndClose(e) {
+            var _this2 = this;
+
+            var res = this.checkStepConditions();
+            if (!res) return false;
+            if (this.$store.state.order_DelAddressCode) {
+                this.status = "loading";
+                var payload = {
+                    Campaign: this.orderCampaign,
+                    Comment: this.orderComment,
+                    SalesOrder: this.salesOrder
+                };
+                this.nextStep();
+                var self = this;
+                this.$store.dispatch('toogleLockScreen', null);
+                this.$store.dispatch('createSaleOrder', payload).then(function (result) {
+                    if (!result.error) result.error = [];
+                    _this2.result = result;
+                    if (result.error.length > 0) {
+                        var processError = [];
+                        var _iteratorNormalCompletion3 = true;
+                        var _didIteratorError3 = false;
+                        var _iteratorError3 = undefined;
+
+                        try {
+                            for (var _iterator3 = result.error[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                var err = _step3.value;
+
+                                if (typeof err === "string" || Array.isArray(err)) processError.push(_this2.tr(err));else {
+                                    if (err.hasOwnProperty('code')) {
+                                        switch (err.code) {
+                                            case "NOTITEMSTOCK":
+                                                {
+                                                    var _iteratorNormalCompletion4 = true;
+                                                    var _didIteratorError4 = false;
+                                                    var _iteratorError4 = undefined;
+
+                                                    try {
+                                                        for (var _iterator4 = err.params.webmessage[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                                                            var item = _step4.value;
+
+                                                            var errorData = [err.code];
+                                                            var dataError = item.split("*-*-*");
+                                                            var storeItem = _this2.$store.getters.getItemByCode(dataError[0]);
+                                                            errorData.push(storeItem.Name);
+                                                            errorData.push(dataError[1]);
+                                                            processError.push(_this2.tr(errorData));
+                                                        }
+                                                    } catch (err) {
+                                                        _didIteratorError4 = true;
+                                                        _iteratorError4 = err;
+                                                    } finally {
+                                                        try {
+                                                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                                                _iterator4.return();
+                                                            }
+                                                        } finally {
+                                                            if (_didIteratorError4) {
+                                                                throw _iteratorError4;
+                                                            }
+                                                        }
+                                                    }
+
+                                                    break;
+                                                }
+                                            case "RESERVESSTOCKMISSING":
+                                                {
+                                                    var _errorData = [err.code];
+                                                    var _storeItem = _this2.$store.getters.getItemByCode(err.params.FieldName);
+                                                    if (_storeItem) _errorData.push('"' + _storeItem.Name + '"');else _errorData.push(err.params.FieldName);
+                                                    processError.push(_this2.tr(_errorData));
+                                                    break;
+                                                }
+                                            // case "LINKTOINVALIDVALUEERR": {
+                                            //     let label = err.errorParams.FieldName;
+                                            //     message = message.replace('%linkValue%', err.errorParams.FieldValue);
+                                            //     message = message.replace('%linkToField%', oo.tr(label));
+                                            //     message = message.replace('%linkRegister%', oo.tr(rec.name()));
+                                            //     message = message.replace('%linkRecordId%', rec.getPortableId());
+                                            //     break;
+                                            // }
+                                            default:
+                                                processError.push(_this2.tr([err.code].concat(Object.values(err.params))));
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError3 = true;
+                            _iteratorError3 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                    _iterator3.return();
+                                }
+                            } finally {
+                                if (_didIteratorError3) {
+                                    throw _iteratorError3;
+                                }
+                            }
+                        }
+
+                        result.error = processError;
+                    }
+                    if (result.success) {
+                        _this2.$store.commit('clearItemToCar', 'result');
+                        _this2.$store.commit('clearSalesOrderFields');
+                        _this2.status = "completed";
+                        _this2.orderTemplateCopy = null;
+                        _this2.doOnlinePayment = _this2.$store.getters.getOnlinePayTerms.indexOf(_this2.result.so.fields.PayTerm) != -1 && _this2.result.so.fields.OrderStatus != _this2.$store.getters.getSetting.PreAutorizationStatus;
+                        if (_this2.doOnlinePayment) {
+                            var mpdata = {};
+                            mpdata.email = "";
+                            mpdata.salesorder = _this2.result.so.fields.SerNr;
+                            mpdata.amount = _this2.result.so.fields.Total;
+                            _this2.mpdata = mpdata;
+                        }
+                    } else {
+                        self.status = "failure";
+                        _this2.$store.commit('clearItemToCar', 'failure');
+                        _this2.$store.commit('clearSalesOrderFields');
+                    }
+                    _this2.$store.dispatch('toogleLockScreen', null);
+                });
+            } else {
+                this.$store.dispatch('showNotificacion', { title: this.tr('Delivery Address'), message: this.tr("Select a Delivery Address or adding a new"), type: 'info' });
+            }
+        }
+    }, {
+        key: 'addDiscount',
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var _this3 = this;
+
+                var orderCampaign, res, payload, _payload;
+
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                if (!(this.orderCampaign === null)) {
+                                    _context3.next = 3;
+                                    break;
+                                }
+
+                                this.$store.dispatch('showNotificacion', {
+                                    title: 'Coupon',
+                                    message: "Complete Discount Code",
+                                    type: 'info'
+                                });
+                                return _context3.abrupt('return', null);
+
+                            case 3:
+
+                                this.$store.dispatch('toogleLockScreen', null);
+                                orderCampaign = this.orderCampaign;
+
+                                if (this.$store.getters.getSetting.UseDiscountNotCapitalice) orderCampaign = orderCampaign.toLowerCase();
+
+                                res = { data: { success: false, error: "" } };
+
+                                if (!this.orderCampaign) {
+                                    _context3.next = 11;
+                                    break;
+                                }
+
+                                _context3.next = 10;
+                                return axios.get('/ecommerce/api/checkCoupon/' + orderCampaign);
+
+                            case 10:
+                                res = _context3.sent;
+
+                            case 11:
+                                if (res.data.success) {
+                                    if (res.data.campaign) this.$store.commit('updateCampaignApplied', res.data.campaign.fields);
+                                    payload = {
+                                        needReload: true,
+                                        DeliveryDate: this.deliveryDate,
+                                        Comment: this.orderComment,
+                                        Campaign: orderCampaign,
+                                        SalesOrder: this.salesOrder
+                                    };
+
+                                    this.$store.dispatch('loadOrderTotals', payload).then(function (newOrder) {
+                                        _this3.orderTemplateCopy = newOrder;
+                                        _this3.calculateDiscountAmount();
+                                        if (_this3.orderCampaign && _this3.getDiscountCoupon) _this3.$store.dispatch('showNotificacion', { title: 'Coupon', message: ["Discount Applied of $ {{$1}}", _this3.getDiscountCoupon], type: 'info' });else {
+                                            _this3.$store.dispatch('updateOrderDeliveryData', { 'order_Campaign': null });
+                                            _this3.orderCampaign = null;
+                                            _this3.$store.dispatch('showNotificacion', {
+                                                title: 'Coupon',
+                                                message: "Coupon does not meet the requirement to apply",
+                                                type: 'warning'
+                                            });
+                                        }
+                                        _this3.$store.dispatch('toogleLockScreen', null);
+                                    });
+                                } else {
+                                    if (this.discountAmount != null) {
+                                        this.$store.dispatch('updateOrderDeliveryData', { 'order_Campaign': null });
+                                        _payload = {
+                                            needReload: true,
+                                            DeliveryDate: this.deliveryDate,
+                                            Comment: this.orderComment,
+                                            SalesOrder: this.salesOrder,
+                                            Campaign: null
+                                        };
+
+                                        this.$store.dispatch('loadOrderTotals', _payload).then(function (newOrder) {
+                                            _this3.orderTemplateCopy = newOrder;
+                                            _this3.calculateDiscountAmount();
+                                            _this3.orderCampaign = null;
+                                            _this3.$store.dispatch('showNotificacion', { title: 'Coupon', message: res.data.error, type: 'error' });
+                                            _this3.$store.dispatch('toogleLockScreen', null);
+                                        });
+                                    } else this.$store.dispatch('toogleLockScreen', null);
+                                }
+
+                            case 12:
+                            case 'end':
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function addDiscount() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return addDiscount;
+        }()
+    }, {
+        key: 'calculateShipCost',
+        value: function () {
+            var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(shipModeCode) {
+                var eventObj, payload, newOrder;
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                    while (1) {
+                        switch (_context4.prev = _context4.next) {
+                            case 0:
+                                eventObj = {};
+
+                                eventObj['order_ShipMode'] = shipModeCode;
+                                this.$store.dispatch('toogleLockScreen', null);
+                                _context4.next = 5;
+                                return this.$store.dispatch('updateOrderDeliveryData', eventObj);
+
+                            case 5:
+                                payload = {
+                                    needReload: true,
+                                    DeliveryDate: this.deliveryDate,
+                                    Comment: this.orderComment,
+                                    Campaign: this.orderCampaign,
+                                    SalesOrder: this.salesOrder,
+                                    ShipMode: shipModeCode
+                                };
+                                _context4.next = 8;
+                                return this.$store.dispatch('loadOrderTotals', payload);
+
+                            case 8:
+                                newOrder = _context4.sent;
+
+                                this.orderTemplateCopy = window.__lodash__.cloneDeep(newOrder);
+                                this.calculateShipCostAmount();
+                                this.$store.dispatch('toogleLockScreen', null);
+
+                            case 12:
+                            case 'end':
+                                return _context4.stop();
+                        }
+                    }
+                }, _callee4, this);
+            }));
+
+            function calculateShipCost(_x) {
+                return _ref4.apply(this, arguments);
+            }
+
+            return calculateShipCost;
+        }()
+    }, {
+        key: 'calculateDiscount',
+        value: function () {
+            var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+                return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                    while (1) {
+                        switch (_context5.prev = _context5.next) {
+                            case 0:
+                                _context5.next = 2;
+                                return this.discountThrottled();
+
+                            case 2:
+                            case 'end':
+                                return _context5.stop();
+                        }
+                    }
+                }, _callee5, this);
+            }));
+
+            function calculateDiscount() {
+                return _ref5.apply(this, arguments);
+            }
+
+            return calculateDiscount;
+        }()
+    }, {
+        key: 'addGiftcard',
+        value: function addGiftcard() {
+            this.$store.dispatch('ItemGiftcardAddToCar', this.giftCardCode);
+        }
+    }, {
+        key: 'addItemToCar',
+        value: function addItemToCar() {
+            var self = this;
+            if (this.tempItemCode && this.tempItemQty > 0) {
+                var item = this.$store.getters.getItemByCode(this.tempItemCode);
+                if (item) {
+                    if (isNaN(item.carCant)) item.carCant = this.tempItemQty;else item.carCant = item.carCant + this.tempItemQty;
+                    this.$store.dispatch('ItemComponentAddToCar', item);
+                    this.tempItemCode = null;
+                    this.tempItemQty = 0;
+                } else {
+                    this.searchMessage = this.tr(["Item not found ({{$1}})", this.tempItemCode]);
+                    this.$store.dispatch('showNotificacion', {
+                        title: this.tr('Not Found'),
+                        message: this.tr(["Item not found ({{$1}})", this.tempItemCode]),
+                        type: 'info'
+                    });
+                    setTimeout(function () {
+                        self.searchMessage = null;
+                    }, 8000);
+                }
+            } else {
+                this.searchMessage = this.tr("The Item Qty must be greater than zero");
+                setTimeout(function () {
+                    self.searchMessage = null;
+                }, 8000);
+            }
+        }
+    }, {
+        key: 'alertShowMessage',
+        value: function alertShowMessage(alertMsg) {
+            this.$store.dispatch('showNotificacion', { title: this.tr('Information'), message: alertMsg, type: 'warning' });
+        }
+    }, {
+        key: 'checkItemInCar',
+        value: function checkItemInCar() {
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
+
+            try {
+                for (var _iterator5 = this.$store.getters.getItemCar[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var carItem = _step5.value;
+
+                    if (!carItem.id) carItem.id = carItem.item.ArtCode;
+                    if (!carItem.item.Code) carItem.item.Code = carItem.item.ArtCode;
+                    if (this.$store.getters.getItemByCode(carItem.id.toString())) if (carItem.item) carItem.item.carCant = carItem.cant;
+                    carItem.message = null;
+                }
+            } catch (err) {
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
+                    }
+                } finally {
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
+                    }
+                }
+            }
+        }
+    }, {
+        key: 'getMaxStockByCode',
+        value: function getMaxStockByCode(itemCode) {
+            var giftCardItem = this.$store.getters.getGiftCardItem;
+            if (this.$store.getters.getSetting.ControlStockForSales && !(giftCardItem && giftCardItem.fields.Code == itemCode)) {
+                var itemInStore = this.$store.state.items_store.get(itemCode);
+                if (itemInStore) {
+                    if (itemInStore.Reserved) return itemInStore.Qty - itemInStore.Reserved;
+                    return itemInStore.Qty;
+                }
+            }
+            return this.$store.getters.getMaxQtyItem;
+        }
+    }, {
+        key: 'loadPrices',
+        value: function loadPrices() {
+            var itemCodes = new Map();
+            var errors = [];
+            var clearCodes = [];
+            var sessionCartItems = [];
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
+
+            try {
+                for (var _iterator6 = this.itemsSelected[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var carItem = _step6.value;
+
+                    if (!carItem.id) carItem.id = carItem.item.ArtCode;
+                    if (!carItem.item.Code) carItem.item.Code = carItem.item.ArtCode;
+                    if (!itemCodes.has(carItem.id)) {
+                        var tempItem = this.$store.getters.getItemByCode(carItem.id.toString());
+                        if (tempItem) {
+                            sessionCartItems.push(carItem);
+                            if (tempItem && tempItem.isCalculate === false) itemCodes.set(tempItem.Code.toString(), tempItem);
+                        } else if (carItem.giftcardCode) {
+                            sessionCartItems.push(carItem);
+                            itemCodes.set(carItem.item.Code, carItem);
+                        } else {
+                            carItem.cant = 0;
+                            this.deleteItemFromCar(carItem.id);
+                            var error_msg = ['Item {{$1}} was removed from car', carItem.id];
+                            errors.push(error_msg);
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
+                    }
+                } finally {
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
+                    }
+                }
+            }
+
+            this.$store.commit('updateSessionCar', sessionCartItems);
+            var self = this;
+            if (!this.pricesLoaded && Array.from(itemCodes.values()).length > 0) {
+                //this.$store.dispatch( 'toogleLockScreen',this.tr( 'Loading Prices' ) );
+                this.$store.dispatch("updatePrices", Array.from(itemCodes.values())).then(function (response) {
+                    //self.$store.dispatch( 'toogleLockScreen',"" );
+                    self.pricesLoaded = true;
+                    self.$store.dispatch('reloadCarPrice', clearCodes);
+                    self.errors = errors;
+                });
+            }
+        }
+    }, {
+        key: 'checkStock',
+        value: function checkStock() {
+
+            var itemCodes = new Map();
+            var errors = [];
+            var clearCodes = [];
+
+            var _iteratorNormalCompletion7 = true;
+            var _didIteratorError7 = false;
+            var _iteratorError7 = undefined;
+
+            try {
+                for (var _iterator7 = this.itemsSelected[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var carItem = _step7.value;
+
+                    if (!itemCodes.has(carItem.id)) {
+                        var tempItem = this.$store.getters.getItemByCode(carItem.id);
+
+                        if (tempItem) {
+                            if (this.$store.getters.getControlStock) {
+                                if (!tempItem.Qty || tempItem.Qty === 0) {
+                                    clearCodes.push(carItem.id);
+                                    var error_msg = '++ ' + this.tr('Item') + ' ' + carItem.id + '. ' + this.tr('ITEM_STOCK_ZERO') + '++';
+                                    carItem.cant = 0;
+                                    errors.push(error_msg);
+                                }
+                                if (tempItem.Qty < carItem.cant) carItem.cant = tempItem.Qty;
+                            } else itemCodes.set(carItem.id, tempItem);
+                        } else {
+                            clearCodes.push(carItem.id);
+                            var _error_msg = '** ' + this.tr('Item') + ' ' + carItem.id + '. ' + this.tr('ITEM_FAVORITE_REMOVE') + '** ';
+                            carItem.cant = 0;
+                            errors.push(_error_msg);
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                        _iterator7.return();
+                    }
+                } finally {
+                    if (_didIteratorError7) {
+                        throw _iteratorError7;
+                    }
+                }
+            }
+
+            return errors.length === 0;
+        }
+    }, {
+        key: 'updateStatusCar',
+        value: function updateStatusCar() {
+            this.status = this.$store.getters.getCarStatus;
+        }
+    }, {
+        key: 'calculateOrderTotals',
+        value: function () {
+            var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+                var _this4 = this;
+
+                var needReload = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+                var payload;
+                return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                    while (1) {
+                        switch (_context6.prev = _context6.next) {
+                            case 0:
+                                this.$store.dispatch('toogleLockScreen', null);
+                                payload = {
+                                    needReload: needReload,
+                                    DeliveryDate: this.deliveryDate,
+                                    Comment: this.orderComment,
+                                    Campaign: this.orderCampaign,
+                                    SalesOrder: this.salesOrder
+                                };
+
+                                this.$store.dispatch('loadOrderTotals', payload).then(function (newOrder) {
+                                    if (newOrder) {
+                                        _this4.orderTemplateCopy = Object.assign({}, newOrder);
+                                        _this4.calculateDiscountAmount();
+                                        _this4.calculateShipCostAmount();
+                                        _this4.$store.dispatch('toogleLockScreen', null);
+                                    }
+                                });
+
+                            case 3:
+                            case 'end':
+                                return _context6.stop();
+                        }
+                    }
+                }, _callee6, this);
+            }));
+
+            function calculateOrderTotals() {
+                return _ref6.apply(this, arguments);
+            }
+
+            return calculateOrderTotals;
+        }()
+    }, {
+        key: 'updateCarQty',
+        value: function updateCarQty(event) {
+            var _this5 = this;
+
+            var maxQty = this.getMaxStockByCode(event.target.id);
+            if (event.target.value === event.target.oldvalue) return;
+
+            this.$store.dispatch('toogleLockScreen', "");
+            if (parseInt(event.target.value) > maxQty) {
+                this.$store.dispatch('toogleLockScreen', null);
+                event.target.value = event.target.oldvalue;
+                this.$store.dispatch('showNotificacion', { title: this.tr('Qty'), message: this.tr(["The article qty can't be bigger than {{$1}}", maxQty]), type: 'error' });
+                return;
+            }
+
+            var newItemQty = event.target.valueAsNumber; //this.positiveIntegerformat(event.target.value,-1);
+            if (isNaN(newItemQty) || newItemQty <= 0) {
+                this.$store.dispatch('toogleLockScreen', null);
+                this.$store.dispatch('showNotificacion', { title: this.tr('Qty'), message: this.tr("Incorrent Qty Value"), type: 'error' });
+                return;
+            }
+
+            var _iteratorNormalCompletion8 = true;
+            var _didIteratorError8 = false;
+            var _iteratorError8 = undefined;
+
+            try {
+                for (var _iterator8 = this.orderTemplateCopy.fields.Items[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                    var item = _step8.value;
+
+                    if (item.fields.ArtCode === event.target.id) {
+                        if (this.controlStock) {
+                            var storeItem = this.$store.getters.getItemByCode(item.fields.ArtCode);
+                            var _maxQty = this.getMaxStockByCode(storeItem.Code);
+                            if (parseInt(event.target.value) > storeItem.Qty) {
+                                this.alertShowMessage(["The article qty can't be bigger than {{$1}}", _maxQty]);
+                                newItemQty = storeItem.Qty;
+                            }
+                        } else newItemQty = event.target.value;
+                        item.fields.Qty = newItemQty;
+                    }
+                }
+            } catch (err) {
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                        _iterator8.return();
+                    }
+                } finally {
+                    if (_didIteratorError8) {
+                        throw _iteratorError8;
+                    }
+                }
+            }
+
+            this.$store.dispatch('changeCartQty', { itemCode: event.target.id, qty: parseInt(newItemQty), action: 'update' }).then(function (result) {
+                _this5.$store.dispatch('toogleLockScreen', null);
+                _this5.calculateOrderTotals(true);
+            });
+        }
+    }, {
+        key: 'itemQtyIncrement',
+        value: function itemQtyIncrement(itemCode) {
+            var _this6 = this;
+
+            this.$store.dispatch('changeCartQty', { itemCode: itemCode, action: 'up' }).then(function () {
+                _this6.calculateOrderTotals(true);
+            });
+        }
+    }, {
+        key: 'itemQtyDecrement',
+        value: function itemQtyDecrement(itemCode) {
+            var _this7 = this;
+
+            this.$store.dispatch('changeCartQty', { itemCode: itemCode, action: 'down' }).then(function () {
+                _this7.calculateOrderTotals(true);
+            });
+        }
+    }, {
+        key: 'deleteItemFromCar',
+        value: function deleteItemFromCar(itemCode) {
+            var _this8 = this;
+
+            this.$store.dispatch('changeCartQty', { itemCode: itemCode, action: 'delete' }).then(function () {
+                _this8.calculateOrderTotals(true);
+            });
+        }
+    }, {
+        key: 'clearCar',
+        value: function clearCar() {
+            this.$store.commit('resetItemToCar');
+            this.$store.commit('clearSalesOrderFields');
+            this.calculateOrderTotals(true);
+        }
+    }, {
+        key: 'close',
+        value: function close() {
+            this.$store.commit('updateCarStatus', 'view');
+            this.$router.go(-1);
+        }
+    }, {
+        key: 'showItemPrice',
+        value: function showItemPrice(item) {
+            var price = item.Price;
+            if (this.$store.getters.getPriceToShow) price = item.RowTotal;else {
+                if (item.RowNet) price = item.RowNet;
+            }
+            return parseFloat(Math.round(price * 100) / 100).toFixed(2);
+        }
+    }, {
+        key: 'rowPriceTotal',
+        value: function rowPriceTotal(item) {
+            if (item.cant) return parseFloat(parseFloat(item.cant) * parseFloat(item.item.Price) * 100 / 100).toFixed(2);else return 0;
+        }
+    }, {
+        key: 'showPriceLabel',
+        value: function showPriceLabel() {
+            if (this.$store.getters.getPriceToShow) return '(IVA INC)';else {
+                return '(IVA EXC)';
+            }
+        }
+    }, {
+        key: 'goToStep',
+        value: function goToStep(newState) {
+
+            switch (newState) {
+                case 'detail':
+                    if (!this.sucessCreate) {
+                        break;
+                    }
+                    this.status = newState;
+                    break;
+                case 'orderResult':
+                    if (!this.sucessCreate) {
+                        this.status = 'orderResult';
+                        break;
+                    }
+                    if (!this.completeDetail) {
+                        this.status = 'detail';
+                        break;
+                    }
+                    this.status = newState;
+            }
+            this.$store.commit('updateCarStatus', this.status);
+        }
+    }, {
+        key: 'viewDetailItem',
+        value: function viewDetailItem(item) {
+
+            this.detailItem = item;
+            if (this.detailItem) this.emitEvent('modal-detail-open');
+        }
+    }, {
+        key: 'closeDetail',
+        value: function closeDetail() {
+            this.detailItem = null;
+        }
+    }, {
+        key: 'navListItems',
+        value: function navListItems(step) {
+            if (this.currentStep > step && this.currentStep < 3) this.currentStep = step;
+            return false;
+        }
+    }, {
+        key: 'prevStep',
+        value: function prevStep() {
+            var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+            if (force) {
+                if (this.currentStep > this.minStep) this.currentStep = this.currentStep - 1;
+            } else {
+                if (this.currentStep < this.maxStep) {
+                    if (this.currentStep > this.minStep) this.currentStep = this.currentStep - 1;else this.currentStep = this.minStep;
+                }
+            }
+        }
+    }, {
+        key: 'nextStep',
+        value: function nextStep(e) {
+            var res = this.checkStepConditions();
+            if (!res) return false;
+            if (this.currentStep < this.maxStep) {
+                if (this.currentStep < this.maxStep) this.currentStep = this.currentStep + 1;else this.currentStep = this.minStep;
+            }
+        }
+    }, {
+        key: 'paymentProcess',
+        value: function paymentProcess(event) {
+            this.paymentMsg = [];
+            this.$store.dispatch('toogleLockScreen', "");
+            if (event.actionResult && event.paymentResult.ok) {
+                this.doOnlinePayment = false;
+                this.paymentIsProcess = true;
+                this.paymentMsg = null;
+
+                this.$store.dispatch("approvedOrder", this.result.so.fields.SerNr);
+            } else {
+                this.doOnlinePayment = true;
+                if (event.cause) this.paymentMsg = event.cause;
+                if (event.paymentResult && event.paymentResult.message) {
+                    this.paymentMsg = event.paymentResult.message;
+                }
+                if (event.error) {
+                    this.error = true;
+                    this.paymentMsg = event.cause[0].description;
+                }
+                if (event.hasOwnProperty("paymentResult")) {
+                    this.error = true;
+                    this.paymentMsg = event.paymentResult.message;
+                }
+                window.scrollTo(0, 0);
+            }
+        }
+    }, {
+        key: 'paymentInit',
+        value: function paymentInit() {
+            this.$store.dispatch('toogleLockScreen', this.tr('Payment Processing'));
+        }
+    }, {
+        key: 'updateSelectValues',
+        value: function updateSelectValues(updateValue) {
+            var eventObj = {};
+            eventObj['order_' + updateValue] = event.target.value;
+            this.$store.dispatch('updateOrderDeliveryData', eventObj);
+        }
+    }, {
+        key: 'getPayTermObj',
+        value: function getPayTermObj() {
+            var _this9 = this;
+
+            return this.$store.state.setting.PayTermRow.find(function (row) {
+                return row.fields.PayTermCode === _this9.result.so.fields.PayTerm;
+            });
+        }
+    }, {
+        key: 'calculateDiscountAmount',
+        value: function calculateDiscountAmount() {
+            if (this.orderTemplateCopy !== null && this.orderTemplateCopy.fields.Items) {
+                var items = __lodash__.cloneDeep(this.orderTemplateCopy.fields.Items);
+                var itemCodes = this.$store.state.discountItemCode.split(',');
+                var discountItem = __lodash__.find(items, function (row) {
+                    return itemCodes.indexOf(row.fields.ArtCode) !== -1;
+                });
+                if (discountItem) {
+                    if (this.$store.getters.getSetting.ShowPriceWithIVA) this.discountAmount = this.number_format(discountItem.fields.VATPrice, 2);else this.discountAmount = this.number_format(discountItem.fields.Price, 2);
+                } else this.discountAmount = 0;
+            } else {
+                this.discountAmount = 0;
+            }
+        }
+    }, {
+        key: 'calculateShipCostAmount',
+        value: function calculateShipCostAmount() {
+            if (this.orderTemplateCopy && this.orderTemplateCopy.fields.Items && this.shipItemCode) {
+                var items = __lodash__.cloneDeep(this.orderTemplateCopy.fields.Items);
+                var itemCodes = this.$store.state.shipItemCode.split(',');
+                var shipCostItem = __lodash__.find(items, function (row) {
+                    return itemCodes.indexOf(row.fields.ArtCode) !== -1;
+                });
+
+                if (shipCostItem) {
+                    if (this.$store.getters.getSetting.ShowPriceWithIVA) this.shipCostAmount = this.number_format(shipCostItem.fields.VATPrice, 2);else this.shipCostAmount = this.number_format(shipCostItem.fields.Price, 2);
+                }
+            } else this.shipCostAmount = null;
+        }
+    }, {
+        key: 'getPayTermName',
+        value: function getPayTermName(payTermCode) {
+            var payTermRow = this.$store.getters.getSetting.PayTermRow.filter(function (x) {
+                return x.fields.PayTermCode === payTermCode;
+            });
+            if (payTermRow.length > 0) return payTermRow[0].fields.PayTermName;
+            return payTermCode;
+        }
+    }, {
+        key: 'getShipModeName',
+        value: function getShipModeName(shipModeCode) {
+            var shipModes = this.$store.state.shipModes.filter(function (x) {
+                return x.ShipModeCode === shipModeCode;
+            });
+            if (shipModes.length > 0) return shipModes[0].ShipModeName;
+            return shipModeCode;
+        }
+    }, {
+        key: 'getOrderField',
+        value: function getOrderField(fieldName) {
+            var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+            if (this.orderTemplate.fields) return this.orderTemplate.fields[fieldName];
+            return defaultValue ? defaultValue : null;
+        }
+    }, {
+        key: 'getPayTermSurchargeLable',
+        value: function getPayTermSurchargeLable() {
+            var amount = parseFloat(this.getPayTermSurcharge);
+            if (amount > 0) return this.tr(['Surcharge {{$1}}', this.getPayTermName(this.orderTemplate.fields.PayTerm)]);
+            if (amount < 0) return this.tr(['Discount {{$1}}', this.getPayTermName(this.orderTemplate.fields.PayTerm)]);
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {
+                getOrderField: this.getOrderField,
+                loadDefaultPayTerm: this.loadDefaultPayTerm,
+                goToShop: this.goToShop,
+                calculateShipCostAmount: this.calculateShipCostAmount,
+                calculateDiscountAmount: this.calculateDiscountAmount,
+                getPayTermName: this.getPayTermName,
+                getShipModeName: this.getShipModeName,
+                getPayTermSurchargeLable: this.getPayTermSurchargeLable,
+                activeDayByZone: this.activeDayByZone,
+                addDiscount: this.addDiscount,
+                calculateShipCost: this.calculateShipCost,
+                calculateDiscount: this.calculateDiscount,
+                checkStepConditions: this.checkStepConditions,
+                payAndClose: this.payAndClose,
+                addItemToCar: this.addItemToCar,
+                alertShowMessage: this.alertShowMessage,
+                checkItemInCar: this.checkItemInCar,
+                getMaxStockByCode: this.getMaxStockByCode,
+                loadPrices: this.loadPrices,
+                checkStock: this.checkStock,
+                updateStatusCar: this.updateStatusCar,
+                calculateOrderTotals: this.calculateOrderTotals,
+                updateCarQty: this.updateCarQty,
+                itemQtyIncrement: this.itemQtyIncrement,
+                itemQtyDecrement: this.itemQtyDecrement,
+                deleteItemFromCar: this.deleteItemFromCar,
+                clearCar: this.clearCar,
+                showItemPrice: this.showItemPrice,
+                rowPriceTotal: this.rowPriceTotal,
+                showPriceLabel: this.showPriceLabel,
+                goToStep: this.goToStep,
+                viewDetailItem: this.viewDetailItem,
+                closeDetail: this.closeDetail,
+                navListItems: this.navListItems,
+                prevStep: this.prevStep,
+                nextStep: this.nextStep,
+                paymentProcess: this.paymentProcess,
+                paymentInit: this.paymentInit,
+                updateSelectValues: this.updateSelectValues,
+                getPayTermObj: this.getPayTermObj,
+                addGiftcard: this.addGiftcard
+            };
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                payTermSurchargeItemCode: function payTermSurchargeItemCode() {
+                    return this.$store.getters.getPayTermSurchargeItemCode;
+                },
+                discountItemCode: function discountItemCode() {
+                    return this.$store.getters.getDiscountItemCode;
+                },
+                shipItemCode: function shipItemCode() {
+                    return this.$store.getters.getShipItemCode;
+                },
+                getDiscountCoupon: function getDiscountCoupon() {
+                    if (this.orderTemplateCopy && this.orderTemplateCopy.fields) {
+                        var items = __lodash__.cloneDeep(this.orderTemplateCopy.fields.Items);
+                        var itemCodes = this.$store.state.discountItemCode.split(',');
+                        var discountItem = __lodash__.find(items, function (row) {
+                            return itemCodes.indexOf(row.fields.ArtCode) !== -1;
+                        });
+                        if (discountItem) {
+                            if (this.$store.getters.getSetting.ShowPriceWithIVA) this.discountAmount = this.number_format(discountItem.fields.VATPrice, 2);else this.discountAmount = this.number_format(discountItem.fields.Price, 2);
+                        } else this.discountAmount = 0;
+                    } else {
+                        this.discountAmount = 0;
+                    }
+                    return this.discountAmount;
+                },
+                getShipCost: function getShipCost() {
+                    if (this.orderTemplate && this.orderTemplate.fields && this.shipItemCode) {
+                        var items = __lodash__.cloneDeep(this.orderTemplate.fields.Items);
+                        var shipModeCodes = this.shipItemCode.split(",");
+                        var shipCostItem = __lodash__.find(items, function (cost) {
+                            return shipModeCodes.indexOf(cost.fields.ArtCode) !== -1;
+                        });
+                        if (shipCostItem) {
+                            if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.number_format(shipCostItem.fields.VATPrice, 2);else return this.number_format(shipCostItem.fields.Price, 2);
+                        }
+                    }
+                    return null;
+                },
+                getPayTermSurcharge: function getPayTermSurcharge() {
+                    if (this.orderTemplate && this.orderTemplate.fields && this.payTermSurchargeItemCode) {
+                        var items = __lodash__.cloneDeep(this.orderTemplate.fields.Items);
+                        var surcharguesItemCodes = this.payTermSurchargeItemCode.split(",");
+                        var surchageCostItem = __lodash__.find(items, function (cost) {
+                            return surcharguesItemCodes.indexOf(cost.fields.ArtCode) !== -1;
+                        });
+                        if (surchageCostItem) {
+                            if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.number_format(surchageCostItem.fields.VATPrice, 2);else return this.number_format(surchageCostItem.fields.Price, 2);
+                        }
+                    }
+                    return null;
+                },
+                getOrderItems: function getOrderItems() {
+                    if (this.orderTemplate && this.orderTemplate.fields) {
+                        var items = __lodash__.cloneDeep(this.orderTemplate.fields.Items);
+                        var discountItemCode = this.$store.state.discountItemCode;
+                        var shipItemCode = this.$store.state.shipItemCode;
+                        var paytermSuperchargeItemCode = this.payTermSurchargeItemCode;
+                        __lodash__.remove(items, function (x) {
+                            return x.fields.ArtCode === discountItemCode || x.fields.ArtCode === shipItemCode || x.fields.ArtCode === paytermSuperchargeItemCode;
+                        });
+                        return items;
+                    }
+                    return null;
+                },
+                payTerms: function payTerms() {
+                    var payterms = [];
+                    var _iteratorNormalCompletion9 = true;
+                    var _didIteratorError9 = false;
+                    var _iteratorError9 = undefined;
+
+                    try {
+                        for (var _iterator9 = this.$store.state.setting.PayTermRow[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                            var payT = _step9.value;
+
+                            if (payT.fields.ShipModes) {
+                                if (this.orderTemplateCopy && this.orderTemplateCopy.fields.ShipMode) {
+                                    if (payT.fields.ShipModes.split(",").indexOf(this.orderTemplateCopy.fields.ShipMode) !== -1) payterms.push(payT);
+                                }
+                            } else payterms.push(payT);
+                        }
+                    } catch (err) {
+                        _didIteratorError9 = true;
+                        _iteratorError9 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                                _iterator9.return();
+                            }
+                        } finally {
+                            if (_didIteratorError9) {
+                                throw _iteratorError9;
+                            }
+                        }
+                    }
+
+                    return payterms;
+                },
+                controlStock: function controlStock() {
+                    return this.$store.getters.getControlStock;
+                },
+
+                mpAvailable: function mpAvailable() {
+                    return 'mercadopagoCustom' in Vue.options.components;
+                },
+                redirectAvailable: function redirectAvailable() {
+                    var _this10 = this;
+
+                    if (this.result.so) {
+                        var pt = this.$store.state.setting.PayTermRow.find(function (row) {
+                            return row.fields.PayTermCode === _this10.result.so.fields.PayTerm;
+                        });
+                        if (pt && pt.fields.OppenRedirectEndPoint) return this.$store.getters.getSetting.MercadoPagoMode === 2;
+                    }
+                },
+
+                viewIsLoadingOld: function viewIsLoadingOld() {
+                    var _iteratorNormalCompletion10 = true;
+                    var _didIteratorError10 = false;
+                    var _iteratorError10 = undefined;
+
+                    try {
+
+                        for (var _iterator10 = this.itemsSelected[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                            var cartItem = _step10.value;
+
+                            var storeItem = this.$store.getters.getItemByCode(cartItem.item.Code);
+
+                            if (storeItem && storeItem.isCalculate === false) {
+                                this.loadPrices();
+                                return true;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError10 = true;
+                        _iteratorError10 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                                _iterator10.return();
+                            }
+                        } finally {
+                            if (_didIteratorError10) {
+                                throw _iteratorError10;
+                            }
+                        }
+                    }
+
+                    return false;
+                },
+                viewIsLoading: function viewIsLoading() {
+                    if (!this.orderTemplate) return true;
+                    return false;
+                },
+                show: function show() {
+                    return true;
+                    //return this.$store.getters.getCarModal
+                },
+                customer: function customer() {
+                    return this.$store.getters.getCustomer;
+                },
+                checkOutReady: function checkOutReady() {
+                    return this.$store.getters.getItemCar.length > 0;
+                },
+                orderTemplate: function orderTemplate() {
+                    if (this.orderTemplateCopy) return this.orderTemplateCopy;
+                    return window.__lodash__.cloneDeep(this.$store.state.carOrderTemplate);
+                },
+
+                itemsSelected: function itemsSelected() {
+                    var items = this.$store.getters.getItemCar;
+                    var newitems = new Map();
+                    var _iteratorNormalCompletion11 = true;
+                    var _didIteratorError11 = false;
+                    var _iteratorError11 = undefined;
+
+                    try {
+                        for (var _iterator11 = items[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                            var item = _step11.value;
+
+                            if (!newitems.has(item.item.Code)) newitems.set(item.item.Code, item);else newitems.get(item.item.Code).cant = newitems.get(item.item.Code).cant + item.cant;
+                        }
+                    } catch (err) {
+                        _didIteratorError11 = true;
+                        _iteratorError11 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                                _iterator11.return();
+                            }
+                        } finally {
+                            if (_didIteratorError11) {
+                                throw _iteratorError11;
+                            }
+                        }
+                    }
+
+                    return Array.from(newitems.values());
+                },
+                carTotalAmount: function carTotalAmount() {
+                    return this.$store.state.total_in_car;
+                },
+                payTermFilter: function payTermFilter() {
+                    var filter = {};
+                    var settingPayTerm = this.$store.getters.getPayTerms;
+                    if (this.$store.state.customer) settingPayTerm.push(this.$store.state.customer.PayTerm);
+                    filter['Code__in'] = settingPayTerm;
+                    return filter;
+                },
+                payTerm: function payTerm() {
+                    if (this.$store.state.order_PayTerm) return this.$store.state.order_PayTerm;
+                    if (this.$store.state.customer) return this.$store.state.customer.PayTerm;
+                    return null;
+                },
+
+                Currency: function Currency() {
+                    return this.getOrderField('Currency', this.$store.getters.getCurrency);
+                }
+            };
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                '$route': 'forceUpdate',
+                '$store.state.carFlag': function $storeStateCarFlag(newValue, oldValue) {
+                    this.calculateOrderTotals();
+                },
+                '$store.state.order_PayTerm': function $storeStateOrder_PayTerm(newValue, oldValue) {
+                    this.loadDefaultPayTerm();
+                    this.calculateOrderTotals(true);
+                },
+                '$store.state.order_DelAddressCode': function $storeStateOrder_DelAddressCode(newValue, oldValue) {
+                    this.calculateOrderTotals();
+                }
+            };
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div id="carModal" class="row cart-items" v-if="!viewIsLoading">\n                  <h5 class="col-12 title">{{tr("Your Purchase")}}</h5>\n                  <div class="col-12">\n                     <addSOFavModalComponent :from="\'car-items\'"></addSOFavModalComponent>\n                     <template v-if="detailItem">\n                        <carModalDetailComponent :item="detailItem" :closeCallback="closeDetail" ></carModalDetailComponent>\n                    </template>\n                    <template v-if="errors.length>0">\n                        <div class="alert alert-warning alert-dismissible fade show" role="alert">\n                            <template v-for="error of errors">\n                                <strong>{{tr(error)}}</strong>\n                            </template>\n                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n                                <span aria-hidden="true">&times;</span>\n                            </button>\n                        </div>\n                    </template>\n                     <div class="col-12 px-0 px-sm-3">\n                          <div class="stepwizard">\n                              <div class="stepwizard-row setup-panel">\n                                  <div class="stepwizard-step">\n                                      <button @click="navListItems(1)" :class="{\'btn\': true, \'active\': currentStep==1 , \'disabled\': currentStep<1}" :disabled="currentStep<1">1</button>\n                                      <p>{{tr("Items in Cart")}}</p>\n                                  </div>\n                                  <div class="stepwizard-step">\n                                      <button @click="navListItems(2)" :class="{\'btn\': true, \'active\': currentStep==2 , \'disabled\': currentStep<2}" :disabled="currentStep<2">2</button>\n                                      <p>{{tr("Delivery Data")}}</p>\n                                  </div>\n                                  <div class="stepwizard-step">\n                                      <button  @click="navListItems(3)" :class="{\'btn\': true, \'active\': currentStep==3 , \'disabled\': currentStep<3}" :disabled="currentStep>3">3</button>\n                                      <p>{{tr(\'Payment\')}}</p>\n                                  </div>\n                              </div>\n                          </div>\n                          <div class="stepwizard-content row">\n                             <div class="col-12 setup-content order-items" id="step-1" v-if="currentStep==1">\n                                 <div class="table-responsive">\n                                    <div v-if="$store.getters.useDiscountCoupon || $store.getters.useGiftcard" class="col-12 px-1 px-md-3">\n                                        <div class="bordered my-2">\n                                            <div class="form-row px-2 py-2">\n                                                <div v-if="$store.getters.useDiscountCoupon" class="col-12 px-3" :class="{\'col-md-6 mb-4 mb-md-0\': $store.getters.useGiftcard}">\n                                                    <h6 class="col-12 mb-3 px-0 align-items-center d-flex"><i class="delivery-icon fas fa-tag fa-2x mr-3" style="font-size: 25px;"></i>{{tr(\'Discount\')}}</h6>\n                                                    <div class="form-row">\n                                                        <input class="col-8 form-control" :placeholder="tr(\'Enter here your discount code\')" v-model="orderCampaign" >\n                                                        <button type="button" class="col ml-2 btn btn-custom" @click="calculateDiscount">{{tr("Apply")}}</button>\n                                                    </div>\n                                                </div>\n                                                <div v-if="$store.getters.useGiftcard" class="col-12 px-3" :class="{\'col-md-6\': $store.getters.useDiscountCoupon}">\n                                                    <h6 class="col-12 mb-3 px-0 align-items-center d-flex"><i class="delivery-icon fas fa-gift fa-2x mr-3" style="font-size: 25px;"></i>{{tr(\'Giftcard\')}}</h6>\n                                                    <div class="form-row">\n                                                        <input class="col-8 form-control" :placeholder="tr(\'Enter here your Giftcard code\')" v-model="giftCardCode">\n                                                        <button type="button" class="col ml-2 btn btn-custom btn btn-custom" @click="addGiftcard">{{tr("Apply")}}</button>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                     <table class="table table-striped mb-0">\n                                         <thead>\n                                             <tr>\n                                                 <th scope="col" class="center">{{tr("Item")}}</th>\n                                                 <th scope="col" class="d-none d-sm-block">{{tr("Unit")}}</th>\n                                                 <th scope="col" class="text-right">{{tr("Price")}}</th>\n                                                 <th scope="col" colspan="3" class="text-center">{{tr("Qty")}}</th>\n                                                 <th scope="col" class="text-right">{{tr("Total")}}</th>\n                                                 <th></th>\n                                             </tr>\n                                         </thead>\n                                         <tbody v-if="orderTemplate">\n                                            <template v-for="item in getOrderItems">\n                                                 <template v-if="item.message">\n                                                   <tr :key="\'carItem-\'+item.fields.ArtCode" :title="item.message" :class="{ \'text-danger\': item.message }" >\n                                                       <td colspan="4">\n                                                          {{item.fields.Name}}\n                                                          <!--<a href="#" class="item-link" :class="{ \'text-danger\': item.message }" data-toggle="modal" data-target="#carItemDetailModal"> {{item.fields.Name}} </a>-->\n                                                       </td>\n                                                       <td colspan="3">\n                                                          {{tr(item.message)}}\n                                                       </td>\n                                                        <td class="center" @click="()=>deleteItemFromCar(item.fields.ArtCode)">\n                                                          <span class="row"  :title="tr(\'Delete Element from Car\')">\n                                                              <i class="fas fa-trash"></i>\n                                                          </span>\n                                                       </td>\n                                                    </tr>\n                                                 </template>\n                                                 <template v-else>\n                                                     <tr :key="\'carItem-\'+item.fields.ArtCode">\n                                                       <td>\n                                                          {{item.fields.Name}}\n                                                       </td>\n                                                       <td scope="row" class="d-none d-sm-block">{{item.fields.Unit}}</td>\n                                                       <td scope="row" class="text-right" >\n                                                           <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                               <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                    {{number_format(item.fields.VATPrice,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                               </template>\n                                                               <template v-else>\n                                                                    {{number_format(item.fields.Price,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                </template>\n                                                           </template>\n                                                           <template v-else>\n                                                               --\n                                                           </template>\n                                                       </td>\n                                                       <td scope="row" colspan="3" class="center" >\n                                                          <div class="form-inline row  justify-content-center">\n                                                              <label class="sr-only form-control" @click="()=>itemQtyIncrement(item.fields.ArtCode)">\n                                                                  <i class="fas fa-plus-circle waves-effect"></i>\n                                                              </label>\n                                                              <input :key="\'carItemInput-\'+item.fields.ArtCode" type="number" :id="item.fields.ArtCode" class="form-control col-8" min="1"  :max="getMaxStockByCode(item.fields.ArtCode)" :value="parseInt(item.fields.Qty)" @change="updateCarQty" onfocus="this.oldvalue = this.value;" @focusout="updateCarQty">\n                                                              <label class="sr-only form-control" @click="()=>itemQtyDecrement(item.fields.ArtCode)" >\n                                                                  <i class="fas fa-minus-circle waves-effect"></i>\n                                                              </label>\n                                                           </div>\n                                                       </td>\n                                                       <td class="text-right">\n                                                           <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                               <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                    {{number_format(item.fields.RowTotal,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                               </template>\n                                                               <template v-else>\n                                                                    {{number_format(item.fields.RowNet,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                </template>\n                                                           </template>\n                                                           <template v-else>\n                                                               --\n                                                           </template>\n                                                       </td>\n                                                       <td class="center" @click="()=>deleteItemFromCar(item.fields.ArtCode)">\n                                                          <span class="delet-icon"  :title="tr(\'Delete Element from Car\')">\n                                                              <i class="fas fa-trash"></i>\n                                                          </span>\n                                                       </td>\n                                                     </tr>\n                                                 </template>\n                                            </template>\n                                            <tr v-if="$store.getters.showSubTotalInOrderDetail">\n                                                 <td colspan="9" class="text-right" >\n                                                      <strong class="mr-2">Sub Total</strong>\n                                                      <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                          <strong>$ {{number_format(getOrderField(\'SubTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                      </template>\n                                                      <template v-else>\n                                                          --\n                                                      </template>\n                                                  </td>\n                                            </tr>\n                                            <tr v-if="getShipCost">\n                                                <td colspan="8" class="text-left text-md-right">\n                                                    <strong>{{tr("Ship Cost")}}:$ {{getShipCost}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                </td>\n                                            </tr>\n                                            <tr v-if="$store.getters.showPayTermSurchargeInOrder && getPayTermSurcharge !== null">\n                                                <td colspan="8" class="text-left text-md-right">\n                                                     <strong>{{getPayTermSurchargeLable(\'MP\')}}: $ {{getPayTermSurcharge}} <small v-if="Currency"> {{Currency}}</small></strong>\n                                                </td>\n                                            </tr>\n                                            <tr v-if="getDiscountCoupon">\n                                                <td colspan="8" class="text-left text-md-right">\n                                                    <strong>{{tr("Discount")}}: $ {{getDiscountCoupon}} <small v-if="Currency"> {{Currency}}</small></strong>\n                                                </td>\n                                            </tr>\n                                            <tr v-if="$store.getters.showIVAInOrder">\n                                                <td colspan="9" class="text-right">\n                                                    <strong class="mr-2">Total IVA</strong>\n                                                    <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                        <strong>$ {{number_format(getOrderField(\'VATTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                    </template>\n                                                    <template v-else>\n                                                        --\n                                                    </template>\n                                                </td>\n                                            </tr>\n                                            <tr v-if="$store.getters.showTaxInOrder">\n                                                <td colspan="9" class="text-right">\n                                                    <strong class="mr-2">Percepciones</strong>\n                                                    <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                        <strong>$ {{number_format(getOrderField(\'TotalTax\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                    </template>\n                                                    <template v-else>\n                                                        --\n                                                    </template>\n                                                </td>\n                                            </tr>                                            \n                                            <tr>\n                                                <td colspan="8" class="text-left text-md-right">\n                                                   <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                        <strong class="mr-2">Total</strong>\n                                                   </template>\n                                                   <template v-else>\n                                                        <strong class="mr-2">Total (IVA EXC)</strong>\n                                                    </template>\n                                                   <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                       <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                            <strong>$ {{number_format(getOrderField(\'Total\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                       </template>\n                                                       <template v-else>\n                                                            <strong>$ {{number_format(getOrderField(\'SubTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                        </template>\n                                                   </template>\n                                                   <template v-else>\n                                                        --\n                                                   </template>\n                                                </td>\n                                            </tr>\n                                         </tbody>\n                                     </table>\n                                     <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                        <div class="payment-message text-left text-md-right mb-3 px-md-3 ">Todos los precios tienen IVA inclu\xEDdo</div>\n                                    </template>\n                                    <template v-else>\n                                        <div class="payment-message text-left text-md-right mb-3 px-md-3 ">Todos los precios tienen IVA excluido</div>\n                                    </template>\n                                 </div>\n                                 <div class="row mt-2">\n                                      <div class="col-12 col-md-6 text-center text-md-left">\n                                          <button key="btn-1-step-1" @click="goToShop()" class="btn btn-secondary mb-2 continue-shopping">\n                                                <span class="icon"><i class="fa-icon fas fa-cart-plus mr-1"></i></span>\n                                                {{tr(\'Continue Shopping\')}}\n                                          </button>\n                                          <button key="btn-2-step-1" @click="clearCar()" class="btn btn-secondary mb-2 clear">\n                                              <i class="fas fa-trash mr-1"></i>\n                                              {{tr(\'Clear\')}}\n                                          </button>\n                                      </div>\n                                      <div class="col-12 col-md-6 order-first order-md-last text-center text-md-right">\n                                      <button key="brn-3-step-1" :disabled="itemsSelected.length==0" v-bind:class="{ disabled:itemsSelected.length==0}" class="btn btn-secondary mb-2 add-to-favorite-orders" data-toggle="modal" data-target="#addSOFavModal">\n                                            <span class="icon"><i class="fa-icon fas fa-star mr-1"></i></span>\n                                            {{tr(\'Add To Favorite Orders\')}}\n                                      </button>\n                                          <button key="brn-4-step-1" :disabled="itemsSelected.length==0" v-bind:class="{ disabled:itemsSelected.length==0}" class="btn btn-success mb-2 nextBtn delivery-data" type="button" @click="nextStep($event)">\n                                              <span>{{tr(\'Delivery Data\')}}</span>\n                                              <span class="icon"><i class="fa-icon fas fa-arrow-right"></i></span>\n                                          </button>\n                                      </div>\n                                 </div>\n                             </div>\n                             <div class="col-12 setup-content" id="step-2" v-if="currentStep==2">\n                                <div class="row">\n                                    <div class="col-12 col-md-7">\n                                          <div class="row" >\n                                            <carDeliveryList @deliveryselected="calculateOrderTotals()" />\n                                          </div>\n                                          <div class="col-12">\n                                        <div class="form-row m-0 mb-3 px-2 bordered">\n                                           <h6 class="col-12 align-items-center d-flex"><i class="delivery-icon fas fa-credit-card fa-2x mr-3" style="font-size: 1.6em;"></i>M\xE9todo de pago</h6>\n                                           <div class="form-group col-12 col-md-6 px-2">\n                                                <label class="col-form-label sr-only" >{{tr("PayTerm")}}</label>\n                                                <select  class="form-control" @change="updateSelectValues(\'PayTerm\')">\n                                                    <option  :value="null" :selected="$store.state.order_PayTerm==null" disabled>Seleccione un m\xE9todo de pago</option>\n                                                    <template v-for="payterm of payTerms">\n                                                         <template v-if="$store.state.setting.AllowNotOnlyPayments && payterm.fields.RequireOnlinePayment">\n                                                            <option :value="payterm.fields.PayTermCode" :selected="payterm.fields.PayTermCode==payTermSelectedCode" >{{payterm.fields.PayTermName}}</option>\n                                                        </template>\n                                                        <template v-else>\n                                                           <option :value="payterm.fields.PayTermCode" :selected="payterm.fields.PayTermCode==payTermSelectedCode" >{{payterm.fields.PayTermName}}</option>\n                                                        </template>\n                                                    </template>\n                                                </select>\n                                           </div>\n                                           <div class="col-12 payment-message px-2" v-if="$store.state.setting.AllowNotOnlyPayments!=true">\n                                              <p class="mb-1">S\xF3lo pago con tarjetas</p>\n                                           </div>\n                                       </div>\n                                  </div>\n                                </div>\n                                    <div class="col-12 col-md-5">\n                                        <div class="table-responsive">\n                                            <table class="table table-striped">\n                                                 <thead>\n                                                     <tr>   \n                                                         <th scope="col">{{tr("Item")}}</th>\n                                                         <th scope="col" class="text-right">{{tr("Price")}} {{showPriceLabel()}}</th>\n                                                         <th scope="col" colspan="3" class="text-center">{{tr("Qty")}}</th>\n                                                         <th scope="col" class="text-right">{{tr("Total")}} {{showPriceLabel()}}</th>\n                                                         <th></th>\n                                                     </tr>\n                                                 </thead>\n                                                 <tbody v-if="orderTemplate">\n                                                    <template v-for="item in getOrderItems">\n                                                         <template v-if="item.message">\n                                                           <tr :key="\'carItem-\'+item.fields.ArtCode" :title="item.message" :class="{ \'text-danger\': item.message }" >\n                                                              \n                                                               <td colspan="4">\n                                                                  <a href="#" class="item-link" :class="{ \'text-danger\': item.message }" data-toggle="modal" data-target="#carItemDetailModal"> {{item.fields.Name}} </a>\n                                                               </td>\n                                                               <td colspan="3">\n                                                                  {{tr(item.message)}}\n                                                               </td>\n                                                                <td class="center" @click="()=>deleteItemFromCar(item.fields.ArtCode)">\n                                                                  <span class="row"  :title="tr(\'Delete Element from Car\')">\n                                                                      <i class="fas fa-trash"></i>\n                                                                  </span>\n                                                               </td>\n                                                            </tr>\n                                                         </template>\n                                                         <template v-else>\n                                                             <tr :key="\'carItem-\'+item.fields.ArtCode">\n                                                              \n                                                               <td @click="viewDetailItem(item)">\n                                                                  <a href="#" class="item-link" data-toggle="modal" data-target="#carItemDetailModal"> {{item.fields.Name}}</a>\n                                                               </td>\n                                                              \n                                                               <td scope="row" class="text-right" >\n                                                                   <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                                       <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                            {{number_format(item.fields.VATPrice,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                       </template>\n                                                                       <template v-else>\n                                                                            {{number_format(item.fields.Price,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                        </template>\n                                                                   </template>\n                                                                   <template v-else>\n                                                                       --\n                                                                   </template>\n                                                               </td>\n                                                               <td scope="row" colspan="3" class="center" >\n                                                                  <div class="form-inline row  justify-content-center">\n                                                                      <label class="sr-only form-control" @click="()=>itemQtyIncrement(item.fields.ArtCode)">\n                                                                          <i class="fas fa-plus-circle waves-effect"></i>\n                                                                      </label>\n                                                                      <input :key="\'carItemInput-\'+item.fields.ArtCode" type="number" :id="item.fields.ArtCode" class="form-control col-8" min="1"  :max="getMaxStockByCode(item.fields.ArtCode)" :value="parseInt(item.fields.Qty)" @change="updateCarQty">\n                                                                      <label class="sr-only form-control"@click="()=>itemQtyDecrement(item.fields.ArtCode)" >\n                                                                          <i class="fas fa-minus-circle waves-effect"></i>\n                                                                      </label>\n                                                                   </div>\n                                                               </td>\n                                                               <td class="text-right">\n                                                                   <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                                       <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                            {{number_format(item.fields.RowTotal,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                       </template>\n                                                                       <template v-else>\n                                                                            {{number_format(item.fields.RowNet,2)}} <small v-if="Currency"> {{Currency}}</small>\n                                                                        </template>\n                                                                   </template>\n                                                                   <template v-else>\n                                                                       --\n                                                                   </template>\n                                                               </td>\n                                                               <td class="center" @click="()=>deleteItemFromCar(item.fields.ArtCode)">\n                                                                  <span class="delet-icon"  :title="tr(\'Delete Element from Car\')">\n                                                                      <i class="fas fa-trash"></i>\n                                                                  </span>\n                                                               </td>\n                                                             </tr>\n                                                         </template>\n                                                    </template>\n                                                    <tr v-if="$store.getters.showSubTotalInOrderDetail">\n                                                         <td colspan="9" class="text-right" >\n                                                              <strong class="mr-2">Sub Total</strong>\n                                                              <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                                  <strong>$ {{number_format(getOrderField(\'SubTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong>\n                                                              </template>\n                                                              <template v-else>\n                                                                  --\n                                                              </template>\n                                                          </td>\n                                                    </tr>\n                                                    <tr v-if="getShipCost!=null">\n                                                        <td colspan="7" class="text-left text-md-right">\n                                                          <template>\n                                                            <strong>{{tr("Ship Cost")}}: $ {{getShipCost}}</strong> \n                                                          </template>\n                                                        </td>\n                                                    </tr>\n                                                    <tr v-if="$store.getters.showPayTermSurchargeInOrder && getPayTermSurcharge !== null">\n                                                        <td colspan="8" class="text-left text-md-right">\n                                                             <strong>{{getPayTermSurchargeLable(\'MP\')}}: $ {{getPayTermSurcharge}} </strong>\n                                                        </td>\n                                                    </tr>\n                                                    <tr v-if="getDiscountCoupon">\n                                                        <td colspan="7" class="text-left text-md-right">\n                                                          <template >\n                                                            <strong>{{tr("Discount")}}: $ {{getDiscountCoupon}} </strong>\n                                                          </template>\n                                                        </td>\n                                                    </tr>\n                                                    <tr v-if="$store.getters.showIVAInOrder && ($store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin)" class="pt-1">\n                                                        <td colspan="8" class="text-left text-md-right">\n                                                            <strong class="mr-2">Total IVA: $ {{number_format(getOrderField(\'VATTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong>\n                                                        </td>\n                                                    </tr>\n                                                    <tr v-if="$store.getters.showTaxInOrder && ($store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin)" class="pt-1">\n                                                        <td colspan="8" class="text-left text-md-right">\n                                                            <strong class="mr-2">Total Impuestos: $ {{number_format(getOrderField(\'TotalTax\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong>\n                                                        </td>\n                                                    </tr>\n                                                    <tr>\n                                                        <td colspan="7" class="text-left text-md-right">\n                                                            <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                <strong class="mr-2">Total (IVA INC)</strong>\n                                                           </template>\n                                                           <template v-else>\n                                                                <strong class="mr-2">Total (IVA EXC)</strong>\n                                                            </template>\n                                                            <template v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                               <template v-if="$store.getters.getSetting.ShowPriceWithIVA" >\n                                                                    <strong>$ {{number_format(getOrderField(\'Total\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                               </template>\n                                                               <template v-else>\n                                                                    <strong>$ {{number_format(getOrderField(\'SubTotal\',0),2)}} <small v-if="Currency"> {{Currency}}</small></strong> \n                                                                </template>\n                                                            </template>\n                                                            <template v-else>\n                                                                --\n                                                            </template>\n                                                        </td>\n                                                    </tr>\n                                                 </tbody>\n                                             </table>\n                                        </div>\n                                    </div>\n                                    <div class="col-12">\n                                      <div class="text-right align-self-end">\n                                          <button key="btn-1-step-2" class="btn btn-secondary prevBtn float-left mb-2 back-to-items-in-cart" type="button" @click="prevStep()">\n                                                <span class="icon"><i class="fa-icon fas fa-arrow-left"></i></span>\n                                                <span>{{tr(\'Back to Items in Cart\')}}</span>\n                                          </button>\n                                          <button key="btn-2-step-2" @click="payAndClose($event)" v-bind:class="{\'btn btn-success pay\':true, disabled:itemsSelected.length==0}">{{tr(\'Pagar\')}}</button>\n                                      </div>\n                                  </div>\n                                </div>\n                             </div>\n                             <div class="col-12 setup-content my-4" id="step-3" v-if="currentStep==3">\n                                     <div class="col-12 OrderResult">\n                                         <template v-if="status === \'loading\'">\n                                             <div class="">\n                                                 <h5 class="text-center">{{tr("Your Order is processing")}}.{{tr("Please Wait")}}.</h5>\n                                             </div>\n                                         </template>\n                                         <template v-if="status === \'failure\'">\n                                             <h5 class="text-center">{{tr("The Sales Order can\'t be created")}}.</h5>\n                                             <div v-if="result.error.length > 0" class="col-12 col-md-6 offset-md-3 error-message px-1">\n                                                 <p v-for="error of result.error" class="text-center">{{tr(error)}}</p>\n                                             </div>\n                                             <button class="btn btn-secondary prevBtn float-left back-to-items-in-cart" type="button" @click="currentStep=1">\n                                                    <span class="icon"><i class="fa-icon fas fa-arrow-left"></i></span>\n                                                    <span>{{tr(\'Back to Items in Cart\')}}</span>\n                                             </button>\n                                         </template>\n                                         <template  v-if="status === \'completed\'">\n                                             <h5 class="text-center">{{ tr([successMessage,result.so.fields.SerNr]) }}.</h5>\n                                             <div v-if="result.error.length > 0" class="col-12 col-md-6 offset-md-3 error-message my-3 px-1 pt-2 d-none">\n                                                 <h5 class="text-center">{{tr("Information")}}:</h5>\n                                                 <p v-for="error of result.error" class="text-center">\n                                                    {{tr(error)}}\n                                                </p>\n                                             </div>\n                                             <template v-if="(mpAvailable || redirectAvailable) && mpdata && mpdata.amount">\n                                                <div class="col-12 col-md-6 offset-md-3 alert alert-warning px-1" role="alert" v-if="paymentMsg">\n                                                    <template v-if="Array.isArray(paymentMsg)">\n                                                         <p v-for="error of paymentMsg" class="text-center array">{{tr(error.description.charAt(0).toUpperCase() + error.description.slice(1))}}</p>\n                                                    </template>\n                                                    <template v-else>\n                                                        <p class="text-center single">{{tr(paymentMsg.charAt(0).toUpperCase() + paymentMsg.slice(1))}}</p>\n                                                    </template>\n                                                </div>\n                                                <template v-if="paymentIsProcess">\n                                                    <div class="col-12 col-md-6 offset-md-3 alert alert-success text-center" role="alert">\n                                                        <icon name="regular/check-circle" scale="5" class="col-6"/>\n                                                        <h4 class="col-12 text-center mt-2">{{tr("The payment was approved successfully")}}</h4>\n                                                        <strong class="d-block mt-2">{{tr(\'It may take a few minutes to be reflected\')}}</strong>\n                                                    </div>\n                                                </template>\n                                                <div class="row justify-content-center mt-4"  v-if="doOnlinePayment">\n                                                    <template v-if="$store.getters.getSetting.MercadoPagoMode==1">\n                                                        <mercadopagoFormCustom :info="mpdata" @payment-init="paymentInit" @payment-result="paymentProcess"></mercadopagoFormCustom>\n                                                    </template>\n                                                    <template v-else-if=\'$store.getters.getSetting.MercadoPagoMode==0\'>\n                                                        <mercadopagoCustom :info="mpdata" @payment-init="paymentInit" @payment-result="paymentProcess"></mercadopagoCustom>\n                                                    </template>\n                                                    <template v-else-if=\'$store.getters.getSetting.MercadoPagoMode==2\'>\n                                                        <redirectPaymentComponent :SO=\'result.so.fields.SerNr\' :PayTermObj=\'getPayTermObj()\'/>\n                                                    </template>\n                                                </div>\n                                             </template>\n                                             <div class="row justify-content-center mt-4">\n                                               <router-link key="btn-1-step-3" to="/profile" class="btn btn-custom">{{tr(\'View Shopping List\')}}</router-link>\n                                             </div>\n                                         </template>\n                                     </div>\n                             </div>\n                          </div>\n                      </div>\n                  </div>\n              </div>';
+        }
+    }], [{
+        key: 'name',
+        value: function name() {
+            return "CarModalComponent";
+        }
+    }, {
+        key: 'loadData',
+        value: function () {
+            var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                    while (1) {
+                        switch (_context7.prev = _context7.next) {
+                            case 0:
+                                return _context7.abrupt('return', {});
+
+                            case 1:
+                            case 'end':
+                                return _context7.stop();
+                        }
+                    }
+                }, _callee7, this);
+            }));
+
+            function loadData() {
+                return _ref7.apply(this, arguments);
+            }
+
+            return loadData;
+        }()
+    }, {
+        key: 'componentName',
+        value: function componentName() {
+            return "CarModalComponent";
+        }
+    }]);
+
+    return CarComponentB2C;
+}(Component);
+
+CarComponentB2C.registerComponent();
+//# sourceMappingURL=carModalComponent.js.map

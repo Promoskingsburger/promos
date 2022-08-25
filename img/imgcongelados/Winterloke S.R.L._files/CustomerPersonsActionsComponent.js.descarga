@@ -1,0 +1,106 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var CustomerPersonsActionsComponent = function (_Component) {
+    _inherits(CustomerPersonsActionsComponent, _Component);
+
+    function CustomerPersonsActionsComponent() {
+        _classCallCheck(this, CustomerPersonsActionsComponent);
+
+        return _possibleConstructorReturn(this, (CustomerPersonsActionsComponent.__proto__ || Object.getPrototypeOf(CustomerPersonsActionsComponent)).apply(this, arguments));
+    }
+
+    _createClass(CustomerPersonsActionsComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['data', 'index', 'column'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                session: function session() {
+                    return this.$store.getters.getSession;
+                },
+                currentCustomerPerson: function currentCustomerPerson() {
+                    return this.$store.getters.getCurrentCustomerPerson;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                EditPerson: this.EditPerson,
+                DisablePerson: this.DisablePerson,
+                ActivatePerson: this.ActivatePerson
+            };
+        }
+    }, {
+        key: "EditPerson",
+        value: function EditPerson() {
+            console.log(this.data.Code, 'Code del Row to Edit');
+            this.$store.dispatch('setCurrentCustomerPerson', this.data.Code);
+            //Esto es para q lo select se carguen del state en el modal de editar
+            //let currentCustomerPerson = this.$store.getters.getCurrentCustomerPerson
+            /*this.$store.dispatch('updateSelectLinkto', {table: 'Department', value: currentCustomerPerson.Department});
+            this.$store.dispatch('updateSelectLinkto', {
+                table: 'JobPosition',
+                value: currentCustomerPerson.JobPosition
+            });
+            this.$store.dispatch('updateSelectLinkto', {
+                table: 'WebAccessGroup',
+                value: currentCustomerPerson.WebAccessGroup
+            });
+            this.$store.dispatch('updateSelectLinkto', {
+                table: 'Country',
+                value: currentCustomerPerson.Country
+            });
+            this.$store.dispatch('updateSelectLinkto', {
+                table: 'City',
+                value: currentCustomerPerson.City
+            });*/
+        }
+    }, {
+        key: "DisablePerson",
+        value: function DisablePerson() {
+            console.log(this.data.Code, 'Code del Row to Disable');
+            this.$store.dispatch('setCurrentCustomerPerson', this.data.Code);
+        }
+    }, {
+        key: "ActivatePerson",
+        value: function ActivatePerson() {
+            console.log(this.data.Code, 'Code del Row to Disable');
+            this.$store.dispatch('setCurrentCustomerPerson', this.data.Code);
+            this.$store.dispatch('ChangeActivationCustomerPerson', this.currentCustomerPerson.Code);
+            this.$store.dispatch('showNotificacion', { title: '', message: "Usuario " + this.currentCustomerPerson.WebUser + " activado", type: 'success' });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div v-if=\"session.fields.Code != data.Code\" :key=\"'CustomerPersonsActions-'+data.Name\" class=\"custom-actions\">\n                   <a :key=\"'actions-showPersonDetail-'+data.Code\"  :title=\"tr('Edit')\" class=\"col-sm-5\" data-toggle=\"modal\" data-target=\"#PersonEditModal\" @click=\"EditPerson()\">\n                     <i class=\"fas fa-edit\"></i>\n                   </a>\n                  <a v-if=\"data.WebUserFlag\" :key=\"'actions-disablePerson-'+data.Code\"  :title=\"tr('Disable Person')\" class=\"col-sm-5\" data-toggle=\"modal\" data-target=\"#ClosePersonModal\" @click=\"DisablePerson()\">\n                    <i class=\"fas fa-lock\"></i>\n                  </a>\n                  <a v-else :key=\"'actions-ActivatePerson-'+data.Code\"  :title=\"tr('Activate Person')\" class=\"col-sm-5\"  @click=\"ActivatePerson()\">\n                    <i class=\"fas fa-unlock-alt\"></i>\n                  </a>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "CustomerPersonsActionsComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "CustomerPersonsActionsComponent";
+        }
+    }]);
+
+    return CustomerPersonsActionsComponent;
+}(Component);
+
+CustomerPersonsActionsComponent.registerComponent();
+//# sourceMappingURL=CustomerPersonsActionsComponent.js.map

@@ -1,0 +1,253 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var conditionalFilterComponent = function (_Component) {
+    _inherits(conditionalFilterComponent, _Component);
+
+    function conditionalFilterComponent() {
+        _classCallCheck(this, conditionalFilterComponent);
+
+        return _possibleConstructorReturn(this, (conditionalFilterComponent.__proto__ || Object.getPrototypeOf(conditionalFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(conditionalFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                renderView: false,
+                filterToApply: new Map(),
+                collections: [],
+                inView: 0,
+                orderBy: 'label',
+                orderDirection: 'asc'
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$store.state.itemsFullLoader': function $storeStateItemsFullLoader() {
+                    if (this.$store.state.itemsFullLoader) {
+                        this.generateFilters();
+                    }
+                },
+                '$store.state.itemUpdate': 'calculateResults',
+                '$route': 'generateFilters',
+                '$store.state.itemTimeFlag': 'generateFilters'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                try {
+                    var self = this;
+                    this.generateFilters();
+                    this.display = !this.isMobile;
+                    $(window).resize(function () {
+                        self.isMobile = $(window).width() <= 560;
+                        self.display = !self.isMobile;
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                fetchData: this.fetchData,
+                resetCountFilters: this.resetCountFilters,
+                calculateResults: this.calculateResults,
+                generateFilters: this.generateFilters,
+                getfilterLabel: this.getfilterLabel,
+                getItemValue: this.getItemValue,
+                checkedObserve: this.checkedObserve
+            };
+        }
+    }, {
+        key: "fetchData",
+        value: function fetchData(filter, value) {
+            this.renderView = !this.renderView;
+            this.calculateResults();
+        }
+    }, {
+        key: "resetCountFilters",
+        value: function resetCountFilters() {
+            this.inView = 0;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this.collections[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var filter = _step.value;
+
+                    filter.itemCount = 0;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "calculateResults",
+        value: function calculateResults() {
+
+            var items = this.$store.getters.getItemsVisibles; //this.$store.getters.getItems;
+            this.resetCountFilters();
+            var inView = 0;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = this.collections[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var filter = _step2.value;
+                    var _iteratorNormalCompletion3 = true;
+                    var _didIteratorError3 = false;
+                    var _iteratorError3 = undefined;
+
+                    try {
+                        for (var _iterator3 = items.filter(function (e) {
+                            return e.visible == true;
+                        })[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                            var x = _step3.value;
+
+                            try {
+                                var isVisible = void 0;
+                                if (filter.value) isVisible = filter.value == x[filter.filterField];else isVisible = x[filter.filterField] != true;
+
+                                if (isVisible) {
+                                    filter.itemCount = filter.itemCount + 1;
+                                    inView = inView + 1;
+                                }
+                                filter.active = this.$store.state.filters.indexOf(filter.name) !== -1;
+                            } catch (err) {
+                                // eslint-disable-next-line no-console
+                                console.log(err, filter, x);
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError3 = true;
+                        _iteratorError3 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                _iterator3.return();
+                            }
+                        } finally {
+                            if (_didIteratorError3) {
+                                throw _iteratorError3;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            this.inView = inView;
+        }
+    }, {
+        key: "generateFilters",
+        value: function generateFilters() {
+            var collections = [];
+            var _arr = [true, false];
+            for (var _i = 0; _i < _arr.length; _i++) {
+                var value = _arr[_i];
+                var filter = {};
+                filter.name = "conditional-" + this.filterField.ItemField + "-" + value; //uuidv4();
+                if (value) filter.condition = "x." + this.filterField.ItemField + " == " + value;else filter.condition = "x." + this.filterField.ItemField + " != true";
+
+                filter.result = true;
+                filter.type = 'multivalue';
+                filter.label = value ? this.tr("Yes") : this.tr("No");
+                filter.value = value;
+                filter.filterField = this.filterField.ItemField;
+                filter.itemCount = 0;
+                filter.hiddens = new Map();
+                filter.active = false;
+                collections.push(filter);
+            }
+            this.collections = collections;
+            this.calculateResults();
+        }
+    }, {
+        key: "getfilterLabel",
+        value: function getfilterLabel(item, fieldName) {
+            if (item.fields) item = item.fields;
+            if (fieldName + '_format' in item) if (item[fieldName + '_format']) return item[fieldName + '_format'];
+            return item[fieldName];
+        }
+    }, {
+        key: "getItemValue",
+        value: function getItemValue(item, fieldName) {
+            if (item.fields) item = item.fields;
+            return item[fieldName];
+        }
+    }, {
+        key: "checkedObserve",
+        value: function checkedObserve(filter) {
+            filter.active = true & filter.active;
+            this.$store.dispatch('addFilter', filter);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter multivalueFilter\" v-show=\"inView>0\">\n                    <p class=\"filter-title\" @click=\"display = !display\">\n                        {{tr(filterField.ItemField)}}\n                        <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                        <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                    </p>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul class=\"unstyled\">\n                            <template v-for=\"value of collections\">\n                                <li :key=\"'li'+value.name\" v-if=\"value.itemCount>0\">\n                                    <div class=\"custom-control custom-checkbox\">\n                                        <input :key=\"'input-'+filterField.ItemField+'-'+value.name\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"value.active\" :id=\"'input-'+filterField.ItemField+'-'+value.name\" @click=\"checkedObserve(value)\" />\n                                        <label :for=\"'input-'+filterField.ItemField+'-'+value.name\" class=\"custom-control-label\">{{value.label}} ({{value.itemCount}})</label>\n                                    </div>\n                                </li>\n                            </template>\n                        </ul>\n                    </section>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "conditionalFilterComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "conditionalFilterComponent";
+        }
+    }]);
+
+    return conditionalFilterComponent;
+}(Component);
+
+conditionalFilterComponent.registerComponent();
+//# sourceMappingURL=conditionalFilterComponent.js.map

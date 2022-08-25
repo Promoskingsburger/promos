@@ -1,0 +1,55 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+//TODO REVISAR este y sus componentes hijos
+
+var customerGiftsPage = function (_Component) {
+    _inherits(customerGiftsPage, _Component);
+
+    function customerGiftsPage() {
+        _classCallCheck(this, customerGiftsPage);
+
+        return _possibleConstructorReturn(this, (customerGiftsPage.__proto__ || Object.getPrototypeOf(customerGiftsPage)).apply(this, arguments));
+    }
+
+    _createClass(customerGiftsPage, [{
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row\">\n                  <headerSectionComponent></headerSectionComponent>\n                  <div :class=\"classContainer\">\n                      <template v-if=\"$store.getters.getAppState=='ready'\">\n                          <registerModalComponent></registerModalComponent>\n                          <loginPage></loginPage>\n                          <div class=\"row\">\n                              <div class=\"col m2 s12\">\n                                  <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>\n                              </div>                                \n                              <div class=\"col m8 s12\">\n                                  <customerGiftsListComponent></customerGiftsListComponent>\n                              </div>\n                              <div class=\"col m2 s12\">\n                                  <userSectionComponent></userSectionComponent>\n                                  <carComponent></carComponent>\n                              </div>\n                          </div>\n                      </template>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "customerGiftsPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "customerGiftsPage";
+        }
+    }]);
+
+    return customerGiftsPage;
+}(Component);
+
+customerGiftsPage.registerComponent();
+//# sourceMappingURL=customerGiftsPage.js.map

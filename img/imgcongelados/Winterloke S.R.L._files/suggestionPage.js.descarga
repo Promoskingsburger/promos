@@ -1,0 +1,91 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+//TODO REVISAR este y sus componentes hijos
+
+var suggestionPage = function (_Component) {
+    _inherits(suggestionPage, _Component);
+
+    function suggestionPage() {
+        _classCallCheck(this, suggestionPage);
+
+        return _possibleConstructorReturn(this, (suggestionPage.__proto__ || Object.getPrototypeOf(suggestionPage)).apply(this, arguments));
+    }
+
+    _createClass(suggestionPage, [{
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"items-view\">\n                  <headerSectionComponent></headerSectionComponent>\n                  <div class=\"section white\">\n                      <div :class=\"classContainer\">\n                          <template v-if=\"$store.getters.getAppState=='ready'\">\n                                <registerModalComponent></registerModalComponent>\n                                <loginPage></loginPage>\n                              <div class=\"row\">\n                                  <div class=\"left sticky-component items-category-tree\">\n                                      <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>\n                                  </div>                                \n                                  <div class=\"col m8 s12\">\n                                      <suggestionListComponent></suggestionListComponent>\n                                  </div>\n                                  <div class=\"col m2 s12 sticky-component right\">\n                                      <userSectionComponent></userSectionComponent>\n                                      <carComponent></carComponent>\n                                  </div>\n                              </div>\n\n                          </template>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "suggestionPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "suggestionPage";
+        }
+    }]);
+
+    return suggestionPage;
+}(Component);
+
+suggestionPage.registerComponent();
+
+/*
+
+Vue.component('suggestionComponent', {
+    methods:{
+        goBack:function(){
+            this.$router.go(-1);
+        }
+    },
+    template: `<div class="items-view">
+                  <headerSectionComponent></headerSectionComponent>
+                  <div class="section white">
+                      <div class="container">
+                          <template v-if="$store.getters.getAppState=='ready'">
+                                <registerComponent></registerComponent>
+                                <loginComponent></loginComponent>
+                              <div class="row">
+                                  <div class="left sticky-component items-category-tree">
+                                      <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>
+                                  </div>                                
+                                  <div class="col m8 s12">
+                                      <suggestionListComponent></suggestionListComponent>
+                                  </div>
+                                  <div class="col m2 s12 sticky-component right">
+                                      <userSectionComponent></userSectionComponent>
+                                      <carComponent></carComponent>
+                                  </div>
+                              </div>
+
+                          </template>
+                      </div>
+                  </div>
+                  <footerSectionComponent></footerSectionComponent>
+                </div>`
+});
+*/
+//# sourceMappingURL=suggestionPage.js.map

@@ -1,0 +1,622 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, _,__lodash__, uuidv4,  score */
+/* eslint-disable no-unused-vars */
+function titleCase(str) {
+    try {
+        return str.toLowerCase().split(' ').map(function (word) {
+            if (word.length > 0) return word.replace(word[0], word[0].toUpperCase());
+            return word;
+        }).join(' ');
+    } catch (e) {
+        //console.log("Error en busqueda",e);
+        return str;
+    }
+}
+
+var headerSectionComponent = function (_Component) {
+    _inherits(headerSectionComponent, _Component);
+
+    function headerSectionComponent() {
+        _classCallCheck(this, headerSectionComponent);
+
+        return _possibleConstructorReturn(this, (headerSectionComponent.__proto__ || Object.getPrototypeOf(headerSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(headerSectionComponent, [{
+        key: 'getProps',
+        value: function getProps() {
+            return ['renderMenu', 'renderSearch', 'headerTitle'];
+        }
+    }, {
+        key: 'data',
+        value: function data() {
+            return {
+                rapidMenu: false,
+                baget_in_car: 0,
+                optionList: [],
+                show_modal: true,
+                active_search: false,
+                filterValue: '',
+                flagforceUpdate: 1,
+                defaultHasBrandImg: false,
+                defaultLogoUrl: '/static/ecommerce/img/app.png',
+                isMobile: $(window).width() <= 991
+                //url:'/static/ecommerce/img/user.png'
+            };
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                "$store.state.itemsFullLoader": function $storeStateItemsFullLoader(newValue, oldValue) {
+                    if (newValue) {
+                        this.flagforceUpdate = this.flagforceUpdate + 1;
+                        this.launchFilter();
+                        this.reloadOption();
+                        this.loadPrices();
+                    }
+                },
+                "carItemBadge": function carItemBadge() {
+                    this.loadPrices();
+                }
+            };
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return function () {
+                this.$nextTick(function () {
+                    this.launchFilter();
+                });
+
+                this.subscribeEvent('closeSandwichMenu', this.closeSandwichMenu);
+            };
+        }
+    }, {
+        key: 'updated',
+        value: function updated() {
+            return function () {
+                this.loadPrices();
+            };
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                logoUrl: function logoUrl() {
+                    if (this.$store.getters.getSetting.UseMenuImage) {
+                        if (this.$store.getters.getSetting.MenuImage) return './../assets/' + this.$store.getters.getSetting.MenuImage;else return './../assets/LOGO';
+                    }
+                    return this.defaultLogoUrl;
+                },
+                carAmount: function carAmount() {
+                    var amountInCard = this.$store.getters.getCarAmount;
+                    if (amountInCard >= 0) amountInCard = amountInCard.toFixed(2);
+                    return this.metricNumber(amountInCard);
+                },
+                hasBrandImg: function hasBrandImg() {
+                    var settings = this.$store.getters.getSetting;
+                    if (settings) return settings.UseMenuImage;
+                    return this.defaultHasBrandImg;
+                },
+                session: function session() {
+                    if (this.$store.getters.getSession && this.flagforceUpdate > 0) return true;else return false;
+                },
+                menuVisible: function menuVisible() {
+                    if (this.renderMenu == undefined || this.renderMenu == null) return true;else return this.renderMenu;
+                },
+                inputSearch: function inputSearch() {
+                    if (this.renderSearch == undefined || this.renderSearch == null) return true;else return this.renderSearch;
+                },
+                menuTitle: function menuTitle() {
+                    return this.$store.getters.menuTitle;
+                },
+                menuSubTitle: function menuSubTitle() {
+                    return this.$store.getters.menuSubTitle;
+                },
+                mustRender: function mustRender() {
+                    return this.$store.getters.settingsIsLoaded;
+                },
+                carItemBadge: function carItemBadge() {
+                    var self = this;
+                    if (this.$store.getters.getSetting && this.$store.getters.getSetting.ShowTotalQty == 1) return _.sumBy(self.$store.getters.getItemCar, function (item) {
+                        return parseInt(item.cant);
+                    });else return this.$store.getters.getItemCar.length;
+                },
+                showRapidMenu: function showRapidMenu() {
+                    return this.optionList.length > 0 && this.rapidMenu;
+                },
+                avatarUrl: function avatarUrl() {
+                    if (this.$store.getters.getAvatar) return this.$store.getters.getAvatar;else return "../static/ecommerce/img/user.png";
+                }
+            };
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {
+
+                toogleSearch: this.toogleSearch,
+                logout: this.logout,
+                openModalLogin: this.openModalLogin,
+                openModalRegister: this.openModalRegister,
+                openModalChangePassword: this.openModalChangePassword,
+                openModalCustomer: this.openModalCustomer,
+                openReport: this.openReport,
+                loadPrices: this.loadPrices,
+                loadPricesSuggestions: this.loadPricesSuggestions,
+                delayReload: this.delayReload,
+                reloadOption: this.reloadOption,
+                filter: this.filter,
+                updateCtyValue: this.updateCtyValue,
+                launchFilter: this.launchFilter,
+                maxItemInCar: this.maxItemInCar,
+                addToCar: this.addToCar,
+                qtyDecrement: this.qtyDecrement,
+                qtyIncrement: this.qtyIncrement,
+                closeSandwichMenu: this.closeSandwichMenu
+            };
+        }
+    }, {
+        key: 'toogleSearch',
+        value: function toogleSearch() {
+            this.active_search = !this.active_search;
+        }
+    }, {
+        key: 'logout',
+        value: function logout() {
+            this.$store.dispatch('logout');
+            this.$router.push('/home');
+        }
+    }, {
+        key: 'openModalLogin',
+        value: function openModalLogin() {
+            $('#loginModal').modal();
+            $('#loginModal').modal('open');
+        }
+    }, {
+        key: 'openModalRegister',
+        value: function openModalRegister() {
+            $('#registerModal').modal();
+            $('#loginModal').modal('close');
+            $('#registerModal').modal('open');
+        }
+    }, {
+        key: 'openModalChangePassword',
+        value: function openModalChangePassword() {
+            $('#changePasswordModal').modal();
+            $('#changePasswordModal').modal('open');
+        }
+    }, {
+        key: 'openModalCustomer',
+        value: function openModalCustomer() {
+            $('#registerCustomerModal').modal();
+            $('#registerCustomerModal').modal('open');
+        }
+    }, {
+        key: 'openReport',
+        value: function openReport(reportName) {
+            if (reportName) this.$router.push('/report/' + reportName);
+        }
+    }, {
+        key: 'loadPrices',
+        value: function loadPrices() {
+            var itemCodes = new Map();
+            var items = this.$store.getters.getItemCar;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var item = _step.value;
+
+                    if (!itemCodes.has(item.item.Code)) {
+                        var tempItem = this.$store.getters.getItemByCode(item.item.Code);
+                        if (tempItem && !tempItem.isCalculate) itemCodes.set(item.item.Code, tempItem);
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            if (itemCodes.size > 0) {
+                var self = this;
+                this.$store.dispatch("updatePrices", Array.from(itemCodes.values())).then(function (response) {
+                    self.$store.commit('updateCarAmount', self.$store.getters);
+                });
+            }
+        }
+    }, {
+        key: 'loadPricesSuggestions',
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(optionList) {
+                var itemCodes, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, item, self;
+
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (!(optionList.length > 0)) {
+                                    _context.next = 23;
+                                    break;
+                                }
+
+                                itemCodes = new Map();
+                                _iteratorNormalCompletion2 = true;
+                                _didIteratorError2 = false;
+                                _iteratorError2 = undefined;
+                                _context.prev = 5;
+
+                                for (_iterator2 = optionList.slice(0, 10)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                    item = _step2.value;
+
+                                    if (!itemCodes.has(item.Code)) {
+                                        if (!item.isCalculate) itemCodes.set(item.Code, item);
+                                    }
+                                }
+                                _context.next = 13;
+                                break;
+
+                            case 9:
+                                _context.prev = 9;
+                                _context.t0 = _context['catch'](5);
+                                _didIteratorError2 = true;
+                                _iteratorError2 = _context.t0;
+
+                            case 13:
+                                _context.prev = 13;
+                                _context.prev = 14;
+
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+
+                            case 16:
+                                _context.prev = 16;
+
+                                if (!_didIteratorError2) {
+                                    _context.next = 19;
+                                    break;
+                                }
+
+                                throw _iteratorError2;
+
+                            case 19:
+                                return _context.finish(16);
+
+                            case 20:
+                                return _context.finish(13);
+
+                            case 21:
+                                self = this;
+
+                                if (itemCodes.size > 0) {
+                                    this.$store.dispatch("updatePrices", Array.from(itemCodes.values())).then(function (response) {
+                                        if (!self.$store.getters.showZeroPrice) {
+                                            self.optionList = optionList.filter(function (x) {
+                                                return self.$store.getters.showItemPrice(x) > 0;
+                                            }).slice(0, 10);
+                                        } else {
+                                            self.optionList = optionList.slice(0, 10);
+                                        }
+                                    });
+                                } else {
+                                    if (!this.$store.getters.showZeroPrice) {
+                                        optionList = optionList.filter(function (x) {
+                                            return self.$store.getters.showItemPrice(x) > 0;
+                                        }).slice(0, 10);
+                                        this.optionList = optionList;
+                                    } else {
+                                        this.optionList = optionList.slice(0, 10);
+                                    }
+                                }
+
+                            case 23:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this, [[5, 9, 13, 21], [14,, 16, 20]]);
+            }));
+
+            function loadPricesSuggestions(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return loadPricesSuggestions;
+        }()
+    }, {
+        key: 'delayReload',
+        value: function delayReload(event) {
+            if (this._setTimeoutReload) {
+                clearTimeout(this._setTimeoutReload);
+            }
+            this._setTimeoutReload = setTimeout(this.reloadOption, 550);
+        }
+    }, {
+        key: 'reloadOption',
+        value: function reloadOption(event) {
+            this.reloadingOptions = true;
+            this._setTimeoutReload = null;
+            var filterValue = this.filterValue.trim();
+            var synonym = this.$store.getters.trSynonyms(filterValue.toString());
+            if (!filterValue || filterValue.length) this.optionList = [];
+            if (filterValue.length > 1) {
+                var newoptionList = [];
+                var _iteratorNormalCompletion3 = true;
+                var _didIteratorError3 = false;
+                var _iteratorError3 = undefined;
+
+                try {
+                    for (var _iterator3 = this.$store.state.items_store.values()[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                        var item = _step3.value;
+
+                        if (this.$store.state.useVariations && item.Father) continue;
+                        item.SearchScore = 0;
+                        var isVisible = false;
+                        try {
+                            if (synonym) {
+                                item.SearchScore = score(item.Name.toLowerCase(), synonym.toLowerCase());
+                                if (item.SearchScore >= this.$store.state.scoringAceptation) {
+                                    item.carCant = 1;
+                                    isVisible = true;
+                                }
+                                if (!isVisible && item.Comment) {
+                                    item.SearchScore = score(item.Comment.toLowerCase(), synonym.toLowerCase());
+                                    if (item.SearchScore >= this.$store.state.scoringAceptation) {
+                                        item.carCant = 1;
+                                        isVisible = true;
+                                    }
+                                }
+                            }
+                            var tempScoring = score(item.Name.toLowerCase(), filterValue.toLowerCase());
+                            item.SearchScore = Math.max(item.SearchScore, tempScoring);
+                            if (!isVisible && tempScoring >= this.$store.state.scoringAceptation) {
+                                item.carCant = 1;
+                                isVisible = true;
+                            }
+                            if (!isVisible && item.Comment) {
+                                item.SearchScore = score(item.Comment.toLowerCase(), filterValue.toLowerCase());
+                                if (item.SearchScore >= this.$store.state.scoringAceptation) {
+                                    item.carCant = 1;
+                                    isVisible = true;
+                                }
+                            }
+                            if (isVisible) newoptionList.push(item);
+                        } catch (e) {
+                            //console.log('Error in item',item,e);
+                            continue;
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError3 = true;
+                    _iteratorError3 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                            _iterator3.return();
+                        }
+                    } finally {
+                        if (_didIteratorError3) {
+                            throw _iteratorError3;
+                        }
+                    }
+                }
+
+                newoptionList = __lodash__.orderBy(newoptionList, 'SearchScore', "desc");
+                if (newoptionList.length > 0) {
+                    this.loadPricesSuggestions(newoptionList);
+                }
+
+                this.reloadingOptions = false;
+            }
+        }
+    }, {
+        key: 'filter',
+        value: function filter() {
+            this.optionList = [];
+            var searchWords = this.filterValue.toString().toLowerCase();
+            var filter = {};
+            var synonym = this.$store.getters.trSynonyms(this.filterValue.toString());
+            filter.name = 'inputSearch-' + uuidv4();
+            filter.type = 'inputSearch';
+            filter.filterValue = this.filterValue.toString();
+            var settings = this.$store.getters.getSetting;
+            filter.condition = "";
+            if (settings.SearchFields && settings.SearchFields.split(",").length > 0) {
+                var filterFields = settings.SearchFields.split(",");
+                var isFirts = true;
+                var itemTemplate = this.$store.state.items_store.values().next().value;
+                var regSearchWords = searchWords.replace(/\//, ".*");
+                //console.log("ASDADADADADADAD",regSearchWords);
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = filterFields[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var filterField = _step4.value;
+
+                        if (itemTemplate.hasOwnProperty(filterField)) {
+                            if (!isFirts) {
+                                filter.condition += " || ";
+                            }
+                            if (['Name', "Comment"].indexOf(filterField) != -1) {
+                                filter.condition += ' ( x.' + filterField + ' && ( score(x.' + filterField + '.toLowerCase(),\'' + searchWords + '\')>=' + this.$store.state.scoringAceptation + ' ';
+                                if (synonym) {
+                                    filter.condition += ' || (x.' + filterField + '.toLowerCase(),\'' + synonym + '\')>=' + this.$store.state.scoringAceptation + ') ';
+                                }
+                            } else {
+
+                                filter.condition += ' ( x.' + filterField + ' && ( x.' + filterField + '.toString().toLowerCase().search(/' + regSearchWords + '/) !=-1 ';
+                                if (synonym) {
+                                    filter.condition += ' || ( x.' + filterField + ' && ( x.' + filterField + '.toString().toLowerCase().search(/' + regSearchWords + '/)!=-1 ';
+                                }
+                            }
+                            filter.condition += ' )) ';
+                            var filterFormat = filterField + "_format";
+                            if (itemTemplate.hasOwnProperty(filterFormat)) {
+                                if (['Name', "Comment"].indexOf(filterField) != -1) {
+                                    filter.condition += '  || ( x.' + filterFormat + ' && ( score(x.' + filterFormat + '.toLowerCase(),\'' + searchWords + '\')>=' + this.$store.state.scoringAceptation + ' ';
+                                    if (synonym) {
+                                        filter.condition += ' || (x.' + filterFormat + '.toLowerCase(),\'' + synonym + '\')>=' + this.$store.state.scoringAceptation + ' )  ';
+                                    }
+                                } else {
+                                    filter.condition += '  || ( x.' + filterFormat + ' && ( x.' + filterFormat + '.toString().toLowerCase().search(/' + regSearchWords + '/) !=-1 ';
+                                    if (synonym) {
+                                        filter.condition += ' || ( x.' + filterFormat + ' && ( x.' + filterFormat + '.toString().toLowerCase().search(/' + regSearchWords + '/)!=-1 ';
+                                    }
+                                }
+                                filter.condition += ' )) ';
+                            }
+                            isFirts = false;
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+            } else {
+                if (synonym) filter.condition = 'score(x.Name.toLowerCase(),\'' + searchWords + '\')>=' + this.$store.state.scoringAceptation + ' || x.Code==\'' + searchWords + '\' || score(x.Name.toLowerCase(),\'' + synonym + '\')>=' + this.$store.state.scoringAceptation;else filter.condition = 'score(x.Name.toLowerCase(),\'' + searchWords + '\')>=' + this.$store.state.scoringAceptation;
+            }
+            filter.synonym = synonym;
+            filter.result = true;
+            this.$store.dispatch('addGlobalFilter', filter);
+            this.$store.dispatch('updateCategory', null);
+
+            if (this.$route.query.search && this.$route.query.search != this.filterValue || !this.$route.query.search) this.$router.push({ path: '/products', query: { search: this.filterValue } });
+
+            if (this.isMobile) {
+                this.emitEvent('closeSandwichMenu');
+            }
+        }
+    }, {
+        key: 'updateCtyValue',
+        value: function updateCtyValue(event, opt) {
+            //console.log(event.target.value+this.$store.getters.getItemQtyCar(opt.Code) ,this.$store.getters.getMaxQtyItem);
+            if (parseInt(event.target.value) + this.$store.getters.getItemQtyCar(opt.Code) <= this.$store.getters.getMaxQtyItem) {
+                opt.carQty = event.target.value;
+                return false;
+            } else {
+                event.target.value = 1;
+                opt.carQty = 1;
+                this.$store.dispatch('showNotificacion', {
+                    title: this.tr('Qty'),
+                    message: this.tr("Maximum item quantity reached"),
+                    type: 'error'
+                });
+            }
+            return true;
+        }
+    }, {
+        key: 'launchFilter',
+        value: function launchFilter() {
+            var settings = this.$store.getters.getSetting;
+            if (!settings || this.$store.getters.AppStatus) {
+                setTimeout(this.launchFilter, 1000);
+            } else {
+                if (this.$route.query.search != undefined) {
+                    this.filterValue = this.$route.query.search;
+                    this.filter();
+                }
+            }
+        }
+    }, {
+        key: 'maxItemInCar',
+        value: function maxItemInCar(item) {
+            if (this.$store.getters.getControlStock) return item.Qty;
+            return this.$store.getters.getMaxQtyItem - this.$store.getters.getItemQtyCar(item.Code);
+        }
+    }, {
+        key: 'addToCar',
+        value: function addToCar(item) {
+            if (this.maxItemInCar(item) < 1) {
+                item.carQty = 1;
+                this.$store.dispatch('showNotificacion', { title: this.tr('Qty'), message: this.tr("Maximum item quantity reached"), type: 'error' });
+                return;
+            }
+            if (isNaN(item.carQty) || item.carQty <= 0) {
+                this.$store.dispatch('showNotificacion', { title: this.tr('Qty'), message: this.tr("Incorrent Qty Value"), type: 'error' });
+                return;
+            }
+            this.$store.dispatch('ItemComponentAddToCar', item);
+            item.carQty = 1;
+        }
+    }, {
+        key: 'qtyDecrement',
+        value: function qtyDecrement(item) {
+            if (isNaN(item.carQty)) {
+                item.carQty = 0;
+            }
+            if (item.carQty > 1) item.carQty = parseInt(item.carQty) - 1;else item.carQty = 1;
+        }
+    }, {
+        key: 'qtyIncrement',
+        value: function qtyIncrement(item) {
+            if (isNaN(item.carQty)) {
+                item.carQty = 0;
+            }
+            if (item.carQty + 1 <= this.maxItemInCar(item)) item.carQty = parseInt(item.carQty) + 1;
+        }
+    }, {
+        key: 'closeSandwichMenu',
+        value: function closeSandwichMenu() {
+            if (this.isMobile) {
+                $(this.$el).find('#navbarSupportedContent').collapse('hide');
+            }
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div>\n                <nav class="navbar navbar-expand-lg navbar-light" v-if="mustRender">\n                  <router-link to="/home" class="nav-link brand-link" href="#">\n                      <template v-if="hasBrandImg">\n                          <img class="brand-logo"  :src="logoUrl">\n                      </template>\n                      <template v-if="!hasBrandImg">\n                          <span class="brand-logo">{{menuTitle}}</span>\n                          <span class="app-name">{{menuSubTitle}}</span>\n                      </template>\n                  </router-link>\n                  <ul class="navbar-nav d-sm-block d-lg-none ml-auto">\n                      <li class="nav-item cart-icon-container" :title="tr([\'Total Amount in Car $ {{$1}}\', carAmount])">\n                            <router-link to="/badges" class="nav-link cart-icon pt-0">\n                                <i class="fa fa-shopping-cart fa-2x" ></i>\n                                <span class="cart-badge badge badge-light">\n                                        {{metricNumber(parseInt(carItemBadge))}}\n                                    </span>\n                            </router-link>\n                            <span class="total" v-if="$store.getters.getSetting.ShowTotalPrice">$ {{carAmount}}</span>\n                      </li>\n                  </ul>\n                  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">\n                    <span class="navbar-toggler-icon"><i class="icon fas fa-bars"></i></span>\n                  </button>\n\n                  <div class="collapse navbar-collapse" id="navbarSupportedContent" >\n                    <div class="search-wrapper form-inline mt-3 mt-lg-0 col-md-6 p-0" autocomplete="off"  @mouseenter="rapidMenu=true" >\n                            <input list="searchinput" class="inputSEARCH search-input form-control mr-sm-2" type="search" v-model="filterValue" @change2="filter" @keydown="delayReload" @keydown.enter="filter" aria-label="Search" autocomplete="none" :placeholder="tr(\'ECOMSEARCHTEXT\')">\n                            <span class="search-icon" @click="filter"><i class="fas fa-search"></i></span>\n                            <div class="header_datalist container pl-1 pl-sm-3 pr-1 pt-3" v-if="showRapidMenu" @mouseleave="rapidMenu=false">\n                                <div class="categorias d-none" >\n                                </div>\n                                <!--h6 class="font-weight-bold my-3">Productos Sugeridos</h6-->\n                                <div class="products-scroll products-scroll--alt" >\n                                    <template v-for="opt in optionList">\n                                        <div class="product-small product-small--alt py-2 mr-1">\n                                            <div class="row">\n                                                <div class="product__image col-3 col-md-2 px-2">\n                                                    <div class="item-detail-modal" >\n                                                        <itemSliderComponent :key="\'slide\'+opt.Code" :item="opt" :stockFlag="$store.getters.showStock" :container="false"  :zoom="false"></itemSliderComponent>\n                                                    </div>\n                                                </div>\n                                                <div class="product__content col-9 col-md-10 px-2 align-self-center">\n                                                    <h6 class="col-12 pl-1">\n                                                        <router-link :to="\'/view/\'+encodeToURL(opt.Code)">{{opt.Name}}</router-link>\n                                                    </h6>\n                                                    <div class="col-12 pl-1">\n                                                        <div class="row align-items-center">\n                                                            <div class="price col-12 col-sm-4 col-md-4"  v-if="$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin">\n                                                                <strong class="d-block crossedoutprice" v-if="opt.CrossedOutPrice">\n                                                                    $ {{opt.CrossedOutPrice}}\n                                                                </strong>\n                                                                $ {{$store.getters.showItemPrice(opt)}}\n                                                            </div>\n                                                            <div class="col-12 col-md-8 pl-0">\n                                                                <div class="input-group add-to-cart-buttons">\n                                                                    <div class="input-group-prepend" @click="qtyDecrement(opt)">\n                                                                        <span class="input-group-text button" id="validationTooltipUsernamePrepend">\n                                                                             <i class="icon fas fa-minus"></i>\n                                                                        </span>\n                                                                    </div>\n                                                                    <input :key="\'th-input-\'+opt.Code" type="text" class="form-control" :value="opt.carQty" :max="maxItemInCar(opt)" :disabled="maxItemInCar(opt)<1" @change="(event)=>updateCtyValue(event,opt)" onfocus="this.oldvalue = this.value;"  @focusout="(event)=>updateCtyValue(event,opt)" >\n                                                                    <div class="input-group-append" @click="qtyIncrement(opt)">\n                                                                        <span class="input-group-text button" id="validationTooltipUsernamePrepend">\n                                                                            <i class="icon fas fa-plus"></i>\n                                                                        </span>\n                                                                    </div>\n                                                                    <div class="input-group-append" @click.stop="addToCar(opt)">\n                                                                        <span class="cart-button input-group-text button ml-2 p-2" id="validationTooltipUsernamePrepend">\n                                                                             <i class="icon fas fa-cart-plus"></i>\n                                                                        </span>\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                        </div>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </template>\n                                </div>\n                                <div class="col-12 text-center mt-2 mb-2" v-if="filterValue">\n                                    <div @click="filter" class="btn-link" >Ver todos los productos</div>\n                                </div>\n                            </div>\n                        </div>\n                    <ul class="navbar-nav flex-row ml-md-auto d-md-flex justify-content-end">\n                        <li class="nav-item" v-if="session" :title="tr(\'Favorities\')">\n                            <router-link to="/favorities" class="nav-link">\n                                <i class="fa fa-heart fa-2x" ></i>\n                            </router-link>\n                        </li>\n                        <li class="nav-item d-none d-lg-block cart-icon-container" :title="tr([\'Total Amount in Car $ {{$1}}\', carAmount])">\n                            <router-link to="/badges" class="nav-link cart-icon">\n                                <i class="fa fa-shopping-cart fa-2x" ></i>\n                                <span class="cart-badge badge badge-light">\n                                    {{metricNumber(parseInt(carItemBadge))}}\n                                </span>\n                            </router-link>\n                            <span class="total" v-if="$store.getters.getSetting.ShowTotalPrice">\n                                 <template v-if="Number.isNaN(Number.parseInt(carAmount))">\n                                    $ ...\n                                 </template>\n                                 <template v-else>\n                                    $ {{carAmount}}\n                                 </template>\n                             </span>\n                        </li>\n                        <li class="nav-item">\n                            <template  v-if="session">\n                                <router-link key="profile-link" to="/profile" :title="tr(\'Profile\')" class="nav-link">\n                                   <img key=\'avatar \' :src="avatarUrl" alt="" width="45" height="45" class="avatar img-fluid rounded-circle customer-image responsive-img">\n                                </router-link>\n                            </template>\n                            <template v-else>\n                                <router-link key="login-link" to="/login" :title="tr(\'Login\')" class="nav-link">\n                                    <i class="fa fa-user fa-2x" ></i>\n                                </router-link>\n                            </template>\n                        </li>\n                    </ul>\n                  </div>\n                </nav>\n                <subheaderSectionComponent></subheaderSectionComponent>\n              </div>';
+        }
+    }], [{
+        key: 'name',
+        value: function name() {
+            return "headerSectionComponent";
+        }
+    }, {
+        key: 'componentName',
+        value: function componentName() {
+            return "headerSectionComponent";
+        }
+    }]);
+
+    return headerSectionComponent;
+}(Component);
+
+headerSectionComponent.registerComponent();
+//# sourceMappingURL=headerSectionComponent.js.map

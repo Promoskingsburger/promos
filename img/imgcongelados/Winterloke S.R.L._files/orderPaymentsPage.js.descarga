@@ -1,0 +1,130 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var PaymentsResult = function (_Component) {
+    _inherits(PaymentsResult, _Component);
+
+    function PaymentsResult() {
+        _classCallCheck(this, PaymentsResult);
+
+        return _possibleConstructorReturn(this, (PaymentsResult.__proto__ || Object.getPrototypeOf(PaymentsResult)).apply(this, arguments));
+    }
+
+    _createClass(PaymentsResult, [{
+        key: 'getProps',
+        value: function getProps() {
+            return ['orderSerNr'];
+        }
+    }, {
+        key: 'data',
+        value: function data() {
+            return {
+                mpdata: {},
+                paymentMsg: null
+            };
+        }
+    }, {
+        key: 'getRoutes',
+        value: function getRoutes() {
+            return {};
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                '$store.getters.getAppState': function $storeGettersGetAppState(param1, param2) {
+                    if (this.$store.getters.getAppState == 'ready') {
+                        if (this.$store.state.session) {
+                            this.loadPaymentData();
+                            this.appIsReady = true;
+                        } else {
+                            this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                            this.$router.push({ name: 'LoginLink' });
+                        }
+                    }
+                }
+            };
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (this.$store.getters.getAppState == 'ready') {
+                                    this.loadPaymentData();
+                                    this.appIsReady = true;
+                                }
+
+                            case 1:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: 'orderSerNr',
+        value: function orderSerNr() {
+            // console.log('computed SerNr');
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {
+                loadPaymentData: this.loadPaymentData
+            };
+        }
+    }, {
+        key: 'loadPaymentData',
+        value: function loadPaymentData() {
+            this.mpdata = JSON.parse(atob(this.$route.params.info));
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                soSerNr: function soSerNr() {
+                    if (this.$route.params.orderid) return atob(this.$route.params.orderid);
+                    return this.orderSerNr;
+                },
+                paymentLink: function paymentLink() {
+                    return "/payment/" + window.btoa(this.mpdata.order);
+                }
+            };
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div :class="classContainer" >\n                      <div class="section-main col-lg-8 offset-lg-2" v-if="!isLoading">\n                           <h5 class="text-center my-4">{{tr("Payment")}} {{tr(\'Sales Order\')}} <strong>{{mpdata.order}}</strong></h5>                           \n                            <template v-if="mpdata.status==\'approved\'">\n                                <div class="col-12 col-md-8 offset-md-2 alert alert-success text-center" role="alert">\n                                    <icon name="regular/check-circle" scale="5" class="col-6"/>\n                                    <h4 class="col-12 text-center mt-2">{{tr("The payment was approved successfully")}}</h4>\n                                    <strong class="d-block mt-2">{{tr(\'It may take a few minutes to be reflected\')}}</strong>\n                                    <router-link to="/profile" class="btn btn-success mt-2">{{tr(\'View Shopping List\')}}</router-link>\n                                </div>\n                            </template>\n                            <template v-if="mpdata.status==\'in_process\'">\n                                <div class="col-12 col-md-8 offset-md-2 alert alert-warning text-center" role="alert">\n                                    <icon name="regular/check-circle" scale="5" class="col-6"/>\n                                    <h4 class="col-12 text-center mt-2">{{tr("Your payment is in process, once it has been credited to our account, you will be notified")}}.</h4>\n                                    <strong class="d-block mt-2">{{tr(\'It may take a few minutes to be reflected\')}}</strong>\n                                    <router-link to="/profile" class="btn btn-warning mt-2">{{tr(\'View Shopping List\')}}</router-link>\n                                </div>\n                            </template>\n                            <template v-if="mpdata.status==\'rejected\' || mpdata.status==\'null\'">\n                                <div class="col-12 col-md-8 offset-md-2 alert alert-warning text-center" role="alert">\n                                    <icon name="regular/check-circle" scale="5" class="col-6"/>\n                                    <h4 class="col-12 text-center mt-2">{{tr("Sorry your payment was rejected or canceled manually by you, if you payment was reject you could try with other payment method clicking in the link below")}}.</h4>\n                                    <router-link :to="paymentLink" class="btn btn-warning mt-2">{{tr(\'Try Again\')}}</router-link>\n                                </div>\n                            </template>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>';
+        }
+    }], [{
+        key: 'name',
+        value: function name() {
+            return "paymentsResultPage";
+        }
+    }, {
+        key: 'componentName',
+        value: function componentName() {
+            return 'paymentsResultPage';
+        }
+    }]);
+
+    return PaymentsResult;
+}(Component);
+
+PaymentsResult.registerComponent();
+//# sourceMappingURL=orderPaymentsPage.js.map

@@ -1,0 +1,189 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var centralContainerComponent = function (_Component) {
+    _inherits(centralContainerComponent, _Component);
+
+    function centralContainerComponent() {
+        _classCallCheck(this, centralContainerComponent);
+
+        return _possibleConstructorReturn(this, (centralContainerComponent.__proto__ || Object.getPrototypeOf(centralContainerComponent)).apply(this, arguments));
+    }
+
+    _createClass(centralContainerComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                componentIsLoading: false,
+                viewIsLoading: true
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                homeSections: function homeSections() {
+                    return __lodash__.sortBy(this.$store.getters.getHomeSections, 'PositionOrder');
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (this.$store.state.itemsFullLoader) {
+                                    this.loadPrices();
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "$store.state.itemsFullLoader": function $storeStateItemsFullLoader() {
+                    if (this.$store.state.itemsFullLoader) {
+                        this.componentIsLoading = false;
+                        this.loadPrices();
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadPrices: this.loadPrices
+            };
+        }
+    }, {
+        key: "loadPrices",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var itemCodes, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, homeItemCode, tempItem;
+
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                if (this.componentIsLoading) {
+                                    _context2.next = 26;
+                                    break;
+                                }
+
+                                this.viewIsLoading = true;
+                                //console.log('items in home call 111');
+                                itemCodes = new Map();
+                                //console.log('ITems Home 333',this.$store.getters.getHomeItems)
+
+                                _iteratorNormalCompletion = true;
+                                _didIteratorError = false;
+                                _iteratorError = undefined;
+                                _context2.prev = 6;
+                                for (_iterator = this.$store.getters.getHomeItems[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                    homeItemCode = _step.value;
+
+                                    //console.log('Load Item of Home',homeItemCode)
+                                    if (!itemCodes.has(homeItemCode.fields.ItemCode)) {
+                                        tempItem = this.$store.getters.getItemByCode(homeItemCode.fields.ItemCode);
+
+                                        if (tempItem) itemCodes.set(homeItemCode.fields.ItemCode, tempItem);
+                                    }
+                                }
+                                _context2.next = 14;
+                                break;
+
+                            case 10:
+                                _context2.prev = 10;
+                                _context2.t0 = _context2["catch"](6);
+                                _didIteratorError = true;
+                                _iteratorError = _context2.t0;
+
+                            case 14:
+                                _context2.prev = 14;
+                                _context2.prev = 15;
+
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+
+                            case 17:
+                                _context2.prev = 17;
+
+                                if (!_didIteratorError) {
+                                    _context2.next = 20;
+                                    break;
+                                }
+
+                                throw _iteratorError;
+
+                            case 20:
+                                return _context2.finish(17);
+
+                            case 21:
+                                return _context2.finish(14);
+
+                            case 22:
+                                _context2.next = 24;
+                                return this.$store.dispatch("updatePrices", Array.from(itemCodes.values()));
+
+                            case 24:
+                                //console.log('Ended Update',self.componentIsLoading);
+                                this.componentIsLoading = !this.componentIsLoading;
+                                this.viewIsLoading = false;
+
+                            case 26:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this, [[6, 10, 14, 22], [15,, 17, 21]]);
+            }));
+
+            function loadPrices() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return loadPrices;
+        }()
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"col-sm-12 central-container px-0\">\n                 <template v-if=\"viewIsLoading\">\n                          <div class=\"loading\">\n                              <i class=\"fas fa-spinner fa-spin fa-3x\"></i>\n                          </div>\n                  </template>\n                  <template v-else>\n                      <homeItemSectionComponent :key=\"homeSection.sectionValue\" :section=\"homeSection\" v-for=\"homeSection of homeSections\"></homeItemSectionComponent>\n                  </template>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "centralContainerComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "centralContainerComponent";
+        }
+    }]);
+
+    return centralContainerComponent;
+}(Component);
+
+centralContainerComponent.registerComponent();
+//# sourceMappingURL=centralContainerComponent.js.map

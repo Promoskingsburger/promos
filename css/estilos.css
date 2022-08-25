@@ -1,0 +1,171 @@
+* {
+    margin: 0; 
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body { 
+    min-height: 100vh;
+    background-image: linear-gradient(-45deg, #cac13dc5 50%, #36221c 50%);
+    font-family: 'Raleway', sans-serif;
+}
+
+.titulo {
+    font-size: 40px;
+    font-family: 'Dancing Script', cursive;
+    margin-bottom: 40px;
+    color: #fff;
+}
+
+.subtitulo {
+    margin: 0;
+    color: #000;
+    display: inline;
+    font-size: 50px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.sabor { 
+    color: #fff;
+    margin: 7px 0;
+    font-size: 50px;
+    font-weight: 600;
+    text-shadow: 2px 2px 1px rgba(0,0,0,0.7);
+    font-family: 'Dancing Script', cursive;
+    margin-top: 0;
+}
+
+.linea-division {
+    width: 80%;
+    height: 2px;
+    background-color: #36221c;
+}
+
+/*estilo de materialize*/
+
+.carousel{
+    min-height: 500px;
+}
+.carousel .carousel-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    width: 500px;
+    height: 500px;
+}
+
+.carousel .carousel-item img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: 15px;
+}
+
+.carousel .indicators .indicator-item{
+    border-radius: 0;
+    transform: rotate(45deg);
+    margin: 0 15px;
+    background:#012f6b ;
+
+}
+
+/*boogys*/
+.fondo{
+    min-height: 100vh;
+    background-image: linear-gradient(-45deg, #cac13dc5 50%, #36221c 50%);
+    font-family: 'Montserrat', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.conteneor{
+    width: 100%;
+    display: flex;
+    max-width: 100px;
+
+}
+
+.card{
+    margin: 20px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0px 1px 10px rgb(0,0,0.2);
+    cursor: default;
+    transition: all 400ms ease;
+}
+.card:hover{
+    box-shadow: 5px 5px 20px rgb(0,0,0.4);
+    transform: translateY(-3%);
+}
+
+.card img{
+    width: 100%;
+    height: 210px;
+}
+
+.card .contenido{
+    padding: 15px;
+    text-align: center;
+
+}
+.card .contenido p{
+    line-height: 1.5;
+    color: #e25e05; 
+    font-style: oblique;
+    font-size: 20px;   
+}
+
+.card .contenido h3{
+    font-weight: 400;
+    margin-bottom: 15px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.logo img{
+width: 200px;
+height: 200px;
+border-radius: 35%;
+}
+
+.envios img{
+    float: left;
+    width: 100px;
+    height: 100px;
+    border-radius: 100px;
+    background: #36221c;
+    margin-right: 50px;
+    margin-left: 50px ;
+    margin-top: 10px;
+}
+
+.pie{
+    border-color: #aaaaaa;
+   border-width: 3px;
+   border-style: solid;
+   background: #222221c5
+}
+
+#icono{
+    height: 92px;
+    width: 92px;
+    margin-left: 100px;
+    background: rgb(118, 252, 9);
+    border-radius: 90px;
+    margin-top: 10px;
+
+}
+
+figure img{
+    border-radius: 10px;
+}
+

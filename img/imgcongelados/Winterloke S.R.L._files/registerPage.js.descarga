@@ -1,0 +1,101 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var registerPage = function (_Component) {
+    _inherits(registerPage, _Component);
+
+    function registerPage() {
+        _classCallCheck(this, registerPage);
+
+        return _possibleConstructorReturn(this, (registerPage.__proto__ || Object.getPrototypeOf(registerPage)).apply(this, arguments));
+    }
+
+    _createClass(registerPage, [{
+        key: "data",
+        value: function data() {
+            var superdata = _get(registerPage.prototype.__proto__ || Object.getPrototypeOf(registerPage.prototype), "data", this).call(this);
+            superdata.alertSuccess = false;
+            return superdata;
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'inSystem': function inSystem() {
+                    // eslint-disable-next-line no-console
+                    console.log('Change ', this.inSystem);
+                }
+            };
+        }
+    }, {
+        key: "registerSuccess",
+        value: function registerSuccess() {
+            this.alertSuccess = true;
+            if (!this.$store.getters.getSetting.ShowRegistrationSuccessMessage) {
+                this.$router.push("/");
+            }
+        }
+    }, {
+        key: "clearForm",
+        value: function clearForm() {
+            this.emitEvent('person-reset');
+            this.$router.push("login");
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                disableRegisterAction: function disableRegisterAction() {
+                    return this.$store.getters.getSetting.DisableRegisterAction;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                registerSuccess: this.registerSuccess,
+                clearForm: this.clearForm
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            _get(registerPage.prototype.__proto__ || Object.getPrototypeOf(registerPage.prototype), "mounted", this).call(this);
+            return function () {
+                if (this.$route.name == 'CustomThanks' || this.$route.name == 'SignUpThank') this.alertSuccess = true;
+                this.subscribeEvent('registerSuccess', this.registerSuccess);
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                 <headerSectionComponent></headerSectionComponent>\n                  <div :class=\"classContainer\">\n                      <div class=\"section-main\">\n                        <section class=\"padding-small\">\n                          <template v-if=\"$store.getters.getAppState=='ready'\">\n                            <div class=\"container\">\n                                <div class=\"row justify-content-center\">\n                                  <div class=\"col-lg-8\">\n                                    <div class=\"block text-center align-self-center\" v-if=\"disableRegisterAction\">\n                                        <div class=\"block\">\n                                             <div class=\"block-header\">\n                                               <h5 class=\"text-center\">{{tr('New account')}}</h5>\n                                           </div>\n                                            <div class=\"block-body\">\n                                                <div class=\"text-center\"><i class=\"fas fa-exclamation-triangle fa-3x mb-3\" style=\"color: #666;\"></i></div>\n                                                <h5 class=\"text-center mb-5\">{{tr(\"REGISTERNOTAVAILABLE\")}}.</h5>\n                                                <router-link to=\"/\" class=\"btn btn-custom\">{{tr(\"Go to Homepage\")}}</router-link>\n                                            </div>\n                                        </div>\n                                   </div>\n                                    <div class=\"block\" v-else>\n                                        <section v-if=\"alertSuccess && $store.getters.getSetting.ShowRegistrationSuccessMessage\" class=\"padding-small\">\n                                            <div class=\"block-header\">\n                                                <h5 class=\"text-center\">{{tr('Welcome and thank you for registering with us')}}</h5>\n                                            </div>\n                                            <div class=\"block\">\n                                                <div class=\"success-register-message text-center mt-5\">\n                                                    <i class=\"icon fas fa-check-circle fa-3x mb-3\"></i>\n                                                    <p class=\"lead mb-4\">{{tr(\"You have successfully registered\")}}.</p>\n                                                    <template v-if=\"$store.getters.getSetting.RegisterNewClientTemplate\">\n                                                        <h5>{{tr(\"As a last step, you must validate your email address before starting to use our virtual store. An email has been sent to you with the link to validate it\")}}.</h5>\n                                                        <hr>\n                                                        <h6>{{tr(\"Remember to check the spam folder of your email when checking the receipt of the validation email. In case you have not received the email, contact us through our contact channels and we will reply as soon as possible\")}}.</h6>\n                                                    </template>\n                                                    <router-link to=\"/login\" class=\"btn btn-custom mt-4\">{{tr(\"Login\")}}</router-link>\n                                                </div>\n                                            </div>\n                                        </section>\n                                        <template v-else>\n                                            <div class=\"block-header\">\n                                                <h5 class=\"text-center\">{{tr('New account')}}</h5>\n                                            </div>\n                                            <div class=\"block-body register-form\">\n                                                <p class=\"lead text-center\">{{tr('Not our registered customer yet?')}}</p>\n                                                <hr>\n                                                <PersonGenericComponent :confirmPassword=\"true\"/>\n                                                <div class=\"form-group\" >\n                                                    <button class=\"btn btn-custom btn-custom-login mr-3  float-left\" @click=\"clearForm()\">{{tr('LoginText')}}</button>\n                                                    <button class=\"btn btn-secondary btn-custom-register float-right\"  @click=\"emitEvent('person-save')\">{{tr('Sign Up')}}</button>\n                                                </div>\n                                            </div>\n                                        </template>\n                                    </div>\n                                  </div>\n                                </div>\n                            </div>\n                          </template>\n                          <template v-if=\"$store.getters.getAppState=='onload'\">\n                              <div class=\"loading\">\n                                  <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                              </div>\n                          </template>\n                        </section>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "registerPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "registerPage";
+        }
+    }]);
+
+    return registerPage;
+}(Component);
+
+registerPage.registerComponent();
+//# sourceMappingURL=registerPage.js.map

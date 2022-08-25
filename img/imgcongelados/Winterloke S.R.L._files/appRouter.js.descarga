@@ -1,0 +1,112 @@
+"use strict";
+
+/*  global store */
+var App = {
+    template: "<appComponent></appComponent>",
+    beforeRouteLeave: function beforeRouteLeave(to, from, next) {
+        if (this.$store.state.cat_selected) this.$store.dispatch('updateCategory', null);
+        next();
+    }
+};
+
+var AppFilter = { template: "<genericFilterPage></genericFilterPage>" };
+
+var LoginView = { template: "<loginPage></loginPage>" };
+
+var RecoveryPasswordView = { template: "<recoveryPasswordPage></recoveryPasswordPage>" };
+
+var RegisterView = { template: "<registerPage></registerPage>" };
+
+var ProfileView = { template: "<profilePage></profilePage>" };
+
+var Home = { template: "<homePage></homePage>" };
+
+var P404 = { template: "<p404Component></p404Component>" };
+
+var Badges = { template: "<badgesPage></badgesPage>" };
+
+var ItemView = { template: "<itemPage></itemPage>" };
+
+//const OrderDetail = {template: `<orderDetailComponent></orderDetailComponent>`};
+
+var OrderView = { template: "<orderViewComponent></orderViewComponent>" };
+
+var FavouritiesOrderView = { template: "<favouriteOrderViewComponent></favouriteOrderViewComponent>" };
+
+var FavoritiesView = { template: "<favoritiesItemPage></favoritiesItemPage>" };
+
+var GiftView = { template: "<customerGiftsComponent></customerGiftsComponent>" };
+
+var SuggestionView = { template: "<suggestionComponent></suggestionComponent>" };
+
+var GenericPersonView = { template: "<profileComponent></profileComponent>" };
+
+var InvoiceList = { templateL: "<invoiceList></invoiceList>" };
+
+var ReportPage = { template: "<genericReportPage></genericReportPage>" };
+
+var IndicatorPage = { template: "<genericIndicatorPage></genericIndicatorPage>" };
+
+var PaymentPage = { template: "<orderPaymentPage></orderPaymentPage>" };
+
+var PaymentsResultPage = { template: "<paymentsResultPage></paymentsResultPage>" };
+
+var FAQs = { template: "<FAQsPage></FAQsPage>" };
+
+var AboutUs = { template: "<AboutUsPage></AboutUsPage>" };
+
+var ComplaintPage = { template: "<complaintPage></complaintPage>" };
+
+var PromotionPage = { template: "<promotionPage></promotionPage>" };
+
+var urlSanitize = function urlSanitize(value) {
+    var newValue = value.replace(/ /g, "-");
+    newValue = newValue.replace(/\//, "");
+    newValue = newValue.replace(/[\])}[{(]/g, "");
+    return newValue;
+};
+// eslint-disable-next-line no-unused-vars
+var globalRouter = [{ name: 'HomeRoot', path: '/', component: Home }, { name: 'ComplaintView', path: '/complaint', component: ComplaintPage }, { name: 'ComplaintThanksView', path: '/complaint/:thanks', component: ComplaintPage }, { name: 'HomeLink', path: '/home', component: Home }, { name: 'GenericFilters', path: '/filter/:aliasCode', component: AppFilter }, { name: 'LoginLink', path: '/login', component: LoginView }, { name: 'RecoveryPasswordView', path: '/recovery_password', component: RecoveryPasswordView }, { name: 'SignUpView', path: '/signup', component: RegisterView }, { name: 'SignUpThank', path: '/thank', component: RegisterView }, { name: 'ProfileLinkAlias', path: '/profile/:activeView', component: ProfileView,
+    beforeEnter: function beforeEnter(to, from, next) {
+        store.dispatch('setOrderView', "all"); // ...
+        next();
+    }
+}, { name: 'ProfileLink', path: '/profile', component: ProfileView,
+    beforeEnter: function beforeEnter(to, from, next) {
+        store.dispatch('setOrderView', "all"); // ...
+        next();
+    }
+}, { name: 'ProfileOrderLink', path: '/order/:SerNr', component: ProfileView,
+    beforeEnter: function beforeEnter(to, from, next) {
+        store.dispatch('setOrderView', "all");
+        next();
+    }
+}, { name: 'ItemView', path: '/view/:id', component: ItemView, redirect: function redirect(to, from, next) {
+        var params = to.params;
+
+        if (params.id) {
+            var item = store.getters.getItemByCode(params.id);
+            if (item) return "/detail/" + (encodeURIComponent(urlSanitize(item.Classification_format)) || "generic") + "/" + encodeURIComponent(urlSanitize(item.Code)) + "/" + encodeURIComponent(urlSanitize(item.Name));
+        }
+        return '/NotFound';
+    } }, { name: 'ItemList', path: '/items', query: { search: null, mode: 'list', category: null }, component: App, redirect: function redirect(to, from, next) {
+        var query = to.query;
+
+        if (query.category) {
+            var category = query.category;
+            return "/category/" + encodeURIComponent(urlSanitize(category));
+        }
+        return "/products";
+    } }, { name: 'ItemListSEO', path: '/products', query: { search: null, mode: 'list', category: null }, component: App }, { name: 'ItemViewSEO', path: '/detail/:category/:id/:name', component: ItemView }, { name: 'CatSearch', path: '/search/:categoryString', component: App }, { name: 'CategorySEO', path: '/category/:category', component: App }, { name: 'PromotionsSEO', path: '/promotion/:code', component: PromotionPage }, { name: 'Gifts', path: '/gifts', component: GiftView }, { name: 'Suggestions', path: '/suggestions', component: SuggestionView }, { name: 'Favorities', path: '/favorities', component: FavoritiesView }, { name: 'Badges', path: '/badges', component: Badges,
+    beforeEnter: function beforeEnter(to, from, next) {
+        if (store.state.session) next();else {
+            if (store.state.appState === "ready") {
+                store.state.redirectAfterLogin = "/badges";
+                next('/login');
+            } else {
+                next();
+            }
+        }
+    }
+}, { name: 'Shopping', path: '/latestshopping/:filter', component: OrderView }, { name: 'FavouritiesOrder', path: '/favouritesOrders/:filter', component: FavouritiesOrderView }, { name: 'OrderDetail', path: '/orderdetail/:SerNr', redirect: '/order/:SerNr' }, { name: 'Invoices', path: '/invoices', component: InvoiceList }, { name: 'PersonInfo', path: '/genericuser', component: GenericPersonView }, { name: 'ReportView', path: '/report/:reportName', component: ReportPage }, { name: 'IndicatorView', path: '/indicators', component: IndicatorPage }, { name: 'PaymentView', path: '/payment/:orderid', component: PaymentPage }, { name: 'PaymentsView', path: '/payments/:info', component: PaymentsResultPage }, { name: 'FAQSsView', path: '/faqs', component: FAQs }, { name: 'AboutUsView', path: '/about', component: AboutUs }, { name: 'ErroPage', path: '/error/*', component: P404, alias: "/NotFound/*" }, { name: 'P404', path: '/*', component: P404, alias: "*" }];
+//# sourceMappingURL=appRouter.js.map

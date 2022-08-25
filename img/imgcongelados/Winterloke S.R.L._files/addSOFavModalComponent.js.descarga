@@ -1,0 +1,156 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var addSOFavModalComponent = function (_Component) {
+    _inherits(addSOFavModalComponent, _Component);
+
+    function addSOFavModalComponent() {
+        _classCallCheck(this, addSOFavModalComponent);
+
+        return _possibleConstructorReturn(this, (addSOFavModalComponent.__proto__ || Object.getPrototypeOf(addSOFavModalComponent)).apply(this, arguments));
+    }
+
+    _createClass(addSOFavModalComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['from'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                alertError: null,
+                FavOrder: {},
+                FavouriteName: null
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.FavouriteName = null;
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                itemsList: function itemsList() {
+                    if (this.from == 'so-items') return this.$store.getters.getCurrentOrder;else if (this.from == 'car-items') return this.$store.getters.getItemCar;
+                },
+                items: function items() {
+                    var items = [];
+                    if (this.itemsList) {
+                        if (this.from == 'so-items') {
+                            var _iteratorNormalCompletion = true;
+                            var _didIteratorError = false;
+                            var _iteratorError = undefined;
+
+                            try {
+                                for (var _iterator = this.itemsList.fields.Items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                    var i = _step.value;
+
+                                    items.push([i.fields.ArtCode, i.fields.Qty]);
+                                }
+                            } catch (err) {
+                                _didIteratorError = true;
+                                _iteratorError = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion && _iterator.return) {
+                                        _iterator.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError) {
+                                        throw _iteratorError;
+                                    }
+                                }
+                            }
+                        } else if (this.from == 'car-items') {
+                            var _iteratorNormalCompletion2 = true;
+                            var _didIteratorError2 = false;
+                            var _iteratorError2 = undefined;
+
+                            try {
+                                for (var _iterator2 = this.itemsList[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                    var _i = _step2.value;
+
+                                    items.push([_i.id, _i.cant]);
+                                }
+                            } catch (err) {
+                                _didIteratorError2 = true;
+                                _iteratorError2 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                        _iterator2.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError2) {
+                                        throw _iteratorError2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return items;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                toggleFavouriteOrder: this.toggleFavouriteOrder,
+                closeModal: this.closeModal
+            };
+        }
+    }, {
+        key: "toggleFavouriteOrder",
+        value: function toggleFavouriteOrder(OrderSerNr) {
+            this.alertError = null;
+            this.FavOrder = { name: this.FavouriteName, items: this.items, OrderSerNr: OrderSerNr.toString(), from: this.from };
+
+            if (!this.FavouriteName) this.alertError = 'Please, fill the name field';
+            if (this.$store.getters.getFavouriteOrderByName(this.FavouriteName)) this.alertError = 'There is already a favorite order with that name';
+            if (!this.alertError) {
+                this.$store.dispatch('toggleFavouriteOrder', this.FavOrder);
+                this.FavouriteName = null;
+                this.closeModal();
+            }
+        }
+    }, {
+        key: "closeModal",
+        value: function closeModal() {
+            $("#addSOFavModal").modal('toggle');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"modal fade item-detail-modal\" id=\"addSOFavModal\" tabindex=\"-1\" role=\"dialog\">\n                  <div class=\"modal-dialog modal-lg\" role=\"document\">\n                      <div class=\"modal-content\">\n                          <div class=\"modal-header\">\n                              <h5 class=\"modal-title\">{{tr(\"Add To Favorite Orders\")}}</h5>\n                              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" @click=\"FavouriteName=null\">\n                                  <span aria-hidden=\"true\">&times;</span>\n                              </button>\n                          </div>\n                          <div class=\"modal-body\" v-if=\"itemsList\">\n                                <div class=\"col-sm-12\">\n                                      <div ref='errorFVForm' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"alertError\">\n                                           <strong>{{tr(alertError)}}!</strong>\n                                           <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertError = null\">\n                                            <span aria-hidden=\"true\">&times;</span>\n                                            </button>\n                                       </div>\n                                </div>\n                               <div class=\"form-group\">\n                                      <label class=\"col-sm-4 control-label\">{{tr(\"Save as\")}}</label>\n                                      <div class=\"col-sm-8\">\n                                        <input class=\"form-control\" v-model=\"FavouriteName\" id=\"nameFavouriteOrder\" type=\"text\">\n                                      </div>\n                               </div>\n                               <h5 class=\"title\">\n                                    <span v-if=\"from == 'so-items'\" class=\"center\">{{tr('Sales Order')}} {{itemsList.fields.SerNr}}</span>\n                                    <span v-else class=\"center\">{{tr('Favorite Order Items')}}</span>\n                              </h5>\n                               <table class=\"table table-striped\">\n                                    <thead>\n                                      <tr>\n                                        <th>{{tr('Code')}}</th>\n                                        <th>{{tr('Products')}}</th>\n                                        <th>{{tr(\"Qty\")}}</th>\n                                      </tr>\n                                    </thead>\n                                    <template v-if=\"from == 'so-items'\">\n                                        <tbody>\n                                        <tr v-for=\"item of itemsList.fields.Items \">\n                                            <td>{{item.fields.ArtCode}}</td>\n                                            <td>{{item.fields.Name}}</td>\n                                            <td>{{item.fields.Qty}}</td>\n                                        </tr>\n                                        </tbody>\n                                    </template>\n                                    <template v-if=\"from == 'car-items'\">\n                                        <tbody>\n                                        <tr v-for=\"item of itemsList\">\n                                            <td>{{item.id}}</td>\n                                            <td>{{item.item.Name}}</td>\n                                            <td>{{item.cant}}</td>\n                                        </tr>\n                                        </tbody>\n                                    </template>\n                               </table>\n                               <div class=\"text-right\">\n                                   <button class=\"btn secondary-btn\" @click=\"toggleFavouriteOrder((from == 'so-items')?itemsList.fields.SerNr:'')\"><i class=\"icon fas fa-save\"></i>{{tr('Save')}}</button>\n                               </div>\n                          </div>\n                      </div>\n                  </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "addSOFavModalComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "addSOFavModalComponent";
+        }
+    }]);
+
+    return addSOFavModalComponent;
+}(Component);
+
+addSOFavModalComponent.registerComponent();
+//# sourceMappingURL=addSOFavModalComponent.js.map

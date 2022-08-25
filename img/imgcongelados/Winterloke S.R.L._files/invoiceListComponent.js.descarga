@@ -1,0 +1,201 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, __lodash__ */
+var invoiceActionsComponent = function (_Component) {
+    _inherits(invoiceActionsComponent, _Component);
+
+    function invoiceActionsComponent() {
+        _classCallCheck(this, invoiceActionsComponent);
+
+        return _possibleConstructorReturn(this, (invoiceActionsComponent.__proto__ || Object.getPrototypeOf(invoiceActionsComponent)).apply(this, arguments));
+    }
+
+    _createClass(invoiceActionsComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['data', 'index', 'column'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                FavouritesOrders: []
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                orderSerNr: function orderSerNr() {
+                    return window.btoa(this.data.SerNr);
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                downloadDocument: this.downloadDocument
+            };
+        }
+    }, {
+        key: "downloadDocument",
+        value: function downloadDocument() {
+            var params = this.encode("RecordName=Invoice&InternalId=" + this.data.internalId);
+            //console.log('custom-actions: ', this.data);
+            window.open('../oo/api/get_pdfdocument?' + params, "_blank");
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div :key=\"'actions-'+data.SerNr\" class=\"btn-group custom-actions\" role=\"group\" aria-label=\"Button group with nested dropdown\">\n                  <div class=\"btn-group\" role=\"group\">\n                      <a class=\"dropdown-item\"  :key=\"'actions-download-'+data.SerNr\"  target=\"_blank\" :title=\"tr('Download')\"  @click=\"downloadDocument()\" >\n                        <i class=\"fa fa-download\"></i>\n                      </a>\n                    </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "invoiceActionsComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "invoiceActionsComponent";
+        }
+    }]);
+
+    return invoiceActionsComponent;
+}(Component);
+
+invoiceActionsComponent.registerComponent();
+
+Vue.component('invoiceList', {
+    template: "<div class=\"container-fluid pt-2 px-0 px-md-3\">\n                  <template v-if=\"$store.getters.getAppState=='ready'\">\n                        <div class=\"row justify-content-center\">\n                          <div class=\"col-12 px-0 px-md-3\">\n                            <h5 class=\"row title\">\n                              <span class=\"col-12 col-md-4 text-center text-md-left mb-2\">{{tr(\"Invoice List\")}}</span>\n                            </h5>\n                            <v-client-table class=\"custom-vue-table\"  key=\"invoiceView-list\" :columns=\"columns\" :data=\"invoices\" :options=\"options\" :css=\"css\" >\n                              <div slot=\"afterFilter\" class=\"VueTables__search-field\">\n                                <div class=\"input-group-append\">\n                                  <span class=\"input-group-text\" id=\"basic-addon2\"><i class=\"icon fas fa-search\"></i></span>\n                                </div>\n                              </div>\n                            </v-client-table>\n                          </div>\n                      </div>\n                  </template>\n                  <template v-else>\n                      <div class=\"loading\">\n                          <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                      </div>\n                  </template>\n              </div>",
+    data: function data() {
+        return {
+            loading: false,
+            invoices: [],
+            css: {
+                ascendingIcon: 'blue chevron up icon',
+                descendingIcon: 'blue chevron down icon',
+                table: {
+                    loadingClass: 'loading',
+                    ascendingIcon: 'blue chevron up icon',
+                    descendingIcon: 'blue chevron down icon'
+                }
+            }
+        };
+    },
+    beforeMount: function beforeMount() {
+        //console.log("before")
+    },
+    mounted: function mounted() {
+        var _this2 = this;
+
+        return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+            return regeneratorRuntime.wrap(function _callee$(_context) {
+                while (1) {
+                    switch (_context.prev = _context.next) {
+                        case 0:
+                            _context.next = 2;
+                            return _this2.loadInvoices();
+
+                        case 2:
+                        case "end":
+                            return _context.stop();
+                    }
+                }
+            }, _callee, _this2);
+        }))();
+    },
+
+    computed: {
+        columns: function columns() {
+            var basicColumns = ['SerNr', 'TransDate', "Status"];
+            if (this.$store.getters.getPriceToShow) basicColumns.push("Total");else {
+                basicColumns.push("SubTotal");
+            }
+            basicColumns.push("Actions");
+            return basicColumns;
+        },
+        options: function options() {
+            var basiOption = {
+                preserveState: true,
+                filterByColumn: false,
+                filterable: ["SerNr", "TransDate"],
+                dateColumns: ["TransDate"],
+                dateFormat: ["DD/MM/YYYY"],
+                multiSorting: {
+                    name: [{
+                        column: 'SerNr',
+                        matchDir: true
+                    }, {
+                        column: 'TransDate',
+                        matchDir: true
+                    }]
+                },
+                headings: {
+                    'SerNr': this.tr('Invoice'),
+                    'TransDate': this.tr('Date'),
+                    'Status': this.tr('Status'),
+                    'SubTotal': this.tr('Total') + " " + this.tr('VAT EXC'),
+                    'Total': this.tr('Total') + " " + this.tr('VAT INC'),
+                    'Actions': this.tr('Actions')
+                },
+                perPage: 25,
+                pagination: {
+                    chunk: 20
+                },
+                templates: {
+                    Actions: 'invoiceActionsComponent',
+                    Status: "orderStatusComponent"
+                },
+                texts: {
+                    count: "Mostrando desde {from} a {to} de {count} " + this.tr('Invoices') + "|{count} " + this.tr('Invoices') + "|One " + this.tr('Invoice'),
+                    filter: '',
+                    limit: '',
+                    filterPlaceholder: '',
+                    noResults: this.tr('No Records found'),
+                    page: this.tr('Page') + ":", // for dropdown pagination
+                    filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                    loading: this.tr('Loading') + '...', // First request to server
+                    defaultOption: 'Select {column}' // default option for list filters,
+                },
+                uniqueKey: "SerNr"
+            };
+            if (this.$store.getters.getPriceToShow) delete basiOption.headings['SubTotal'];else {
+                delete basiOption.headings['Total'];
+            }
+
+            return basiOption;
+        }
+    },
+    methods: {
+        loadInvoices: function loadInvoices() {
+            this.loading = true;
+            var self = this;
+            axios.get('/invoices/getInvoices?jsonFormatted=1').then(function (response) {
+                console.log(response.data, "resp");
+                self.error = false;
+                self.DocTypes = response.data.DocTypes;
+                self.InvoiceTypes = response.data.InvoiceTypes;
+                self.invoices = _.map(response.data.invoices, function (x) {
+                    return x.fields;
+                });
+                this.loading = false;
+            }).catch(function (error) {
+                //console.log(error, "e")
+                self.error = true;
+            });
+        }
+    }
+});
+//# sourceMappingURL=invoiceListComponent.js.map

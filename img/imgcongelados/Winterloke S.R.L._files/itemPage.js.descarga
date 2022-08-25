@@ -1,0 +1,79 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var itemPage = function (_Component) {
+    _inherits(itemPage, _Component);
+
+    function itemPage() {
+        _classCallCheck(this, itemPage);
+
+        return _possibleConstructorReturn(this, (itemPage.__proto__ || Object.getPrototypeOf(itemPage)).apply(this, arguments));
+    }
+
+    _createClass(itemPage, [{
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack
+            };
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"items-view view oo-ecommerce\">\n                <headerSectionComponent :items_in_car=\"$store.items_in_car\" ></headerSectionComponent>\n                <div :class=\"classContainer\">\n                    <div class=\"section-main\">\n                        <div class=\"row\">\n                            <div class=\"col-sm-3 col-md-2 col-xs-12 mb-2 mb-sm-0 p-2 filters-section\">\n                              <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>\n                            </div>\n                            <div class=\"col-sm-9 col-md-10\">\n                                <itemsBreakcrumb/>\n                                <singleItemComponent :item=\"$store.getters.getItemByCode($route.params.id)\" :container=\"false\"></singleItemComponent>\n                          </div>\n                        </div>\n                    </div>\n                </div>\n                <footerSectionComponent></footerSectionComponent>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemPage";
+        }
+    }]);
+
+    return itemPage;
+}(Component);
+
+itemPage.registerComponent();
+
+/*Vue.component('itemViewComponent', {
+    methods:{
+        goBack:function(){
+            this.$router.go(-1);
+        }
+    },
+    template:`<div class="items-view view oo-ecommerce">
+                <headerSectionComponent :items_in_car="$store.items_in_car" ></headerSectionComponent>
+                <div class="container-fluid">
+                    <div class="section-main">
+                        <div class="row">
+                            <div class="col-sm-3 col-md-2 col-xs-12 mb-2 mb-sm-0 p-2 filters-section">
+                              <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>
+                            </div>
+                            <div class="col-sm-9 col-md-10">
+                                <itemsBreakcrumb/>
+                                <singleItemComponent :item="$store.getters.getItemByCode($route.params.id)" :container="false"></singleItemComponent>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <footerSectionComponent></footerSectionComponent>
+            </div>`
+});
+*/
+//# sourceMappingURL=itemPage.js.map

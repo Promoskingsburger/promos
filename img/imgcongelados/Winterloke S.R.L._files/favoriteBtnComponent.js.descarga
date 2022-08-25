@@ -1,0 +1,128 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var favoriteBtnComponent = function (_Component) {
+    _inherits(favoriteBtnComponent, _Component);
+
+    function favoriteBtnComponent() {
+        _classCallCheck(this, favoriteBtnComponent);
+
+        return _possibleConstructorReturn(this, (favoriteBtnComponent.__proto__ || Object.getPrototypeOf(favoriteBtnComponent)).apply(this, arguments));
+    }
+
+    _createClass(favoriteBtnComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['itemCode'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                mustUpdate: false
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.mustUpdate = this.$store.getters.getFavorites.indexOf(this.itemCode) != -1;
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                iconName: function iconName() {
+                    if (!this.mustUpdate) return "regular/heart";
+                    return "heart";
+                },
+                title: function title() {
+                    if (this.mustUpdate) return this.tr('Remove From Favorite');
+                    return this.tr('Add To Favorite');
+                },
+                className: function className() {
+                    if (this.mustUpdate) return "is-favorite";
+                    return "";
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                toggleFavorite: this.toggleFavorite
+            };
+        }
+    }, {
+        key: "toggleFavorite",
+        value: function toggleFavorite() {
+            this.$store.dispatch('toggleFavourite', this.itemCode);
+            this.mustUpdate = !this.mustUpdate;
+            //console.log('Item After',this.mustUpdate);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return " <p :key=\"itemCode\" @click.stop=\"toggleFavorite()\" :title=\"title\" :class=\"[className]\">\n                    <icon class=\"icon fa-heart\" :name=\"iconName\" ></icon>\n               </p>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "favoriteBtnComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "favoriteBtnComponent";
+        }
+    }]);
+
+    return favoriteBtnComponent;
+}(Component);
+
+favoriteBtnComponent.registerComponent();
+
+/*
+
+Vue.component('favoriteBtn', {
+    props:['itemCode'],
+    data:function (){
+        return {
+            mustUpdate:false,
+        }
+    },
+    mounted (){
+        this. mustUpdate=this.$store.getters.getFavorites.indexOf(this.itemCode)!=-1;
+    },
+    computed:{
+        iconName (){
+            if(!this.mustUpdate)
+                return  "regular/heart";
+            return "heart";
+        },
+        title (){
+            if(this.mustUpdate)
+                return  this.tr('Remove From Favorite');
+            return this.tr('Add To Favorite');
+        }
+    },
+    methods:{
+        toggleFavorite (){
+            this.$store.dispatch('toggleFavourite',this.itemCode);
+            this.mustUpdate = !this.mustUpdate;
+            //console.log('Item After',this.mustUpdate);
+        },
+    },
+    template:` <p :key="itemCode" @click="toggleFavorite()" :title="title">
+                    <icon class="icon fa-heart" :name="iconName" ></icon>
+               </p>`
+})*/
+//# sourceMappingURL=favoriteBtnComponent.js.map

@@ -1,0 +1,153 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+if (window.MercadoPagoComponent) {
+    var EcommerceMPFormComponent = function (_MercadoPagoComponent) {
+        _inherits(EcommerceMPFormComponent, _MercadoPagoComponent);
+
+        function EcommerceMPFormComponent() {
+            _classCallCheck(this, EcommerceMPFormComponent);
+
+            return _possibleConstructorReturn(this, (EcommerceMPFormComponent.__proto__ || Object.getPrototypeOf(EcommerceMPFormComponent)).apply(this, arguments));
+        }
+
+        _createClass(EcommerceMPFormComponent, null, [{
+            key: 'name',
+            value: function name() {
+                return "mercadopagoFormCustom";
+            }
+        }, {
+            key: 'mounted',
+            value: function mounted() {
+                var superMounted = _get(EcommerceMPFormComponent.__proto__ || Object.getPrototypeOf(EcommerceMPFormComponent), 'mounted', this);
+                return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                    var _this2 = this;
+
+                    return regeneratorRuntime.wrap(function _callee$(_context) {
+                        while (1) {
+                            switch (_context.prev = _context.next) {
+                                case 0:
+                                    _context.next = 2;
+                                    return superMounted();
+
+                                case 2:
+                                    this.$nextTick(function () {
+                                        _this2.customdoPay();
+                                    });
+
+                                case 3:
+                                case 'end':
+                                    return _context.stop();
+                            }
+                        }
+                    }, _callee, this);
+                }));
+            }
+        }, {
+            key: 'getMethods',
+            value: function getMethods() {
+                var parentMetothds = _get(EcommerceMPFormComponent.__proto__ || Object.getPrototypeOf(EcommerceMPFormComponent), 'getMethods', this).call(this);
+
+                parentMetothds.customdoPay = function (event) {
+                    var _this3 = this;
+
+                    if (this.$store.state.screenState) this.$store.dispatch('toogleLockScreen', null);
+                    this.$store.dispatch('toogleLockScreen', "Redirecting to Mercado Pago...");
+                    axios.post("/ecommerce/api/checkStock", { order: this.salesorder }).then(function (response) {
+                        console.log("Res", response.data.ok, _this3.info.salesorder);
+                        if (response.data.ok) {
+                            axios.post("/mercadopago/get_preferences", {
+                                recordType: btoa("SalesOrder"),
+                                recordId: btoa(_this3.info.salesorder),
+                                appName: btoa("ecommerce"),
+                                appRedirectUrl: btoa(window.location.origin + "/ecommerce/payments/result")
+                            }).then(function (response) {
+                                if (response.data.id) {
+                                    window.location.replace(response.data.init_point);
+                                    //window.location.href=response.data.init_point;
+                                    /*let mercadoPagoCheckOut = document.createElement("script");
+                                    mercadoPagoCheckOut.setAttribute("src", "https://www.mercadopago.com.ar/integrations/v1/web-payment-checkout.js");
+                                    mercadoPagoCheckOut.setAttribute("data-preference-id", response.data.id);
+                                    document.getElementById("mp-web-checkout").appendChild(mercadoPagoCheckOut);
+                                    */
+                                } else {
+                                    if (_this3.$store.state.screenState) _this3.$store.dispatch('toogleLockScreen', null);
+                                }
+                            });
+                        } else {
+                            var res = {};
+                            var processError = [];
+                            var err = response.data.error[0];
+                            var _iteratorNormalCompletion = true;
+                            var _didIteratorError = false;
+                            var _iteratorError = undefined;
+
+                            try {
+                                for (var _iterator = (err.params.webmessage ? err.params.webmessage : err.params)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                    var item = _step.value;
+
+                                    var errorData = [err.code];
+                                    var dataError = item.split("*-*-*");
+                                    var storeItem = _this3.$store.getters.getItemByCode(dataError[0]);
+                                    errorData.push(storeItem.Name);
+                                    errorData.push(dataError[1]);
+                                    processError.push({ description: _this3.tr(errorData) });
+                                }
+                            } catch (err) {
+                                _didIteratorError = true;
+                                _iteratorError = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion && _iterator.return) {
+                                        _iterator.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError) {
+                                        throw _iteratorError;
+                                    }
+                                }
+                            }
+
+                            res.error = true;
+                            res.cause = processError;
+                            _this3.$emit('payment-result', res);
+                            _this3.$store.dispatch('toogleLockScreen', "FFF");
+                        }
+                    });
+                };
+
+                return parentMetothds;
+            }
+        }, {
+            key: 'getTemplate',
+            value: function getTemplate() {
+                /* Examples
+                    card 4509 9535 6623 3704
+                    security 123
+                    month 12
+                    year 2019
+                    dni 12345678
+                    name APRO
+                */
+                return '<button class="btn btn-primary" type="button" disabled>\n                      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>\n                      Redirecting to Mercado Pago...\n                    </button>';
+            }
+        }]);
+
+        return EcommerceMPFormComponent;
+    }(MercadoPagoComponent);
+
+    Vue.component('mercadopagoFormCustom', EcommerceMPFormComponent.getComponent());
+    window.EcommerceMercadoPagoFormComponent = EcommerceMPFormComponent;
+}
+//# sourceMappingURL=ecommerceMercadoPagoForm.js.map

@@ -1,0 +1,217 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component , axios */
+var PersonEditModalComponent = function (_Component) {
+    _inherits(PersonEditModalComponent, _Component);
+
+    function PersonEditModalComponent() {
+        _classCallCheck(this, PersonEditModalComponent);
+
+        return _possibleConstructorReturn(this, (PersonEditModalComponent.__proto__ || Object.getPrototypeOf(PersonEditModalComponent)).apply(this, arguments));
+    }
+
+    _createClass(PersonEditModalComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                response: null,
+                alertError: null,
+                personJobPosition: '',
+                personWebAccessGroup: '',
+                personCountry: '',
+                personCity: '',
+                personCenterCost: '',
+                currentCustomerPerson: null,
+                LiberatorsOptions: {
+                    "PersonCode": { label: "Person Code", linkto: "Person", pasteField: 'Code', showField: "Name" },
+                    "PersonName": { label: "Person Name", type: "PersonName", readonly: true },
+                    "CanLiberate": { label: "Can Liberate", type: "checkbox" },
+                    "OnlyModified": { label: "Only Modified", type: "checkbox" }
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.initialUpdateSelectValues();
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "$store.state.currentCustomerPerson": function $storeStateCurrentCustomerPerson(newValue, oldValue) {
+                    //console.log('Watch Modal Person',oldValue,newValue);
+                    this.currentCustomerPerson = newValue;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                initialUpdateSelectValues: this.initialUpdateSelectValues,
+                updateSelectValues: this.updateSelectValues,
+                updateCustomerPerson: this.updateCustomerPerson,
+                closeModal: this.closeModal,
+                liberatorAfterEditRow: this.liberatorAfterEditRow,
+                liberatorAfterDeleteRow: this.liberatorAfterDeleteRow
+            };
+        }
+    }, {
+        key: "liberatorAfterEditRow",
+        value: function liberatorAfterEditRow(row, event, mustAdded) {
+            if (event.field == 'PersonCode') {
+                if (event.linkToData.length > 0) {
+                    row.fields.PersonName = event.linkToData[0]['Name'] + " " + event.linkToData[0]['LastName'];
+                    row.fields['CanLiberate'] = true;
+                }
+            }
+            if (event.field == 'OnlyModified') row.fields['CanLiberate'] = !row.fields['OnlyModified'];
+
+            if (event.field == 'CanLiberate') row.fields['OnlyModified'] = !row.fields['CanLiberate'];
+            if (mustAdded) this.currentCustomerPerson.Liberators.push(row);
+        }
+    }, {
+        key: "liberatorAfterDeleteRow",
+        value: function liberatorAfterDeleteRow(row) {
+            this.currentCustomerPerson.Liberators = this.currentCustomerPerson.Liberators.filter(function (x) {
+                return x.fields.internalId != row.fields.internalId;
+            });
+        }
+    }, {
+        key: "initialUpdateSelectValues",
+        value: function initialUpdateSelectValues() {
+            this.currentCustomerPerson = this.$store.getters.getCurrentCustomerPerson;
+            if (this.currentCustomerPerson) {
+                /*this.$store.dispatch('updateSelectLinkto', {
+                    table: 'editPerson_JobPosition',
+                    value: this.currentCustomerPerson.JobPosition
+                });*/
+                this.$store.dispatch('updateSelectLinkto', {
+                    table: 'editPerson_WebAccessGroup',
+                    value: this.currentCustomerPerson.WebAccessGroup
+                });
+
+                this.$store.dispatch('updateSelectLinkto', {
+                    table: 'editPerson_Country',
+                    value: this.currentCustomerPerson.Country
+                });
+                this.$store.dispatch('updateSelectLinkto', {
+                    table: 'editPerson_City',
+                    value: this.currentCustomerPerson.City
+                });
+                this.$store.dispatch('updateSelectLinkto', {
+                    table: 'editPerson_CenterCost',
+                    value: this.currentCustomerPerson.DefaultCenterCost
+                });
+                this.updateSelectValues();
+            }
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues(event) {
+            //this.personJobPosition = this.$store.getters.getSelectLinkToValue('editPerson_JobPosition');
+            this.personWebAccessGroup = this.$store.getters.getSelectLinkToValue('editPerson_WebAccessGroup');
+            this.personCountry = this.$store.getters.getSelectLinkToValue('editPerson_Country');
+            this.personCity = this.$store.getters.getSelectLinkToValue('editPerson_City');
+            this.personCenterCost = this.$store.getters.getSelectLinkToValue('editPerson_CenterCost');
+        }
+    }, {
+        key: "updateCustomerPerson",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var _this2 = this;
+
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.alertError = null;
+                                this.updateSelectValues();
+                                this.currentCustomerPerson.WebAccessGroup = this.personWebAccessGroup;
+                                this.currentCustomerPerson.Country = this.personCountry;
+                                this.currentCustomerPerson.City = this.personCity;
+                                this.currentCustomerPerson.DefaultCenterCost = this.personCenterCost;
+                                if (!this.currentCustomerPerson.Name) this.alertError = 'Please fill the field Name';else if (!this.currentCustomerPerson.LastName) this.alertError = 'Please fill the field Last Name';else if (!this.currentCustomerPerson.WebUser && this.currentCustomerPerson.WebUserFlag) this.alertError = 'Please fill the field User Web';else if (!this.currentCustomerPerson.WebPassword && this.currentCustomerPerson.WebUserFlag) this.alertError = 'Please enter a password for this Person';
+
+                                if (this.alertError) {
+                                    _context.next = 11;
+                                    break;
+                                }
+
+                                _context.next = 10;
+                                return axios.post('/ecommerce/api/updateCustomerPerson', this.currentCustomerPerson).then(function (response) {
+                                    _this2.response = response;
+                                }).catch(function (error) {
+                                    console.warn('Error response in update Person', error);
+                                });
+
+                            case 10:
+
+                                if (this.response.data.success) {
+                                    this.$store.dispatch('updateCustomerPerson', this.currentCustomerPerson);
+                                    this.closeModal();
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: 'Editar Persona',
+                                        message: 'Datos Personales guardados',
+                                        type: 'success'
+                                    });
+                                } else {
+                                    if (this.response.data && this.response.data.errors) this.alertError = this.response.data.errors;
+                                }
+
+                            case 11:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function updateCustomerPerson() {
+                return _ref.apply(this, arguments);
+            }
+
+            return updateCustomerPerson;
+        }()
+    }, {
+        key: "closeModal",
+        value: function closeModal() {
+            //console.log('Close Modal');
+            $("#PersonEditModal").modal('toggle');
+            this.alertError = null;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div key=\"PersonEditModal\"  class=\"modal fade item-detail-modal\" id=\"PersonEditModal\" tabindex=\"-1\" role=\"dialog\" v-if=\"currentCustomerPerson\">\n                  <div class=\"modal-dialog modal-lg\" role=\"document\">\n                      <div class=\"modal-content\">\n                          <div class=\"modal-header\">\n                              <h5 class=\"modal-title\">{{tr(\"Person Code\")+': '+currentCustomerPerson.Code }}</h5>\n                              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" @click=\"alertError = null\">\n                                  <span aria-hidden=\"true\">&times;</span>\n                              </button>\n                          </div>\n                          <div class=\"modal-body\">\n                                <div class=\"col-sm-12\">\n                                      <div ref='errorRegisterFrom' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"alertError\">\n                                           <strong>{{tr(alertError)}}!</strong>\n                                           <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertError = null\">\n                                            <span aria-hidden=\"true\">&times;</span>\n                                            </button>\n                                       </div>\n                                </div>\n                               <div class=\"row\">\n                                    <div class=\"col-sm-6\">\n                                        <div class=\"form-group\">\n                                            <label for=\"firstname\" class=\"form-label\">{{tr('Name')}}</label>\n                                            <input id=\"personName\" v-model=\"currentCustomerPerson.Name\" type=\"text\" class=\"form-control\" autocomplete=\"none\">\n                                            <label for=\"personlastname\" class=\"form-label\">{{tr('Last Name')}}</label>\n                                            <input id=\"personLastName\" v-model=\"currentCustomerPerson.LastName\" type=\"text\" class=\"form-control\" autocomplete=\"none\">\n                                            <!--<label for=\"personlastname2\" class=\"form-label\">{{tr('Mothers Maiden Name')}}</label>\n                                            <input id=\"personlastname2\" v-model=\"currentCustomerPerson.LastName2\" type=\"text\" class=\"form-control\">-->\n                                            <label for=\"personCountry\" class=\"form-label\">{{tr('Country')}}</label>\n                                            <selectLinkToComponent  recordKey=\"editPerson\" :table =\"'Country'\" :paste =\"'Code'\" :showField =\"'Name'\" :selected=\"currentCustomerPerson.Country\" @update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                            <!--<label for=\"personJobPosition\" class=\"form-label\">{{tr('Job Position')}}</label>\n                                            <selectLinkToComponent recordKey=\"editPerson\" :table =\"'JobPosition'\" :paste =\"'Code'\" :showField =\"'Code'\" @update-value=\"updateSelectValues\" > </selectLinkToComponent>-->\n                                            <label for=\"CenterCost\" class=\"form-label\">{{tr('Default Cost Center')}}</label>\n                                            <selectLinkToComponent recordKey=\"editPerson\" :table =\"'CenterCost'\" :paste =\"'Code'\" :showField =\"'Name'\"  :selected=\"currentCustomerPerson.DefaultCenterCost\" @update-value=\"updateSelectValues\" > </selectLinkToComponent>\n                                            <div class=\"form-group row mx-0\">\n                                               <label class=\"form-label\">{{tr('User Activation')}}: </label>\n                                                <div class=\"custom-control custom-checkbox ml-2\">\n                                                    <input type=\"checkbox\" class=\"custom-control-input\" id=\"WebFlagEdit\" v-model=\"currentCustomerPerson.WebUserFlag\">\n                                                    <label class=\"custom-control-label\" for=\"WebFlagEdit\">{{tr('Enabled')}}</label>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"col-sm-6\">\n                                        <div class=\"form-group\">\n                                           <label for=\"WebUser\" class=\"form-label\">{{tr('User Web')}}</label>\n                                           <input id=\"WebUser\" v-model=\"currentCustomerPerson.WebUser\" type=\"text\" class=\"form-control\">\n                                           <label for=\"WebPassword\" class=\"form-label\">{{tr('Password')}}</label>\n                                           <input id=\"WebPassword\" v-model=\"currentCustomerPerson.WebPassword\" type=\"password\" class=\"form-control\">\n                                           <label for=\"WebAccessGroup\" class=\"form-label\">{{tr('Web Access Group')}}</label>\n                                           <selectLinkToComponent  recordKey=\"editPerson\" :table=\"'WebAccessGroup'\" :paste=\"'Code'\" showField=\"Code\" :selected=\"currentCustomerPerson.WebAccessGroup\" :filters=\"{ CustCode:$store.state.session.fields.CustCode }\" @update-value-full=\"updateSelectValues\"> </selectLinkToComponent>\n                                           <label for=\"personMail\" class=\"form-label\">{{tr('Mail')}}</label>\n                                           <input id=\"personMail\" v-model=\"currentCustomerPerson.Email\" type=\"text\" class=\"form-control\">\n                                         </div>\n                                    </div>\n                                    <div class=\"col-12\">\n                                        <recordMatrixComponent rowField=\"Liberators\" :record=\"{ fields: { ...currentCustomerPerson}}\"  :headers=\"LiberatorsOptions\" :afterEditRow=\"liberatorAfterEditRow\" :afterDeleteRow=\"liberatorAfterDeleteRow\"></recordMatrixComponent>\n                                    </div>\n                                </div>\n                           </div>\n                          <div class=\"modal-footer\">\n                                <button class=\"btn secondary-btn\" @click=\"updateCustomerPerson()\" style=\"float:right\">{{tr('Save')}}</button>\n                          </div>\n                      </div>\n                  </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "PersonEditModalComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "PersonEditModalComponent";
+        }
+    }]);
+
+    return PersonEditModalComponent;
+}(Component);
+
+PersonEditModalComponent.registerComponent();
+//# sourceMappingURL=PersonEditModalComponent.js.map

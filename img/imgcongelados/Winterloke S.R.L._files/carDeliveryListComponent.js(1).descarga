@@ -1,0 +1,383 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, _ , moment, axios , __lodash__*/
+var CarDeliveryListComponentB2C = function (_Component) {
+    _inherits(CarDeliveryListComponentB2C, _Component);
+
+    function CarDeliveryListComponentB2C() {
+        _classCallCheck(this, CarDeliveryListComponentB2C);
+
+        return _possibleConstructorReturn(this, (CarDeliveryListComponentB2C.__proto__ || Object.getPrototypeOf(CarDeliveryListComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(CarDeliveryListComponentB2C, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                showCommentSO: {
+                    type: Boolean,
+                    default: true
+                },
+                showCommentSt: {
+                    type: Boolean,
+                    default: true
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                selectedCode: null,
+                searchText: null,
+                Comment: null,
+                loadding: true,
+                selectedCC: null,
+                newDeliveryModal: false,
+                commentSt: "",
+                commentSO: "",
+                deliveryListState: [],
+                selectedShipMode: null,
+                shipDateOffset: {}
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "$store.state.order_DelAddressCode": function $storeStateOrder_DelAddressCode(newValue, olValue) {
+                    if (newValue != this.selectedCode) this.selectedCode = newValue;
+                },
+                'selectedShipMode': function selectedShipMode(newValue, oldValue) {
+                    this.emitEvent("shipModeChange", newValue);
+                },
+                "deliveryList": function deliveryList(newValue, oldValue) {
+                    if (newValue && newValue.length == 1 && !this.selectedCode) {
+                        this.selectedCode = newValue[0].Code;
+                        this.$store.dispatch('updateOrderDeliveryData', { "order_DelAddressCode": newValue[0].Code });
+                        this.activeAddress(this.selectedCode);
+                    }
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.loadCustomerAddresses();
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var eventObj;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+
+                                if (!this.selectedCode) this.selectedCode = this.$store.state.order_DelAddressCode;else {
+                                    if (this.deliveryList.length > 0) this.selectedCode = this.deliveryList[0].Code;
+                                }
+
+                                if (!this.selectedShipMode) this.selectedShipMode = this.$store.state.order_ShipMode;
+
+                                eventObj = {
+                                    order_DelAddressCode: this.selectedCode,
+                                    order_ShipMode: this.selectedShipMode,
+                                    order_ReceptionManagerCode: this.$store.getters.getSession.fields.Code
+                                };
+
+                                this.$store.dispatch('updateOrderDeliveryData', eventObj);
+                                this.subscribeEvent("selectcentercost", this.centerCostCallback);
+                                this.subscribeEvent('checkout-step-back-2', this.resetShipCost);
+
+                            case 6:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                orderTemplate: function orderTemplate() {
+                    return __lodash__.cloneDeep(this.$store.state.carOrderTemplate);
+                },
+
+                shipModes: function shipModes() {
+                    return this.$store.getters.getShipModes;
+                },
+                canAddNew: function canAddNew() {
+                    return (this.isAdmin || this.deliveryList.length === 0) && !this.loadding;
+                },
+                filterDeliveryList: function filterDeliveryList() {
+                    var searchText = this.searchText;
+                    if (!searchText || searchText === '') return this.deliveryList;else return _.filter(this.deliveryList, function (delivery) {
+                        var reg = new RegExp("" + searchText, 'i');
+                        return String(delivery.Name).match(reg) || String(delivery.Address).match(reg) || String(delivery.City).match(reg) || String(delivery.Province).match(reg) || String(delivery.ZipCode).match(reg);
+                    });
+                },
+                deliveryList: function deliveryList() {
+                    return this.$store.getters.getCustomerAddresses;
+                },
+                centerCostFilter: function centerCostFilter() {
+                    if (this.selectedCC) {
+                        //console.log("Selected CC ",this.selectedCC.internalId)
+                        return { masterId: this.selectedCC.internalId };
+                    }
+                    return { masterId: "-99999" };
+                },
+                deliveAddressByCustomer: function deliveAddressByCustomer() {
+                    return this.$store.state.customer.DelAddressCode;
+                },
+                activeDayByZone: function activeDayByZone() {
+                    var selectedShipMode = this.selectedShipMode;
+                    var shipMode = __lodash__.find(this.$store.state.shipModes, function (shipMode) {
+                        return shipMode.ShipModeCode === selectedShipMode;
+                    });
+
+                    if (shipMode && shipMode.OfficeCode) return false;
+
+                    var dayMap = this.$store.getters.getDaysByZone;
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = Object.keys(dayMap)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var day = _step.value;
+
+                            if (dayMap[day]) return true;
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return false;
+                },
+                daysByZone: function daysByZone() {
+                    return this.$store.getters.getDaysByZone;
+                },
+                shipItemCode: function shipItemCode() {
+                    return this.$store.getters.getShipItemCode;
+                }
+            };
+        }
+    }, {
+        key: "resetShipCost",
+        value: function resetShipCost() {
+            this.selectedShipMode = null;
+            this.emitEvent("shipModeChange", this.selectedShipMode);
+        }
+    }, {
+        key: "loadCustomerAddresses",
+        value: function loadCustomerAddresses() {
+            var _this2 = this;
+
+            var self = this;
+            this.$store.dispatch('toogleLockScreen', null);
+            this.$store.dispatch('loadCustomerAddresses').then(function () {
+                if (!_this2.selectedCode && self.filterDeliveryList.length > 0) self.activeAddress(self.filterDeliveryList[0].Code);
+                self.$store.dispatch('toogleLockScreen', null);
+            });
+        }
+    }, {
+        key: "activeDeliveryAddress",
+        value: function activeDeliveryAddress(delCode) {
+            if (this.selectedCode != null) {
+                if (this.selectedCode === delCode) return true;
+            } else {
+                if (this.deliveAddressByCustomer === delCode) {
+                    this.activeAddress(delCode);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }, {
+        key: "activeAddress",
+        value: function activeAddress(code) {
+            this.selectedCode = code;
+            $("#resetPoint").scrollTop(0);
+            this.$store.dispatch('updateOrderDeliveryData', { 'order_DelAddressCode': code });
+            this.emitEvent('deliveryselected', { 'order_DelAddressCode': code });
+        }
+    }, {
+        key: "buildComment",
+        value: function buildComment() {
+            var comment = "";
+            if (this.commentSt) comment = "Aclaraci\xF3n del Domicilio:\n" + this.commentSt + "\n \n";
+            if (this.commentSO) comment = comment + "Aclaraci\xF3n del Pedido:\n " + this.commentSO + ".";
+            var eventObj = {};
+            eventObj["order_Comment"] = comment;
+            this.$store.dispatch('updateOrderDeliveryData', eventObj);
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues(updateValue) {
+            //console.log('Casdadasd',updateValue,event.target.value);
+            var eventObj = {};
+            eventObj["order_" + updateValue] = event.target.value;
+            this.$store.dispatch('updateOrderDeliveryData', eventObj);
+        }
+    }, {
+        key: "openNewDelivery",
+        value: function openNewDelivery() {
+            this.$emit('new-delivery');
+        }
+    }, {
+        key: "createNewDelivey",
+        value: function createNewDelivey(payload) {
+            var _this3 = this;
+
+            return new Promise(function (resolve, reject) {
+                var self = _this3;
+                payload['EntityType'] = 0;
+                payload['Entity'] = _this3.$store.state.customer.Code;
+                payload['EntityName'] = _this3.$store.state.customer.Name;
+                axios.post('/ecommerce/api/saveRecord', {
+                    recordName: 'CompanyAddress',
+                    payload: payload
+                }).then(function (response) {
+                    //console.log(response.data);
+                    if (response.data.success) {
+                        self.deliveryList.push(response.data.record.fields);
+                        self.activeAddress(response.data.record.fields.Code);
+                    }
+                    resolve(response.data);
+                });
+            });
+        }
+    }, {
+        key: "openNewDeliveryModal",
+        value: function openNewDeliveryModal() {
+            this.newDeliveryModal = true;
+            setTimeout(function () {
+                $("#newDeliveryModal").modal('show');
+            }, 500);
+            //$("#newDeliveryModal").modal('show');
+        }
+    }, {
+        key: "centerCostCallback",
+        value: function centerCostCallback(event) {
+            this.selectedCC = event;
+            this.selectedCode = event.DelAddressCode;
+            this.activeAddress(event.DelAddressCode);
+        }
+    }, {
+        key: "calculateDate",
+        value: function calculateDate(days, shipmode) {
+            if (!shipmode) return null;
+            moment.locale('en');
+            if (this.shipDateOffset[shipmode.ShipModeCode]) {
+                days = days + this.shipDateOffset[shipmode.ShipModeCode];
+            }
+            var date = moment().add(days, 'days');
+            var iterator = 0;
+            if (!shipmode.ShipDays[date.format("dddd")]) {
+                while (!shipmode.ShipDays[date.format("dddd")] && iterator < 7) {
+                    date.add(1, 'days');
+                    iterator += 1;
+                }
+                if (iterator == 7) date = moment().add(days, 'days');else {
+                    this.shipDateOffset[shipmode.ShipModeCode] = iterator;
+                }
+            }
+            date.locale(this.$store.state.setting.DefaultLanguage);
+            return moment(date).format("dddd DD-MMM");
+        }
+    }, {
+        key: "isFreeShipCost",
+        value: function isFreeShipCost(freeShipCost) {
+            if (this.orderTemplate && this.orderTemplate.fields.Items && this.shipItemCode) {
+                var items = __lodash__.cloneDeep(this.orderTemplate.fields.Items);
+                var shipModeCodes = this.shipItemCode.split(",");
+                var shipCostItem = __lodash__.find(items, function (cost) {
+                    return shipModeCodes.indexOf(cost.fields.ArtCode) !== -1;
+                });
+                if (shipCostItem) {
+                    if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.orderTemplate.fields.Total - shipCostItem.fields.VATPrice >= freeShipCost;else return this.orderTemplate.fields.SubTotal - shipCostItem.fields.Price >= freeShipCost;
+                }
+            }
+            if (this.orderTemplate) {
+                if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.orderTemplate.fields.Total >= freeShipCost;else return this.orderTemplate.fields.SubTotal >= freeShipCost;
+            }
+            return false;
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                resetShipCost: this.resetShipCost,
+                isFreeShipCost: this.isFreeShipCost,
+                loadCustomerAddresses: this.loadCustomerAddresses,
+                activeDeliveryAddress: this.activeDeliveryAddress,
+                activeAddress: this.activeAddress,
+                buildComment: this.buildComment,
+                updateSelectValues: this.updateSelectValues,
+                openNewDelivery: this.openNewDelivery,
+                createNewDelivey: this.createNewDelivey,
+                openNewDeliveryModal: this.openNewDeliveryModal,
+                centerCostCallback: this.centerCostCallback,
+                calculateDate: this.calculateDate
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"col-12\">\n                  <template v-if=\"newDeliveryModal\">\n                    <addressCreateComponent />\n                  </template>\n                  <div class=\"col-12\" >\n                    <div class=\"mt-3 bordered reset-point\" id=\"resetPoint\">\n                         <div class=\"row m-0 align-items-center\">\n                            <h6 class=\"col-12 col-lg-6 align-items-center d-flex\"><i class=\"delivery-icon fas fa-address-card fa-2x mr-3\"></i>{{tr('Select a Delivery Address')}}</h6>\n                            <div class=\"col-12 col-lg-6 text-left text-lg-right\">\n                                <div class=\"my-2\" v-on:click=\"openNewDelivery\">\n                                    <button type=\"button\" class=\"btn btn-light\" @click=\"openNewDeliveryModal\">\n                                        <i class=\"fas fa-plus mr-2\"></i>\n                                        {{tr('New Delivery Address')}}\n                                   </button>\n                                </div>\n                            </div>\n                        </div>\n                        <div v-if=\"filterDeliveryList.length > 1\" class=\"row m-0 align-items-start\">\n                            <div class=\"input-group col-12 col-lg-6\">\n                                <input class=\"form-control\" v-model=\"searchText\">\n                                <div class=\"input-group-prepend\">\n                                  <div class=\"input-group-text\"><i class=\"fa fa-search\" /></div>\n                                </div>\n                            </div>\n                        </div>\n                        <div v-if=\"filterDeliveryList.length > 0\" class=\"row m-0 px-2\">\n                             <template v-for=\"delObj in filterDeliveryList\">\n                                 <template v-if=\"delObj.Code==selectedCode\">\n                                    <div class=\"col-12 col-sm-6 col-lg-4 px-2\">\n                                        <div class=\"address-card my-2\" :class=\"{selected:activeDeliveryAddress(delObj.Code)}\" v-on:click=\"activeAddress(delObj.Code)\" >\n                                          <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-map-marker-alt mr-1\"></i>{{delObj.Name}}</strong>\n                                          <p>{{delObj.Address}} </p>\n                                          <p>{{delObj.Province}} </p>\n                                          <p>{{delObj.City}} </p>\n                                          <p>{{delObj.Locality}} </p>\n                                          <p>{{delObj.ZipCode}} </p>\n                                        </div>\n                                    </div>\n                                </template>\n                            </template>\n                            <template v-for=\"delObj in filterDeliveryList\">\n                                <template v-if=\"delObj.Code!=selectedCode\">\n                                    <div class=\"col-12 col-sm-6 col-lg-4 px-2\">\n                                        <div class=\"address-card my-2\" :class=\"{selected:activeDeliveryAddress(delObj.Code)}\" v-on:click=\"activeAddress(delObj.Code)\" >\n                                          <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-map-marker-alt mr-1\"></i>{{delObj.Name}}</strong>\n                                          <p>{{delObj.Address}} </p>\n                                          <p>{{delObj.Province}} </p>\n                                          <p>{{delObj.City}} </p>\n                                          <p>{{delObj.Locality}} </p>\n                                          <p>{{delObj.ZipCode}} </p>\n                                        </div>\n                                    </div>\n                                </template>\n                            </template>\n                        </div>\n                        <div class=\"row new-address-message text-left text-md-right m-0\">\n                            <p class=\"col-12 mb-1\">Puede administrar las direcciones en <router-link to=\"/profile/Addresses\">Perfil Direcciones</router-link></p>\n                        </div>\n                    </div>\n                    <div class=\"bordered form-row m-0 mb-2 px-2\" v-if=\"shipModes.length>0\">\n                        <h6 class=\"col-12 align-items-center d-flex mb-3\"><i class=\"delivery-icon fas fa-truck fa-flip-horizontal fa-2x mr-3\" style=\"font-size: 1.6em;\"></i> {{tr('Ship Mode')}}</h6>\n                        <template v-for=\"shipMode of shipModes\" >\n                            <div :key=\"'shipMode-'+shipMode.ShipModeCode\" class=\"col-12 col-lg-6 px-2\">\n                                <div class=\"address-card row m-0 my-2\" :class=\"{selected:selectedShipMode==shipMode.ShipModeCode}\" v-on:click=\"selectedShipMode=shipMode.ShipModeCode\">\n                                  <div class=\"col-12\" >\n                                      <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-truck fa-flip-horizontal mr-2\"></i>{{shipMode.ShipModeName}}</strong>\n                                      <p>\n                                        {{tr('Cost')}}: \n                                        <template v-if=\"shipMode.FreeShipMinAmount\">\n                                            <template v-if=\"isFreeShipCost(shipMode.FreeShipMinAmount)\">\n                                                 <del class=\"text-warning\">$ {{shipMode.Cost}}</del> <strong class=\"text-success\">Costo Bonificado</strong>\n                                            </template>\n                                            <template v-else>\n                                                $ {{shipMode.Cost}}\n                                            </template>\n                                        </template>\n                                        <template v-else>\n                                            $ {{shipMode.Cost}}\n                                        </template>\n                                      </p>\n                                      <p>\n                                          <template v-if=\"shipMode.OfficeCode\">\n                                                Retiro en Sucursal {{shipMode.OfficeName}}\n                                          </template>\n                                          <template v-else>\n                                                <template v-if=\"shipMode.DelayMinDays && shipMode.DelayMaxDays\">\n                                                    Llega entre {{calculateDate(shipMode.DelayMinDays,shipMode)}} y el {{calculateDate(shipMode.DelayMaxDays,shipMode)}}.\n                                                </template>\n                                          </template>\n                                      </p>\n                                      <template v-if=\"shipMode.FreeShipMinAmount>0\">\n                                        <p>Envio gratis para compras mayores de $ {{shipMode.FreeShipMinAmount}}.</p>\n                                      </template>\n                                  </div>\n                                </div>\n                            </div>\n                        </template>\n                    </div>\n                    <div class=\"bordered form-row m-0 mb-2 px-2\">\n                        <h6 class=\"col-12 align-items-center d-flex mb-3\"><i class=\"delivery-icon fas fa-truck fa-flip-horizontal fa-2x mr-3\" style=\"font-size: 1.6em;\"></i> {{tr('Reception Details')}}</h6>\n                        <template v-if=\"activeDayByZone\">\n                            <div class=\"form-group col-12 col-md-6 mb-0\" >\n                                <label for=\"inputEmail4\">{{tr('Day')}}</label>\n                                <select class=\"custom-select mb-3\" v-on:change=\"updateSelectValues('DelDay')\">\n                                    <option value=\"null\" selected>{{tr('Select One')}}</option>\n                                    <option value=\"1\" v-if=\"daysByZone.Monday\">{{tr('Monday')}}</option>\n                                    <option value=\"2\" v-if=\"daysByZone.Tuesday\">{{tr('Tuesday')}}</option>\n                                    <option value=\"3\" v-if=\"daysByZone.Wednesday\">{{tr('Wednesday')}}</option>\n                                    <option value=\"4\" v-if=\"daysByZone.Thursday\">{{tr('Thursday')}}</option>\n                                    <option value=\"5\" v-if=\"daysByZone.Friday\">{{tr('Friday')}}</option>\n                                    <option value=\"6\" v-if=\"daysByZone.Saturday\" >{{tr('Saturday')}}</option>\n                                    <option value=\"7\" v-if=\"daysByZone.Sunday\">{{tr('Sunday')}}</option>\n                                </select>\n                            </div>\n                            <div class=\"col-md-6\"></div>\n                        </template>\n                        <div class=\"form-row col-12 col-md-6 mb-0\" :class=\"{'d-none':!showCommentSt}\">\n                           <label>Aclaraciones sobre el domicilio</label>\n                            <textarea class=\"form-control\" v-model=\"commentSt\" rows=\"3\" placeholder=\"Observaciones del domicilio, entre calles, otras referencias\u2026\" @change=\"buildComment\" ></textarea>\n                        </div>\n                        <div class=\"form-group col-12 col-md-6 mb-0\" :class=\"{'d-none':!showCommentSO}\">\n                           <label>Aclaraciones sobre el Pedido</label>\n                           <textarea class=\"form-control\" v-model=\"commentSO\" rows=\"3\" placeholder=\"Observaciones del pedido, encargado de recepci\xF3n, etc\u2026\" @change=\"buildComment\" ></textarea>\n                        </div>\n                    </div>\n                  </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "carDeliveryList";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "carDeliveryList";
+        }
+    }]);
+
+    return CarDeliveryListComponentB2C;
+}(Component);
+
+CarDeliveryListComponentB2C.registerComponent();
+//# sourceMappingURL=carDeliveryListComponent.js.map

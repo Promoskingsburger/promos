@@ -1,0 +1,139 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var paginationComponent = function (_Component) {
+    _inherits(paginationComponent, _Component);
+
+    function paginationComponent() {
+        _classCallCheck(this, paginationComponent);
+
+        return _possibleConstructorReturn(this, (paginationComponent.__proto__ || Object.getPrototypeOf(paginationComponent)).apply(this, arguments));
+    }
+
+    _createClass(paginationComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['currentView', 'items'];
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                if (this.$route.query.page) this.$store.state.pageOffset = this.$route.query.page - 1;
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                counter: 0,
+                itemsInView: 10
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                itemsPerPage: function itemsPerPage() {
+                    if (this.mustByRender === true) this.mustByRender = false;
+                    return this.$store.getters.getItemPerPage;
+                },
+                currentOffSet: function currentOffSet() {
+                    if (this.mustByRender === true) this.mustByRender = false;
+                    return this.$store.getters.getOffset;
+                },
+                initView: function initView() {
+                    if (this.mustByRender === true) this.mustByRender = false;
+                    if (this.$store.getters.getOffset < this.itemsInView) return 0;else return 0;
+                },
+                itemsCount: function itemsCount() {
+                    if (this.mustByRender === true) this.mustByRender = false;
+                    if (this.items) {
+                        switch (this.currentView) {
+                            case 'customerGifts':
+                                return this.$store.getters.getCustomerGifts.length;
+                            case 'favorites':
+                                return this.$store.getters.getFavoritesItems.length;
+                            case 'suggestions':
+                                return this.$store.getters.getSuggestions.length;
+                            default:
+                                return this.items.filter(function (x) {
+                                    return x.visible;
+                                }).length;
+                        }
+                    }
+                    return 0;
+                },
+                offsetLength: function offsetLength() {
+                    if (this.itemsCount < this.itemsPerPage) return 1;
+                    return this.itemsCount % this.itemsPerPage == 0 ? this.itemsCount / this.itemsPerPage : parseInt(this.itemsCount / this.itemsPerPage) + 1;
+                },
+                offStore: function offStore() {
+                    var self = this;
+                    this.counter = 0;
+                    return Array.from({ length: this.offsetLength }, function () {
+                        return self.counter++;
+                    });
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                changeOffset: this.changeOffset,
+                itemUpdated: this.itemUpdated
+            };
+        }
+    }, {
+        key: "changeOffset",
+        value: function changeOffset(offset) {
+            if (offset < 0) offset = 0;
+            if (offset > this.offsetLength - 1) offset = this.offsetLength - 1;
+            window.scrollTo(0, 0);
+            this.$store.state.pageOffset = offset;
+            if (offset != this.$route.query.page - 1) {
+                this.$router.push({
+                    params: this.$route.params,
+                    query: {
+                        category: this.$route.query.category,
+                        page: offset + 1
+                    }
+                });
+            }
+        }
+    }, {
+        key: "itemUpdated",
+        value: function itemUpdated() {
+            this.mustByRender = true;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<nav aria-label=\"Page navigation\">\n                    <ul class=\"pagination justify-content-center\">\n                        <li class=\"page-item disabled\" >\n                            <a href=\"#\" class=\"page-link\">\n                                {{itemsCount}}\n                                <template v-if=\"itemsCount == 1\">{{tr('Item')}}</template>\n                                <template v-else>{{tr('Items')}}</template>\n                            </a>\n                        </li>\n                        <li :class=\"{'page-item':true,'disabled':currentOffSet==0}\">\n                            <a href=\"#\" :class=\"{'page-link':true}\" @click.stop.prevent=\"changeOffset(currentOffSet-1)\" aria-label=\"Previous\">\n                                <span aria-hidden=\"true\">&laquo;</span>\n                                <span class=\"sr-only\">Previous</span>\n                            </a>\n                        </li>\n                        <template v-if=\"currentOffSet<itemsInView\">\n                            <template v-for=\"offset of offStore.slice(0,itemsInView)\">\n                                <li :class=\"{'page-item':true,'active':offset==currentOffSet ,'waves-effect':true }\" >\n                                    <a href=\"#\" :class=\"{'page-link':true, active:currentOffSet==offset}\" @click.stop.prevent=\"changeOffset(offset)\">{{offset+1}}</a>\n                                </li>\n                            </template>\n                        </template>\n                        <template v-else-if=\"currentOffSet > offStore.length -itemsInView\">\n                            <template v-for=\"offset of offStore.slice((offStore.length -itemsInView),(offStore.length))\">\n                                <li :class=\"{'page-item':true,'active':offset==currentOffSet ,'waves-effect':true }\" >\n                                    <a href=\"#\" :class=\"{'page-link':true, active:currentOffSet==offset}\" @click.stop.prevent=\"changeOffset(offset)\">{{offset+1}}</a>\n                                </li>\n                            </template>\n                        </template>\n                        <template v-else>\n                            <template v-for=\"offset of offStore.slice(currentOffSet-1,(currentOffSet+itemsInView))\">\n                                <li :class=\"{'page-item':true,'active':offset==currentOffSet ,'waves-effect':true }\" >\n                                    <a href=\"#\" :class=\"{'page-link':true, active:currentOffSet==offset}\" @click.stop.prevent=\"changeOffset(offset)\">{{offset+1}}</a>\n                                </li>\n                            </template>\n                        </template>\n                        <li :class=\"{'page-item':true,'disabled':currentOffSet==offsetLength-1}\">\n                            <a href=\"#\" :class=\"{'page-link':true}\" @click.stop.prevent=\"changeOffset(currentOffSet+1)\" aria-label=\"Next\">\n                                <span aria-hidden=\"true\">&raquo;</span>\n                                <span class=\"sr-only\">Next</span>\n                            </a>\n                        </li>\n                    </ul>\n                </nav>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "paginationComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "paginationComponent";
+        }
+    }]);
+
+    return paginationComponent;
+}(Component);
+
+paginationComponent.registerComponent();
+//# sourceMappingURL=paginationComponent.js.map

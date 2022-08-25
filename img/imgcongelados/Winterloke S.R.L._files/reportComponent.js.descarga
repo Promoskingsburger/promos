@@ -1,0 +1,184 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var reportComponent = function (_Component) {
+    _inherits(reportComponent, _Component);
+
+    function reportComponent() {
+        _classCallCheck(this, reportComponent);
+
+        return _possibleConstructorReturn(this, (reportComponent.__proto__ || Object.getPrototypeOf(reportComponent)).apply(this, arguments));
+    }
+
+    _createClass(reportComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['reportName'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                params: {},
+                loading: false,
+                report: null
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                reportTables: function reportTables() {
+                    if (this.report) return Object.keys(this.report);
+                    return [];
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getReportName: this.getReportName,
+                runReport: this.runReport,
+                dataURIToBlob: this.dataURIToBlob,
+                downloadDataAsFile: this.downloadDataAsFile,
+                exportReport: this.exportReport
+            };
+        }
+    }, {
+        key: "getReportName",
+        value: function getReportName() {
+            var splitReportName = this.reportName.split("_");
+            return splitReportName[0];
+        }
+    }, {
+        key: "runReport",
+        value: function runReport(parameters) {
+            var _this2 = this;
+
+            var self = this;
+            return new Promise(function (resolve, reject) {
+                _this2.loading = true;
+                self.report = null;
+                axios.post('/ecommerce/api/runReport', {
+                    reportName: self.getReportName(),
+                    params: parameters,
+                    recordOrigin: "EcommerceSettings",
+                    recordField: "ReportRow"
+                }).then(function (response) {
+                    self.report = Object.freeze(response.data.report);
+                    //self.report_response = Object.freeze(response.data);
+                    self.loading = false;
+                    resolve(true);
+                }).catch(function (error) {
+                    console.log(error);
+                    self.loading = false;
+                    reject(false);
+                });
+            });
+        }
+    }, {
+        key: "dataURIToBlob",
+        value: function dataURIToBlob(b64Data) {
+            var contentType = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+            var sliceSize = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 512;
+
+
+            console.log(b64Data.split(',')[1]);
+            contentType = b64Data.split(',')[0];
+            var byteCharacters = atob(b64Data.split(',')[1]);
+            function decode_utf8(s) {
+                return decodeURIComponent(escape(s));
+            }
+            var byteCharacters = decode_utf8(byteCharacters);
+            var byteArrays = [];
+
+            for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+                var byteNumbers = new Array(slice.length);
+                for (var i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                var byteArray = new Uint8Array(byteNumbers);
+
+                byteArrays.push(byteArray);
+            }
+
+            var blob = new Blob(byteArrays, { type: contentType });
+            return blob;
+        }
+    }, {
+        key: "downloadDataAsFile",
+        value: function downloadDataAsFile(filename, data, type) {
+            var utf8_blob = this.dataURIToBlob(data, type);
+            if (window.navigator.msSaveOrOpenBlob) {
+                //console.log("If TEST",type,blob);
+                window.navigator.msSaveBlob(utf8_blob, filename);
+            } else {
+                //console.log("else TEST",type,blob);
+                var elem = window.document.createElement('a');
+                var href = window.URL.createObjectURL(utf8_blob);
+                elem.href = href;
+                elem.download = filename;
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+                window.URL.revokeObjectURL(href);
+            }
+        }
+    }, {
+        key: "exportReport",
+        value: function exportReport(parameters) {
+            var _this3 = this;
+
+            var self = this;
+            return new Promise(function (resolve, reject) {
+                _this3.loading = true;
+                axios.post('/ecommerce/api/exportReport', {
+                    reportName: self.reportName,
+                    recordOrigin: "EcommerceSettings",
+                    recordField: "ReportRow",
+                    params: parameters
+                }).then(function (response) {
+                    console.log(response);
+                    self.loading = false;
+                    self.downloadDataAsFile(response.data.filename, response.data.reportData, 'text/excel;encoding:UTF-8');
+                    resolve(true);
+                }).catch(function (error) {
+                    console.log("Error in exportReport Rquest", error);
+                    self.loading = false;
+                    reject(false);
+                });
+            });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row\">\n                 <slot name=\"parameters\" :runAction=\"runReport\" :exportAction=\"exportReport\" :params=\"params\" :loading=\"loading\"></slot>\n                 <template v-if=\"loading\" >\n                     <div class=\"row justify-content-center align-items-center profile-loading\">\n                          <div class=\"col-6 text-center\">\n                              <img class=\"img-fluid\" src=\"../static/ecommerce/img/lg-spinner-gif.gif\" >\n                              <p class=\"font-weight-bold\">{{tr('Loading Report Data')}}</p>\n                          </div>\n                      </div>\n                 </template>\n                 <template v-else>\n                     <div :key=\"'reportRenderContainer-'+getReportName()\" id=\"genericReportView\" :ref=\"'reportRenderContainer-'+reportName\" class=\"col-12 mt-2\"  style=\"overflow-x: auto;\">\n                          <template v-if=\"reportTables.length>0\" v-for=\"table in reportTables\">\n                                <reportTableView :table=\"Object.freeze(report[table])\" :key=\"reportName+table\" :tablename=\"table\" :reportName=\"reportName\" ></reportTableView>\n                          </template>\n                     </div>\n                 </template>\n             </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "reportComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "reportComponent";
+        }
+    }]);
+
+    return reportComponent;
+}(Component);
+
+reportComponent.registerComponent();
+//# sourceMappingURL=reportComponent.js.map

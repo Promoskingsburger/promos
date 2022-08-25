@@ -1,0 +1,627 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios, _ */
+var awesonLinkToComponent = function (_Component) {
+    _inherits(awesonLinkToComponent, _Component);
+
+    function awesonLinkToComponent() {
+        _classCallCheck(this, awesonLinkToComponent);
+
+        return _possibleConstructorReturn(this, (awesonLinkToComponent.__proto__ || Object.getPrototypeOf(awesonLinkToComponent)).apply(this, arguments));
+    }
+
+    _createClass(awesonLinkToComponent, [{
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'filters': function filters() {
+                    if (this.filters != null && Object.keys(this.filters).length >= 0) {
+                        this.loadLinkToData();
+                    }
+                },
+                'searchValue': function searchValue() {
+                    this.suggestionsList = [];
+                    if (this.searchValue.length > 1) this.findSuggestions();
+                }
+            };
+        }
+    }, {
+        key: "getProps",
+        value: function getProps() {
+            return {
+                formInline: {
+                    type: Boolean,
+                    default: false,
+                    required: false
+                },
+                rowWidth: {
+                    type: Number,
+                    default: 3,
+                    required: false
+                },
+                labelWith: {
+                    type: Number,
+                    default: 4,
+                    required: false
+                },
+                inputWith: {
+                    type: Number,
+                    default: 8,
+                    required: false
+                },
+                table: {
+                    type: String,
+                    required: true
+                },
+                paste: {
+                    type: String,
+                    required: true
+                },
+                showField: {
+                    required: true
+                },
+                selected: {
+                    type: String
+                    //required: true,
+                },
+                delayLoad: {
+                    type: Boolean,
+                    default: false
+                },
+                filters: {
+                    type: Object
+                },
+                callback: {
+                    type: Function
+                },
+                recordKey: {
+                    type: String,
+                    default: ''
+                },
+                rowField: {
+                    type: String,
+                    default: ''
+                },
+                showLabel: {
+                    type: Boolean,
+                    default: false
+                },
+                label: {
+                    type: String,
+                    default: ''
+                },
+                noLinked: {
+                    type: Boolean,
+                    default: false
+                },
+                searchValueProp: {
+                    type: String,
+                    default: ""
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                linkToData: {},
+                mustUpdate: false,
+                suggestionsList: [],
+                selectedValue: null,
+                searchValue: null
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (!this.delayLoad) {
+                                    this.loadLinkToData();
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.subscribeEvent("clearAwesonLinkTo_" + this.recordKey + "__" + this.table, this.resetSelected);
+
+                            case 1:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                containerClass: function containerClass() {
+                    var containerObj = {};
+                    containerObj["form-group"] = this.formInline;
+                    containerObj["row"] = this.formInline;
+                    containerObj["col-" + this.rowWidth] = this.formInline && this.rowWidth != 12;
+                    return containerObj;
+                },
+                labelClass: function labelClass() {
+                    var labelObj = {};
+                    labelObj["col-sm-" + this.labelWith] = true;
+                    return labelObj;
+                },
+                inputClass: function inputClass() {
+                    var inputObj = {};
+                    inputObj["col-sm-" + this.inputWith] = true;
+                    return inputObj;
+                },
+                OurSettingsCountry: function OurSettingsCountry() {
+                    return this.$store.getters.getOurSettingsCountry;
+                },
+                storeSelected: function storeSelected() {
+                    return this.$store.getters.getSelectLinkToValue(this.recordKey + '_' + this.table);
+                },
+                computerSelectedValue: function computerSelectedValue() {
+                    if (this.selected == null) {
+                        this.mustUpdate = false;
+                        if (this.table === 'Country' && this.storeSelected === "") {
+                            return this.OurSettingsCountry;
+                        } else if (this.storeSelected) return this.storeSelected;
+                    }
+                    return this.selected;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                resetSelected: this.resetSelected,
+                loadLinkToData: function loadLinkToData() {
+                    var _this2 = this;
+
+                    axios.post('/ecommerce/api/getLinkToData', {
+                        table: this.table,
+                        paste: this.paste,
+                        showField: this.showField,
+                        filters: this.filters
+                    }).then(function (response) {
+                        var linkToData = Object.freeze(response.data.result);
+                        linkToData = _.map(linkToData, function (x) {
+                            return Object.assign(x.fields, x.virtualFields);
+                        });
+                        _this2.linkToData = linkToData;
+                    });
+                },
+                getOptionLabel: function getOptionLabel(option) {
+                    var label = "";
+                    if (Array.isArray(this.showField)) {
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = this.showField[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var recField = _step.value;
+
+                                label = label + " " + option[recField];
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    } else {
+                        label = option[this.showField];
+                    }
+                    return label;
+                },
+
+                updateSelectLinkto: function updateSelectLinkto(event) {
+                    var _this3 = this;
+
+                    var selectedValue = null;
+                    var _iteratorNormalCompletion2 = true;
+                    var _didIteratorError2 = false;
+                    var _iteratorError2 = undefined;
+
+                    try {
+                        for (var _iterator2 = this.linkToData[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            var x = _step2.value;
+
+                            if (x[this.paste] == event.target.value) selectedValue = x[this.rowField];
+                        }
+                    } catch (err) {
+                        _didIteratorError2 = true;
+                        _iteratorError2 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                _iterator2.return();
+                            }
+                        } finally {
+                            if (_didIteratorError2) {
+                                throw _iteratorError2;
+                            }
+                        }
+                    }
+
+                    if (this.noLinked) selectedValue = event.target.value;
+
+                    var data = {
+                        recordKey: this.recordKey,
+                        table: this.recordKey ? this.recordKey + '_' + this.table : this.table,
+                        linkToData: this.linkToData.filter(function (x) {
+                            return x[_this3.paste] == event.target.value;
+                        }),
+                        linkedField: selectedValue,
+                        value: event.target.value
+                    };
+
+                    this.$store.dispatch('updateSelectLinkto', data);
+                    this.$emit('update-value', event.target.value);
+                    this.$emit('update-value-full', data);
+                    this.mustUpdate = true;
+                },
+                selectSuggestion: function selectSuggestion() {
+                    if (this.searchValue.length > 1) {
+                        if (this.linkToData) {
+                            var _iteratorNormalCompletion3 = true;
+                            var _didIteratorError3 = false;
+                            var _iteratorError3 = undefined;
+
+                            try {
+                                for (var _iterator3 = this.linkToData[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                    var _linkObj = _step3.value;
+
+                                    var label = _linkObj[this.showField];
+                                    if (Array.isArray(this.showField)) {
+                                        var _iteratorNormalCompletion4 = true;
+                                        var _didIteratorError4 = false;
+                                        var _iteratorError4 = undefined;
+
+                                        try {
+                                            for (var _iterator4 = this.showField[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                                                var recField = _step4.value;
+
+                                                label = label + " " + _linkObj[recField];
+                                            }
+                                        } catch (err) {
+                                            _didIteratorError4 = true;
+                                            _iteratorError4 = err;
+                                        } finally {
+                                            try {
+                                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                                    _iterator4.return();
+                                                }
+                                            } finally {
+                                                if (_didIteratorError4) {
+                                                    throw _iteratorError4;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (label.toLowerCase() == this.searchValue) {
+                                        this.selectedValue = _linkObj[this.paste];
+                                        this.updateSelectLinkto({ target: { value: _linkObj[this.paste] } });
+                                        return true;
+                                    }
+                                }
+                            } catch (err) {
+                                _didIteratorError3 = true;
+                                _iteratorError3 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                        _iterator3.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError3) {
+                                        throw _iteratorError3;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                },
+                findSuggestions: window._.debounce(this.findSuggestions, 250)
+            };
+        }
+    }, {
+        key: "resetSelected",
+        value: function resetSelected() {
+            this.selectedValue = null;
+            this.searchValue = '';
+        }
+    }, {
+        key: "loadLinkToData",
+        value: function loadLinkToData() {
+            var _this4 = this;
+
+            axios.post('/ecommerce/api/getLinkToData', {
+                table: this.table,
+                paste: this.paste,
+                showField: this.showField,
+                filters: this.filters
+            }).then(function (response) {
+                var linkToData = Object.freeze(response.data.result);
+                linkToData = _.map(linkToData, function (x) {
+                    return Object.assign(x.fields, x.virtualFields);
+                });
+                _this4.linkToData = linkToData;
+            });
+        }
+    }, {
+        key: "getOptionLabel",
+        value: function getOptionLabel(option) {
+            var label = "";
+            if (Array.isArray(this.showField)) {
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
+
+                try {
+                    for (var _iterator5 = this.showField[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var recField = _step5.value;
+
+                        label = label + " " + option[recField];
+                    }
+                } catch (err) {
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
+                        }
+                    } finally {
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
+                        }
+                    }
+                }
+            } else {
+                label = option[this.showField];
+            }
+            return label;
+        }
+    }, {
+        key: "updateSelectLinkto",
+        value: function updateSelectLinkto(event) {
+            var _this5 = this;
+
+            var selectedValue = null;
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
+
+            try {
+                for (var _iterator6 = this.linkToData[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var x = _step6.value;
+
+                    if (x[this.paste] == event.target.value) selectedValue = x[this.rowField];
+                }
+            } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
+                    }
+                } finally {
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
+                    }
+                }
+            }
+
+            if (this.noLinked) selectedValue = event.target.value;
+
+            var data = {
+                recordKey: this.recordKey,
+                table: this.recordKey ? this.recordKey + '_' + this.table : this.table,
+                linkToData: this.linkToData.filter(function (x) {
+                    return x[_this5.paste] == event.target.value;
+                }),
+                linkedField: selectedValue,
+                value: event.target.value
+            };
+
+            this.$store.dispatch('updateSelectLinkto', data);
+            this.$emit('update-value', event.target.value);
+            this.$emit('update-value-full', data);
+            this.mustUpdate = true;
+        }
+    }, {
+        key: "selectSuggestion",
+        value: function selectSuggestion() {
+            if (this.searchValue.length > 1) {
+                if (this.linkToData) {
+                    var _iteratorNormalCompletion7 = true;
+                    var _didIteratorError7 = false;
+                    var _iteratorError7 = undefined;
+
+                    try {
+                        for (var _iterator7 = this.linkToData[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                            var _linkObj2 = _step7.value;
+
+                            var label = _linkObj2[this.showField];
+                            if (Array.isArray(this.showField)) {
+                                var _iteratorNormalCompletion8 = true;
+                                var _didIteratorError8 = false;
+                                var _iteratorError8 = undefined;
+
+                                try {
+                                    for (var _iterator8 = this.showField[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                                        var recField = _step8.value;
+
+                                        label = label + " " + _linkObj2[recField];
+                                    }
+                                } catch (err) {
+                                    _didIteratorError8 = true;
+                                    _iteratorError8 = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                                            _iterator8.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError8) {
+                                            throw _iteratorError8;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (label.toLowerCase() == this.searchValue) {
+                                this.selectedValue = _linkObj2[this.paste];
+                                this.updateSelectLinkto({ target: { value: _linkObj2[this.paste] } });
+                                return true;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError7 = true;
+                        _iteratorError7 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                                _iterator7.return();
+                            }
+                        } finally {
+                            if (_didIteratorError7) {
+                                throw _iteratorError7;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    }, {
+        key: "findSuggestions",
+        value: function findSuggestions() {
+            if (!this.selectSuggestion()) {
+                var newSuggestions = [];
+                if (this.searchValue.length > 1) {
+                    var _iteratorNormalCompletion9 = true;
+                    var _didIteratorError9 = false;
+                    var _iteratorError9 = undefined;
+
+                    try {
+                        for (var _iterator9 = this.linkToData[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                            var linkObj = _step9.value;
+
+                            var label = "";
+                            if (Array.isArray(this.showField)) {
+                                var _iteratorNormalCompletion10 = true;
+                                var _didIteratorError10 = false;
+                                var _iteratorError10 = undefined;
+
+                                try {
+                                    for (var _iterator10 = this.showField[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                                        var recField = _step10.value;
+
+                                        label = label + " " + linkObj[recField];
+                                    }
+                                } catch (err) {
+                                    _didIteratorError10 = true;
+                                    _iteratorError10 = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                                            _iterator10.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError10) {
+                                            throw _iteratorError10;
+                                        }
+                                    }
+                                }
+                            } else label = linkObj[this.showField];
+
+                            if (label.toLowerCase() === this.searchValue.toLocaleLowerCase()) {
+                                this.selectedValue = linkObj[this.paste];
+                                this.updateSelectLinkto({ target: { value: linkObj[this.paste] } });
+                                return;
+                            }
+
+                            if (label.toLowerCase().indexOf(this.searchValue.toLocaleLowerCase()) != -1) newSuggestions.push(linkObj);
+                        }
+                    } catch (err) {
+                        _didIteratorError9 = true;
+                        _iteratorError9 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                                _iterator9.return();
+                            }
+                        } finally {
+                            if (_didIteratorError9) {
+                                throw _iteratorError9;
+                            }
+                        }
+                    }
+
+                    if (!this.selectedValue) this.suggestionsList = newSuggestions;
+                }
+                if (this.noLinked) this.updateSelectLinkto({ target: { value: this.searchValue } });
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div  v-bind:class=\"containerClass\">\n                    <template v-if=\"!formInline\">\n                        <template v-if=\"showLabel\">\n                            <label class=\"form-label\" >{{tr(label)}}</label>\n                        </template>\n                        <input :id=\"recordKey+'_'+rowField+'_'+table\" :key=\"recordKey+'_'+table\" :list=\"recordKey+'_'+table+'suggestions'\"  v-model=\"searchValue\" class=\"form-control\" >\n                        <datalist :id=\"recordKey+'_'+table+'suggestions'\"  class=\"ui-autocomplete-input mr-sm-2\" >\n                            <template v-for=\"opt in suggestionsList\">\n                                <option :value=\"getOptionLabel(opt)\" />\n                            </template>\n                        </datalist>\n                    </template>\n                    <template v-else>\n                        <label class=\"form-label\" v-bind:class=\"labelClass\">{{tr(label)}}</label>\n                        <div v-bind:class=\"inputClass\">\n                            <input :id=\"recordKey+'_'+rowField+'_'+table\" :key=\"recordKey+'_'+table\" :list=\"recordKey+'_'+table+'suggestions'\"  v-model=\"searchValue\" class=\"form-control\" >\n                            <datalist :id=\"recordKey+'_'+table+'suggestions'\"  class=\"ui-autocomplete-input mr-sm-2\" >\n                                <template v-for=\"opt in suggestionsList\">\n                                    <option :value=\"getOptionLabel(opt)\" />\n                                </template>\n                            </datalist>\n                        </div>\n                    </template>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "awesonLinkToComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "awesonLinkToComponent";
+        }
+    }]);
+
+    return awesonLinkToComponent;
+}(Component);
+
+awesonLinkToComponent.registerComponent();
+//# sourceMappingURL=awesonLinkToComponent.js.map

@@ -1,0 +1,403 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global __lodash__, moment, Component, axios, defaultState */
+var carDeliveryListComponent = function (_Component) {
+    _inherits(carDeliveryListComponent, _Component);
+
+    function carDeliveryListComponent() {
+        _classCallCheck(this, carDeliveryListComponent);
+
+        return _possibleConstructorReturn(this, (carDeliveryListComponent.__proto__ || Object.getPrototypeOf(carDeliveryListComponent)).apply(this, arguments));
+    }
+
+    _createClass(carDeliveryListComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                showCommentSO: {
+                    type: Boolean,
+                    default: true
+                },
+                showCommentSt: {
+                    type: Boolean,
+                    default: true
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                editMode: false,
+                selectedCode: null,
+                searchText: null,
+                Comment: null,
+                deliveryListState: [],
+                selectedShipMode: null,
+                selectedCC: null,
+                loadding: false,
+                newDeliveryModal: false,
+                commentSt: "",
+                commentSO: ""
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'selectedShipMode': function selectedShipMode(newValue, oldValue) {
+                    this.emitEvent("shipModeChange", newValue);
+                    var filtered = this.$store.state.shipModes.filter(function (x) {
+                        return x.ShipModeCode == newValue;
+                    });
+                    if (filtered.length > 0) {
+                        var daysByZone = filtered[0].ShipDays;
+                        this.$store.commit('updateDaysByZone', daysByZone);
+                    }
+                },
+                "deliveryList": function deliveryList(newValue, oldValue) {
+                    if (newValue && newValue.length == 1 && !this.selectedCode) {
+                        this.selectedCode = newValue[0].Code;
+                        this.$store.dispatch('updateOrderDeliveryData', { "order_DelAddressCode": newValue[0].Code });
+                        this.activeAddress(this.selectedCode);
+                    }
+                },
+                'shipModes': function shipModes(newValue, oldValue) {
+                    if (this.shipModes.length > 0) {
+                        this.selectedShipMode = this.shipModes[0].ShipModeCode;
+                    }
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.loadCustomerAddresses();
+                                this.$store.dispatch('updateOrderDeliveryData', { "order_ReceptionManagerCode": this.$store.getters.getSession.fields.Code });
+                                this.subscribeEvent("selectcentercost", this.centerCostCallback);
+                                this.subscribeEvent("address-relocation", this.editAddress);
+                                this.subscribeEvent("address-relocation-cancel", this.editAddress);
+                                if (!this.selectedShipMode) {
+                                    this.selectedShipMode = this.$store.state.order_ShipMode;
+                                }
+
+                            case 6:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                shipModes: function shipModes() {
+                    return this.$store.getters.getShipModes;
+                },
+                canAddNew: function canAddNew() {
+                    return (this.isAdmin || this.deliveryList.length == 0) && !this.loadding;
+                },
+                filterDeliveryList: function filterDeliveryList() {
+                    var searchText = this.searchText;
+                    if (!searchText || searchText == '') return this.deliveryList;else return __lodash__.filter(this.deliveryList, function (delivery) {
+                        var reg = new RegExp("" + searchText, 'i');
+                        return String(delivery.Name).match(reg) || String(delivery.Address).match(reg) || String(delivery.City).match(reg) || String(delivery.Province).match(reg) || String(delivery.ZipCode).match(reg);
+                    });
+                },
+                centerCostFilter: function centerCostFilter() {
+                    if (this.selectedCC) {
+                        return { masterId: this.selectedCC.internalId };
+                    }
+                    return { masterId: "-99999" };
+                },
+                deliveAddressByCustomer: function deliveAddressByCustomer() {
+                    return this.$store.state.customer.DelAddressCode;
+                },
+                activeDayByZone: function activeDayByZone() {
+                    var selectedShipMode = this.selectedShipMode;
+                    var shipMode = __lodash__.find(this.$store.state.shipModes, function (shipMode) {
+                        return shipMode.ShipModeCode == selectedShipMode;
+                    });
+                    if (shipMode && shipMode.OfficeCode) {
+                        return false;
+                    }
+
+                    var isDaysEnables = 0;
+                    var dayMap = this.$store.getters.getDaysByZone;
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = Object.keys(dayMap)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var day = _step.value;
+
+                            if (dayMap[day]) isDaysEnables += 1;
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return isDaysEnables > 0;
+                },
+                daysByZone: function daysByZone() {
+                    return this.$store.getters.getDaysByZone;
+                },
+                deliveryList: function deliveryList() {
+                    return this.$store.getters.getCustomerAddresses;
+                },
+                shipItemCode: function shipItemCode() {
+                    return this.$store.getters.getShipItemCode;
+                },
+                orderTemplate: function orderTemplate() {
+                    return __lodash__.cloneDeep(this.$store.state.carOrderTemplate);
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                editAddress: this.editAddress,
+                loadCustomerAddresses: this.loadCustomerAddresses,
+                activeDeliveryAddress: this.activeDeliveryAddress,
+                activeAddress: this.activeAddress,
+                updateSelectValues: this.updateSelectValues,
+                openNewDelivery: this.openNewDelivery,
+                createNewDelivey: this.createNewDelivey,
+                openNewDeliveryModal: this.openNewDeliveryModal,
+                centerCostCallback: this.centerCostCallback,
+                calculateDate: this.calculateDate,
+                buildComment: this.buildComment,
+                isFreeShipCost: this.isFreeShipCost
+            };
+        }
+    }, {
+        key: "isFreeShipCost",
+        value: function isFreeShipCost(freeShipCost) {
+            if (this.orderTemplate && this.orderTemplate.fields.Items && this.shipItemCode) {
+                var items = __lodash__.cloneDeep(this.orderTemplate.fields.Items);
+                var shipModeCodes = this.shipItemCode.split(",");
+                var shipCostItem = __lodash__.find(items, function (cost) {
+                    return shipModeCodes.indexOf(cost.fields.ArtCode) !== -1;
+                });
+                if (shipCostItem) {
+                    if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.orderTemplate.fields.Total - shipCostItem.fields.VATPrice >= freeShipCost;else return this.orderTemplate.fields.SubTotal - shipCostItem.fields.Price >= freeShipCost;
+                }
+            }
+            if (this.orderTemplate) {
+                if (this.$store.getters.getSetting.ShowPriceWithIVA) return this.orderTemplate.fields.Total >= freeShipCost;else return this.orderTemplate.fields.SubTotal >= freeShipCost;
+            }
+            return false;
+        }
+    }, {
+        key: "buildComment",
+        value: function buildComment() {
+            var comment = "";
+            if (this.commentSt) comment = this.tr("Address Clarification:") + "\n" + this.commentSt + "\n \n";
+            if (this.commentSO) comment = "" + comment + this.tr("Order Clarification:") + "\n " + this.commentSO + ".";
+            var eventObj = {};
+            eventObj["order_Comment"] = comment;
+            this.$store.dispatch('updateOrderDeliveryData', eventObj);
+        }
+    }, {
+        key: "editAddress",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(address) {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                if (address.Longitude && address.Latitude && this.selectedCode == address.Code) {
+                                    this.$store.dispatch('editAddressCustomer', address);
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function editAddress(_x) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return editAddress;
+        }()
+    }, {
+        key: "loadCustomerAddresses",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                this.loading = true;
+                                this.$store.dispatch('toogleLockScreen', null);
+                                _context3.next = 4;
+                                return this.$store.dispatch('loadCustomerAddresses');
+
+                            case 4:
+                                this.loading = false;
+                                this.$store.dispatch('toogleLockScreen', null);
+
+                            case 6:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function loadCustomerAddresses() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return loadCustomerAddresses;
+        }()
+    }, {
+        key: "activeDeliveryAddress",
+        value: function activeDeliveryAddress(delCode) {
+            if (this.selectedCode != null) {
+                if (this.selectedCode == delCode) return true;
+            } else {
+                if (this.deliveAddressByCustomer == delCode) {
+                    //this.activeAddress (delCode);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }, {
+        key: "activeAddress",
+        value: function activeAddress(code) {
+            this.editMode = !this.editMode;
+            var filterDL = this.deliveryList.filter(function (x) {
+                return x.Code == code;
+            });
+            if (filterDL.length > 0) {
+                var delObj = filterDL[0];
+                if (delObj.ZipCode) this.$store.dispatch('loadZoneFromZipCode', delObj.ZipCode);else this.$store.commit('updateDaysByZone', defaultState.daysByZone);
+
+                var eventObj = {};
+                eventObj["order_DelDay"] = null;
+                this.$store.dispatch('updateOrderDeliveryData', eventObj);
+                if (!delObj.Latitude || !delObj.Longitude) this.emitEvent("addressNeedConfirmations", delObj);
+            }
+            this.selectedCode = code;
+            $("#resetPoint").scrollTop(0);
+            this.$store.dispatch('updateOrderDeliveryData', { 'order_DelAddressCode': code });
+            this.emitEvent('deliveryselected', { 'order_DelAddressCode': code });
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues(updateValue) {
+            //console.log('Casdadasd',updateValue,event.target.value);
+            var eventObj = {};
+            eventObj["order_" + updateValue] = event.target.value;
+            this.$store.dispatch('updateOrderDeliveryData', eventObj);
+        }
+    }, {
+        key: "openNewDelivery",
+        value: function openNewDelivery() {
+            //console.log( "New Delivery" );
+            this.$emit('new-delivery');
+        }
+    }, {
+        key: "createNewDelivey",
+        value: function createNewDelivey(payload) {
+            var _this2 = this;
+
+            return new Promise(function (resolve, reject) {
+                var self = _this2;
+                payload['EntityType'] = 0;
+                payload['Entity'] = _this2.$store.state.customer.Code;
+                payload['EntityName'] = _this2.$store.state.customer.Name;
+                axios.post('/ecommerce/api/saveRecord', {
+                    recordName: 'CompanyAddress',
+                    payload: payload
+                }).then(function (response) {
+                    if (response.data.success) {
+                        self.deliveryList.push(response.data.record.fields);
+                        self.activeAddress(response.data.record.fields.Code);
+                    }
+                    resolve(response.data);
+                });
+            });
+        }
+    }, {
+        key: "openNewDeliveryModal",
+        value: function openNewDeliveryModal() {
+            this.newDeliveryModal = true;
+            setTimeout(function () {
+                $("#newDeliveryModal").modal('show');
+            }, 500);
+            //$("#newDeliveryModal").modal('show');
+        }
+    }, {
+        key: "centerCostCallback",
+        value: function centerCostCallback(event) {
+            this.selectedCC = event;
+            if (event.DelAddressCode) {
+                this.selectedCode = event.DelAddressCode;
+                this.activeAddress(event.DelAddressCode);
+            }
+        }
+    }, {
+        key: "calculateDate",
+        value: function calculateDate(days) {
+            moment.locale(this.$store.state.setting.DefaultLanguage);
+            return moment().add(days, 'days').format("dddd DD-MMM");
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"col-12\">\n                  <template v-if=\"newDeliveryModal\">\n                    <addressCreateComponent />\n                  </template>\n                  <div class=\"col-12\" >\n                    <div class=\"mt-3 bordered reset-point\" id=\"resetPoint\">\n                        <div class=\"row m-0 align-items-center\">\n                        <h6 class=\"col-12 col-lg-6 align-items-center d-flex\">\n                            <i class=\"delivery-icon fas fa-address-card fa-2x mr-3\"></i>\n                            <template v-if=\"editMode\">\n                                {{tr('Select a Delivery Address')}}\n                            </template>\n                            <template v-else>\n                                {{tr('Delivery Address')}}\n                            </template>\n                        </h6>\n                        <div v-if=\"canAddNew\" class=\"col-12 col-lg-6 text-left text-lg-right\">\n                            <div class=\"my-2\" v-on:click=\"openNewDelivery\">\n                                <button type=\"button\" class=\"btn btn-light\" @click=\"openNewDeliveryModal\">\n                                    <i class=\"fas fa-plus mr-2\"></i>\n                                    {{tr('New Delivery Address')}}\n                                </button>\n                            </div>\n                        </div>\n                    </div>\n                    <div  class=\"row m-0 align-items-start\">\n                        <div v-if=\"editMode\" class=\"input-group col-12 col-xl-6\">\n                                <input class=\"form-control\" v-model=\"searchText\">\n                                <div class=\"input-group-prepend\">\n                                    <div class=\"input-group-text\"><i class=\"fa fa-search\" /></div>\n                                </div>\n                                <!--button class=\"btn btn-custom ml-sm-2 mt-2 mt-sm-0\" @click=\"activeAddress(selectedCode)\">Guardar</button -->\n                            </div>\n                            <div v-else=\"editMode\" class=\"input-group col-12 col-xl-6\">\n                                <button v-if=\"filterDeliveryList.length > 1\"  class=\"btn btn-link text-left p-0\" @click=\"editMode=true\">{{tr('Change delivery address')}}</button> \n                            </div>\n                        </div>\n                        <div v-if=\"filterDeliveryList.length > 0\" class=\"row m-0 px-2 w-100\">\n                            <template v-if=\"!editMode\">\n                                <template v-for=\"delObj in deliveryList\" >\n                                    <template v-if=\"delObj.Code==selectedCode\">\n                                        <div :key=\"'deliver-selected'+delObj.Code\" class=\"col-12  px-2\">\n                                            <div class=\"address-card my-2\" :class=\"{selected:activeDeliveryAddress(delObj.Code)}\"  >\n                                              <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-map-marker-alt mr-1\"></i>{{delObj.Name}}</strong>\n                                              <p>{{delObj.Address}} </p>\n                                              <p>{{delObj.Province}} </p>\n                                              <p>{{delObj.City}} </p>\n                                              <p>{{delObj.Locality}} </p>\n                                              <p>{{delObj.ZipCode}} </p>\n                                            </div>\n                                        </div>\n                                    </template>\n                                </template>\n                            </template>\n                            <template v-else>\n                                <template v-for=\"delObj in filterDeliveryList\" >\n                                    <div :key=\"'deliver-'+delObj.Code\" class=\"col-12 col-lg-6 px-2\">\n                                        <div class=\"address-card my-2\" :class=\"{selected:activeDeliveryAddress(delObj.Code)}\" @click=\"selectedCode=delObj.Code, activeAddress(selectedCode)\">\n                                          <div class=\"col-12\">\n                                              <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-map-marker-alt mr-1\"></i>{{delObj.Name}}</strong>\n                                              <p>\n                                                {{delObj.Street}} {{delObj.StreetNumber}} \n                                                <template v-if=\"delObj.Floor\">{{delObj.Floor}}</template>\n                                                <template v-if=\"delObj.Apartment\">{{delObj.Apartment}}</template>\n                                              </p>\n                                              <p>{{delObj.Locality}}  {{delObj.ZipCode}} </p>\n                                              <p>{{delObj.Province}}, {{delObj.City}} </p>\n                                          </div>\n                                        </div>\n                                    </div>\n                                </template>\n                            </template>\n                        </div>\n                        <div class=\"row new-address-message text-left text-md-right m-0\" v-if=\"canAddNew\">\n                            <p class=\"col-12 mb-1\">Puede administrar las direcciones en <router-link to=\"/profile/Addresses\">Perfil > Direcciones</router-link></p>\n                        </div>\n                    </div>\n                    <div class=\"bordered form-row m-0 mb-2 px-2\"  v-if=\"shipModes.length>0\">\n                        <h6 class=\"col-12 align-items-center d-flex mb-3\"><i class=\"delivery-icon fas fa-truck fa-2x mr-3\" style=\"font-size: 1.6em;\"></i> {{tr('Reception Details')}}</h6>\n                        <template v-for=\"shipMode of shipModes\" >\n                            <div :key=\"'shipMode-'+shipMode.ShipModeCode\" class=\"col-12 col-lg-6 px-2\">\n                                <div class=\"address-card row m-0 my-2\" :class=\"{selected:selectedShipMode==shipMode.ShipModeCode}\" @click=\"selectedShipMode=shipMode.ShipModeCode\">\n                                  <template class=\"col-12\" >\n                                      <strong id=\"deliveryLabel\"><i class=\"delivery-icon fas fa-truck mr-2\"></i>{{shipMode.ShipModeName}}</strong>\n                                      <p>\n                                        {{tr('Cost')}}: \n                                        <template v-if=\"shipMode.FreeShipMinAmount\">\n                                            <template v-if=\"orderTemplate.fields.Total >= shipMode.FreeShipMinAmount\">\n                                                <del>$ {{shipMode.Cost}}</del>\n                                            </template>\n                                            <template v-else>\n                                                $ {{shipMode.Cost}}\n                                            </template>\n                                        </template>\n                                        <template v-else>\n                                            $ {{shipMode.Cost}}\n                                        </template>\n                                      </p>\n                                      <p v-if=\"shipMode.DelayMinDays && shipMode.DelayMaxDays\">\n                                        Llega entre {{calculateDate(shipMode.DelayMinDays)}} y el {{calculateDate(shipMode.DelayMaxDays)}}.\n                                      </p>\n                                      <p v-if=\"shipMode.FreeShipMinAmount\">{{tr('Free shipping for purchases over')}} $ {{shipMode.FreeShipMinAmount}}.</p>\n                                  </template>\n                                </div>\n                            </div>\n                        </template>\n                    </div>\n                    <div class=\"reception-details bordered form-row m-0 mb-2 px-2\">\n                        <h6 class=\"col-12 align-items-center d-flex mb-3\"><i class=\"delivery-icon fas fa-dolly mr-3\" style=\"font-size: 1.6em;\"></i> {{tr('Reception Details')}}</h6>\n                        <div class=\"col-12 row row-cols-1 row-cols-sm-2 m-0\" :class=\"{'row-cols-xl-4': activeDayByZone, 'row-cols-xl-3': !activeDayByZone}\">\n                            <div class=\"form-group col px-1 d-none\">\n                                <label for=\"inputEmail4\">{{tr('Ship Mode')}}</label>\n                                <select class=\"custom-select mb-3\" v-model=\"selectedShipMode\" v-on:change=\"updateSelectValues('ShipMode')\">\n                                    <option value=\"null\" selected>{{tr('Select One')}}</option>\n                                    <template v-for=\"shipMode of shipModes\">\n                                        <option :value=\"shipMode.ShipModeCode\" >{{shipMode.ShipModeName}}</option>\n                                    </template v-for=\"shipMode of shipModes\">\n                                </select>\n                            </div>\n                            <div class=\"form-group col px-1\" v-if=\"activeDayByZone\">\n                                <label for=\"inputEmail4\">{{tr('Day')}}</label>\n                                <select class=\"custom-select mb-3\" v-on:change=\"updateSelectValues('DelDay')\">\n                                    <option value=\"null\" :selected=\"$store.state.order_DelDay === null\">{{tr('Select One')}}</option>\n                                    <option value=\"1\" v-if=\"daysByZone.Monday\"    :selected=\"$store.state.order_DelDay === '1'\">{{tr('Monday')}}</option>\n                                    <option value=\"2\" v-if=\"daysByZone.Tuesday\"   :selected=\"$store.state.order_DelDay === '2'\">{{tr('Tuesday')}}</option>\n                                    <option value=\"3\" v-if=\"daysByZone.Wednesday\" :selected=\"$store.state.order_DelDay === '3'\">{{tr('Wednesday')}}</option>\n                                    <option value=\"4\" v-if=\"daysByZone.Thursday\"  :selected=\"$store.state.order_DelDay === '4'\">{{tr('Thursday')}}</option>\n                                    <option value=\"5\" v-if=\"daysByZone.Friday\"    :selected=\"$store.state.order_DelDay === '5'\">{{tr('Friday')}}</option>\n                                    <option value=\"6\" v-if=\"daysByZone.Saturday\"  :selected=\"$store.state.order_DelDay === '6'\">{{tr('Saturday')}}</option>\n                                    <option value=\"7\" v-if=\"daysByZone.Sunday\"    :selected=\"$store.state.order_DelDay === '7'\">{{tr('Sunday')}}</option>\n                                </select>\n                            </div>\n                            <div class=\"form-group col px-1\">\n                                <label for=\"inputEmail4\">{{tr('Reception Manager')}}</label>\n                                <template v-if=\"selectedCC\">\n                                    <selectLinkToComponent :recordKey=\"'Order_Delivery'\"  class=\"form-control\" table=\"CenterCostContactRow\" paste=\"PersonCode\" showField=\"PersonName\" :selected=\"$store.state.session.fields.Code\" :filters=\"centerCostFilter\" @update-value=\"updateSelectValues('ReceptionManagerCode')\"> </selectLinkToComponent>\n                                </template>\n                                <template v-else>\n                                    <select class=\"form-control mb-3 disabled\" readonly disabled>\n                                        <option :value=\"$store.state.session.fields.Code\" selected> {{$store.state.session.fields.Name}} {{$store.state.session.fields.LastName}} </option>\n                                    </select>\n                                </template>\n                            </div>\n                            <div class=\"form-group col px-1\">\n                                <label for=\"inputEmail4\">{{tr('Hours')}}</label>\n                                <select class=\"custom-select mb-3\" v-on:change=\"updateSelectValues('DelHour')\">\n                                    <option value=\"0\">9 a 13</option>\n                                    <option value=\"1\">13 a 18</option>\n                                    <option value=\"2\">9 a 18</option>\n                                </select>\n                            </div>\n                            <div class=\"form-group col px-1\">\n                                <label for=\"inputEmail4\">{{tr('Purchase Order')}}</label>\n                                <input class=\"form-control mb-3\" v-on:change=\"updateSelectValues('CustPurchaseOrder')\">\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"bordered form-row m-0 mb-2 px-2\" v-if=\"showCommentSt || showCommentSO\">\n                        <h6 class=\"col-12 align-items-center d-flex mb-3\"><i class=\"delivery-icon fas fa-comment fa-2x mr-3\" style=\"font-size: 1.6em;\"></i> {{tr('Comments')}}</h6>\n                        <div class=\"form-group col-12 col-md-6\" :class=\"{'d-none':!showCommentSt}\">\n                           <label>{{tr('Additional information about the address')}}</label>\n                           <textarea class=\"form-control\" v-model=\"commentSt\" rows=\"3\" :placeholder=\"tr('Address observations, between which streets, other references...')\" @change=\"buildComment\" ></textarea>\n                        </div>\n                        <div class=\"form-group col-12 col-md-6\" :class=\"{'d-none':!showCommentSO}\">\n                          <label>{{tr('Comments about the order')}}</label>\n                          <textarea class=\"form-control\" v-model=\"commentSO\" rows=\"3\" :placeholder=\"tr('Comments about the order, reception manager, etc...')\" @change=\"buildComment\" ></textarea>\n                        </div>\n                    </div>\n                  </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "carDeliveryListCompacted";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "carDeliveryListCompacted";
+        }
+    }]);
+
+    return carDeliveryListComponent;
+}(Component);
+
+carDeliveryListComponent.registerComponent();
+//# sourceMappingURL=carDeliveryListCompactedComponent.js.map

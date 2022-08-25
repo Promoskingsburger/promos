@@ -1,0 +1,97 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var columnsSectionComponent = function (_Component) {
+    _inherits(columnsSectionComponent, _Component);
+
+    function columnsSectionComponent() {
+        _classCallCheck(this, columnsSectionComponent);
+
+        return _possibleConstructorReturn(this, (columnsSectionComponent.__proto__ || Object.getPrototypeOf(columnsSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(columnsSectionComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['items', 'config'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                hasMobileBanner: false,
+                isMobile: $(window).width() <= 991
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                columnClass: function columnClass() {
+                    return "col-" + 12 / this.config.ColumnSize;
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                var _this2 = this;
+
+                this.$nextTick(function () {
+                    var searchOnlyMobileImage = _this2.items.findIndex(function (item, index) {
+                        return item.fields.OnlyMobile == true;
+                    });
+                    _this2.hasMobileBanner = searchOnlyMobileImage != -1 && _this2.isMobile;
+                });
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                isAppRouter: this.isAppRouter,
+                itemCarouselMove: this.itemCarouselMove
+            };
+        }
+    }, {
+        key: "isAppRouter",
+        value: function isAppRouter(item) {
+            if (item.fields.ItemLink && item.fields.ItemLink.length > 0 && (item.fields.ItemLink[0] === '#' || item.fields.ItemLink[0] === '/' || item.fields.ItemLink[0] === '.')) return true;
+            return false;
+        }
+    }, {
+        key: "itemCarouselMove",
+        value: function itemCarouselMove(direction) {
+            $(this.$refs[this.UIComponentID]).carousel(direction);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"container-fluid\" :class=\"{'my-2':config.HideTitle===1}\">\n                    <h5 class=\"col-sm-12 section-title\" v-if=\"config.HideTitle!==1\">{{config.Title}} <small>({{items.length}})</small></h5>\n                    <div class=\"row\">\n                        <div class=\"oo-image-container\" :class=\"columnClass\" v-for=\"item of items\">\n                            <template v-if=\"item.fields.ItemLink\">\n                                <template v-if=\"item.fields.ItemLink.startsWith('http')\">\n                                    <a :href=\"item.fields.ItemLink\" target=\"_blank\" class=\"w-100\">\n                                        <img :src=\"item.fields.ItemPhotoUri\" alt=\"\" class=\"office-image\">\n                                        <div class=\"text-center py-3 py-md-4\">\n                                            <p class=\"text-uppercase highlighted\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[0] : ''}}</p>\n                                            <p class=\"secondary-text\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[1] : ''}}</p>\n                                        </div>\n                                    </a>\n                                </template>\n                                <template v-else>\n                                    <router-link :to=\"item.fields.ItemLink.replace('#','')\" class=\"w-100\">\n                                        <img :src=\"item.fields.ItemPhotoUri\" alt=\"\" class=\"office-image\">\n                                        <div class=\"text-center py-3 py-md-4\">\n                                            <p class=\"text-uppercase highlighted\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[0] : ''}}</p>\n                                            <p class=\"secondary-text\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[1] : ''}}</p>\n                                        </div>\n                                    </router-link>\n                                </template>\n                            </template>\n                            <template v-else>\n                                <img :src=\"item.fields.ItemPhotoUri\" alt=\"\" class=\"office-image\">\n                                <div class=\"text-center py-3 py-md-4\">\n                                    <p class=\"text-uppercase highlighted\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[0] : ''}}</p>\n                                    <p class=\"secondary-text\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[1] : ''}}</p>\n                                </div>\n                            </template>\n                        </div>\n                    </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "columnsSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "columnsSectionComponent";
+        }
+    }]);
+
+    return columnsSectionComponent;
+}(Component);
+
+columnsSectionComponent.registerComponent();
+//# sourceMappingURL=columnsSectionComponent.js.map

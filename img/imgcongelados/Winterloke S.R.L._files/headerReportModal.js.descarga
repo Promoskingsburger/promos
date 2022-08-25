@@ -1,0 +1,60 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var headerReportModal = function (_Component) {
+    _inherits(headerReportModal, _Component);
+
+    function headerReportModal() {
+        _classCallCheck(this, headerReportModal);
+
+        return _possibleConstructorReturn(this, (headerReportModal.__proto__ || Object.getPrototypeOf(headerReportModal)).apply(this, arguments));
+    }
+
+    _createClass(headerReportModal, [{
+        key: "data",
+        value: function data() {
+            return {
+                reportName: ""
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                openReport: this.openReport
+            };
+        }
+    }, {
+        key: "openReport",
+        value: function openReport() {
+            if (this.reportName) this.$router.push('/report/' + this.reportName);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div id=\"reportModal\" ref=\"reportModal\" class=\"modal fade\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"reportModallLabel\" aria-hidden=\"true\">\n                <div class=\"modal-dialog\" role=\"document\">\n                    <div class=\"modal-content\" v-if=\"$store.state.session\">\n                        <div class=\"modal-header\">\n                            <h5 class=\"modal-title\" id=\"reportModallLabel\">{{tr('Select a Report')}}</h5>\n                            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                              <span aria-hidden=\"true\">&times;</span>\n                            </button>\n                        </div>\n                        <div class=\"modal-body\">\n                            <div class=\"row\">\n                                <div class=\"col-6\" >\n                                    <template v-for=\"(report, index) in $store.getters.getReports\">\n                                        <template v-if=\"index % 2==0\">\n                                           <p :key=\"reportName=report.fields.ReportName\">\n                                              <input name=\"group1\" type=\"radio\" :id=\"reportName=report.fields.ReportName\" @change=\"reportName=report.fields.ReportName\" />\n                                              <label :for=\"reportName=report.fields.ReportName\">{{tr(report.fields.ReportTitle)}}</label>\n                                           </p>\n                                       </template>\n                                    </template>\n                                </div>\n                                <div class=\"col-6\" >\n                                    <template v-for=\"(report , index) in  $store.getters.getReports\">\n                                        <template v-if=\"index%2!=0\">\n                                            <p :key=\"reportName=report.fields.ReportName\">\n                                              <input name=\"group1\" type=\"radio\" :id=\"reportName=report.fields.ReportName\" @change=\"reportName=report.fields.ReportName\" />\n                                              <label :for=\"reportName=report.fields.ReportName\">{{tr(report.fields.ReportTitle)}}</label>\n                                           </p>\n                                        </template>\n                                    </template>\n                                </div>\n                            </div>\n                        </div>\n                        <div class=\"modal-footer\">\n                            <a href=\"#\" data-dismiss=\"modal\" class=\"btn btn-secondary\" @click.prevent=\"openReport\" >{{tr(\"Open Report\")}}</a>  \n                            <a href=\"#\" data-dismiss=\"modal\" class=\"btn btn-secondary\" >{{tr(\"Close\")}}</a>\n                        </div>\n                    </div>\n                </div>\n            </div> ";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "headerReportModal";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "headerReportModal";
+        }
+    }]);
+
+    return headerReportModal;
+}(Component);
+
+headerReportModal.registerComponent();
+//# sourceMappingURL=headerReportModal.js.map

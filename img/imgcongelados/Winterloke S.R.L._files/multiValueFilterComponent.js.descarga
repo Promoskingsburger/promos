@@ -1,0 +1,360 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, __lodash__ */
+var multiValueFilterComponent = function (_Component) {
+    _inherits(multiValueFilterComponent, _Component);
+
+    function multiValueFilterComponent() {
+        _classCallCheck(this, multiValueFilterComponent);
+
+        return _possibleConstructorReturn(this, (multiValueFilterComponent.__proto__ || Object.getPrototypeOf(multiValueFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(multiValueFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                renderView: false,
+                filterToApply: new Map(),
+                collections: [],
+                inView: 0,
+                orderBy: 'label',
+                orderDirection: 'asc'
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$store.state.itemsFullLoader': function $storeStateItemsFullLoader() {
+                    if (this.$store.state.itemsFullLoader) {
+                        this.generateFilters();
+                    }
+                },
+                '$store.state.itemUpdate': 'calculateResults',
+                '$route': 'generateFilters',
+                '$store.state.itemTimeFlag': 'generateFilters'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.generateFilters();
+                                this.display = !this.isMobile;
+                                $(window).resize(function () {
+                                    self.isMobile = $(window).width() <= 560;
+                                    self.display = !self.isMobile;
+                                });
+
+                            case 4:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                fetchData: this.fetchData,
+                resetCountFilters: this.resetCountFilters,
+                calculateResults: this.calculateResults,
+                generateFilters: this.generateFilters,
+                getfilterLabel: this.getfilterLabel,
+                getItemValue: this.getItemValue,
+                checkedObserve: this.checkedObserve
+            };
+        }
+    }, {
+        key: "fetchData",
+        value: function fetchData(filter, value) {
+            //console.log('Event Capture',filter,value);
+            this.renderView = !this.renderView;
+            this.calculateResults();
+        }
+    }, {
+        key: "resetCountFilters",
+        value: function resetCountFilters() {
+            this.inView = 0;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this.collections[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var filter = _step.value;
+
+                    filter.itemCount = 0;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "calculateResults",
+        value: function calculateResults() {
+            //console.log('Calculate Results Multivalue For ',this.filterField.ItemField);
+            //console.time('Calculate Result-Multivalue -'+this.filterField.ItemField);
+            var items = this.$store.getters.getItemsVisibles; //this.$store.getters.getItems;
+            this.resetCountFilters();
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = this.collections[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var filter = _step2.value;
+                    var _iteratorNormalCompletion3 = true;
+                    var _didIteratorError3 = false;
+                    var _iteratorError3 = undefined;
+
+                    try {
+                        for (var _iterator3 = items.filter(function (e) {
+                            return e.visible == true;
+                        })[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                            var x = _step3.value;
+
+                            try {
+                                var isPresent = RegExp(filter.value, 'gi');
+                                var isVisible = false;
+                                //console.log(counter,x[filter.filterField],filter.label)
+                                //counter = counter+1;
+                                if (x[filter.filterField] != null) {
+                                    //console.time(filter.label + 'RexTime' + x.Code);
+                                    isVisible = isPresent.test(x[filter.filterField]);
+                                    //console.timeEnd(filter.label + 'RexTime' + x.Code);
+                                    //console.log(this.filterField.ItemField, isPresent, x[this.filterField.ItemField], isVisible);
+
+                                    /*console.time(filter.label+'IndexOfTime-'+x.Code)
+                                    isVisible = x[this.filterField.ItemField].split(",").indexOf(filter.label);
+                                    console.time('IndexOfTime'+x.Code)
+                                     console.time(filter.label+'FunctionOfTime'+x.Code)
+                                    let tmpFunc2 = new Function("x","return "+cond);
+                                    isVisible =tmpFunc2(x)==result;
+                                    console.timeEnd(filter.label+'FunctionOfTime'+x.Code)*/
+
+                                    /*console.time(filter.label+'EvalFunctionOfTime'+x.Code)
+                                    isVisible = (eval(cond) == result)
+                                    console.timeEnd(filter.label+'EvalFunctionOfTime'+x.Code)-*/
+                                }
+                                if (isVisible) {
+                                    filter.itemCount = filter.itemCount + 1;
+                                    this.inView = this.inView + 1;
+                                }
+                                filter.active = this.$store.state.filters.indexOf(filter.name) !== -1;
+                            } catch (err) {
+                                // eslint-disable-next-line no-console
+                                console.log(err, filter, x);
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError3 = true;
+                        _iteratorError3 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                _iterator3.return();
+                            }
+                        } finally {
+                            if (_didIteratorError3) {
+                                throw _iteratorError3;
+                            }
+                        }
+                    }
+                }
+                //console.timeEnd('Calculate Result-Multivalue -'+this.filterField.ItemField);
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "generateFilters",
+        value: function generateFilters() {
+            var collection = new Map();
+            var items = this.$store.getters.getItemsVisibles; ///this.$store.getters.getItems; // Array.from(this.$store.state.items_store.values());
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                for (var _iterator4 = items[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var item = _step4.value;
+
+                    var value = this.getItemValue(item, this.filterField.ItemField);
+                    if (value) {
+                        var setValues = value.split(",");
+                        if (setValues.length > 1) {
+                            var labelPos = 0;
+                            var setValuesLabels = this.getfilterLabel(item, this.filterField.ItemField).split(",");
+
+                            var _iteratorNormalCompletion5 = true;
+                            var _didIteratorError5 = false;
+                            var _iteratorError5 = undefined;
+
+                            try {
+                                for (var _iterator5 = setValues[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                                    var setValue = _step5.value;
+
+                                    if (setValue) {
+                                        if (!collection.has(setValue)) {
+                                            var filter = {};
+                                            filter.name = "multivalue-" + this.filterField.ItemField + "-" + setValue; //uuidv4();
+                                            filter.condition = "x." + this.filterField.ItemField + "!= null && x." + this.filterField.ItemField + ".split(',').indexOf(`" + setValue + "`)!=-1";
+                                            filter.result = true;
+                                            filter.type = 'multivalue';
+                                            filter.label = this.capitalize(setValuesLabels[labelPos]);
+                                            filter.value = setValue;
+                                            filter.filterField = this.filterField.ItemField;
+                                            filter.itemCount = 0;
+                                            filter.hiddens = new Map();
+                                            filter.active = false;
+                                            collection.set(setValue, filter);
+                                        }
+                                    }
+                                    labelPos++;
+                                }
+                            } catch (err) {
+                                _didIteratorError5 = true;
+                                _iteratorError5 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                        _iterator5.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError5) {
+                                        throw _iteratorError5;
+                                    }
+                                }
+                            }
+                        } else {
+                            if (!collection.has(value)) {
+                                var _filter = {};
+                                _filter.name = "multivalue-" + this.filterField.ItemField + "-" + value; //uuidv4();
+                                _filter.condition = "x." + this.filterField.ItemField + "!= null && x." + this.filterField.ItemField + ".split(',').indexOf(`" + value + "`)!=-1";
+                                _filter.result = true;
+                                _filter.type = 'multivalue';
+                                _filter.label = this.getfilterLabel(item, this.filterField.ItemField);
+                                _filter.value = value;
+                                _filter.filterField = this.filterField.ItemField;
+                                _filter.itemCount = 0;
+                                _filter.hiddens = new Map();
+                                _filter.active = false;
+                                collection.set(value, _filter);
+                            }
+                        }
+                    }
+                }
+
+                //console.log("Colection",this.filterField.ItemField,collection);
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
+                    }
+                }
+            }
+
+            this.collections = __lodash__.orderBy(Array.from(collection.values()), this.orderBy, this.orderDirection);
+            this.calculateResults();
+            //console.log('Multivalue Collection',this.collections);
+            //console.timeEnd('Multivalue -'+this.filterField.ItemField);
+            //console.groupEnd('Multivalue '+ui);
+        }
+    }, {
+        key: "getfilterLabel",
+        value: function getfilterLabel(item, fieldName) {
+            if (item.fields) item = item.fields;
+            if (fieldName + '_format' in item) if (item[fieldName + '_format']) return item[fieldName + '_format'];
+            return item[fieldName];
+        }
+    }, {
+        key: "getItemValue",
+        value: function getItemValue(item, fieldName) {
+            if (item.fields) item = item.fields;
+            return item[fieldName];
+        }
+    }, {
+        key: "checkedObserve",
+        value: function checkedObserve(filter) {
+            filter.active = true & filter.active;
+            this.$store.dispatch('addFilter', filter);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter multivalueFilter\" v-show=\"inView>0\">\n                    <p class=\"filter-title\" @click=\"display = !display\">\n                        {{tr(filterField.ItemField)}}\n                        <span v-show=\"display\"class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                        <span v-show=\"!display\"class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                    </p>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul class=\"unstyled\">\n                          <template v-for=\"value of collections\">\n                                <li :key=\"'li'+value.name\" v-if=\"value.itemCount>0\">\n                                    <div class=\"custom-control custom-checkbox\">\n                                        <input :key=\"'input'+value.name\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"value.active\" :id=\"value.label\" @click=\"checkedObserve(value)\" />\n                                        <label :for=\"value.label\" class=\"custom-control-label\">{{value.label}} ({{value.itemCount}})</label>\n                                    </div>\n                                </li>\n                          </template>\n                        </ul>\n                    </section>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "multiValueFilterComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "multiValueFilterComponent";
+        }
+    }]);
+
+    return multiValueFilterComponent;
+}(Component);
+
+multiValueFilterComponent.registerComponent();
+//# sourceMappingURL=multiValueFilterComponent.js.map

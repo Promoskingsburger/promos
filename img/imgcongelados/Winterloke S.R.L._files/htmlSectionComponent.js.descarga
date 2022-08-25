@@ -1,0 +1,119 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios */
+var HtmlSectionComponent = function (_Component) {
+    _inherits(HtmlSectionComponent, _Component);
+
+    function HtmlSectionComponent() {
+        _classCallCheck(this, HtmlSectionComponent);
+
+        return _possibleConstructorReturn(this, (HtmlSectionComponent.__proto__ || Object.getPrototypeOf(HtmlSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(HtmlSectionComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                htmlRaw: null,
+                isFormHtml: false
+            };
+        }
+    }, {
+        key: "getProps",
+        value: function getProps() {
+            return ["config", "items", "templateCode"];
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'items': 'forceUpdate'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.forceUpdate();
+            };
+        }
+    }, {
+        key: "forceUpdate",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var templateCode, htmlRaw;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                templateCode = this.templateCode;
+
+                                if (this.items && this.items.length > 0) templateCode = this.items[0].fields.ItemCode;
+
+                                if (!templateCode) {
+                                    _context.next = 8;
+                                    break;
+                                }
+
+                                _context.next = 5;
+                                return axios.get("../ecommerce/api/getHtmlTemplate/" + templateCode);
+
+                            case 5:
+                                htmlRaw = _context.sent;
+
+                                this.isFormHtml = htmlRaw.data.html.search("<form") == -1;
+                                this.htmlRaw = "" + htmlRaw.data.html; //atob(htmlRaw.data.html);
+
+                            case 8:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function forceUpdate() {
+                return _ref.apply(this, arguments);
+            }
+
+            return forceUpdate;
+        }()
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                forceUpdate: this.forceUpdate
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"w-100\">\n                    <template v-if=\"isFormHtml\">\n                        <div :ref=\"templateCode\" :id=\"templateCode\" v-show=\"htmlRaw\" :class=\"classContainer\" v-html=\"htmlRaw\"></div>\n                    </template>\n                    <template v-else>\n                        <form :ref=\"templateCode\" :id=\"templateCode+'Form'\" v-html=\"htmlRaw\">\n                        </form>\n                    </template>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "htmlSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "htmlSectionComponent";
+        }
+    }]);
+
+    return HtmlSectionComponent;
+}(Component);
+
+HtmlSectionComponent.registerComponent();
+//# sourceMappingURL=htmlSectionComponent.js.map

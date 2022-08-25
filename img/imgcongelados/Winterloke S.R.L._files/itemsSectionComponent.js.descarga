@@ -1,0 +1,476 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global uuidv4, Component, _ */
+var itemsSectionComponent = function (_Component) {
+    _inherits(itemsSectionComponent, _Component);
+
+    function itemsSectionComponent() {
+        _classCallCheck(this, itemsSectionComponent);
+
+        return _possibleConstructorReturn(this, (itemsSectionComponent.__proto__ || Object.getPrototypeOf(itemsSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemsSectionComponent, [{
+        key: "getData",
+        value: function getData() {
+            return function () {
+                return {
+                    viewmode: this.$store.state.defaultItemSize || 'module',
+                    itemsFlag: false,
+                    orderSelected: "",
+                    filteredItems: [],
+                    appState: null,
+                    firstrun: false,
+                    promiseStack: [],
+                    callbackPromise: null
+                };
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "$route.params.category": function $routeParamsCategory(to, from) {
+                    this.addFilterCategory();
+                },
+                "$store.state.itemTimeFlag": function $storeStateItemTimeFlag(newValue, oldValue) {
+                    this.filteredItems = this.$store.getters.getItemsVisibles;
+                },
+                'readyLoad': function readyLoad(newValue, oldValue) {
+                    if (newValue != oldValue && !this.firstrun) {
+                        this.addFilterCategory();
+                    }
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var IsItABackButton;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                IsItABackButton = window.popStateDetected;
+
+                                window.popStateDetected = false;
+                                if (IsItABackButton) this.$store.dispatch('updateCategory', null);
+                                this.viewmode = this.$store.state.defaultItemSize || 'module';
+                                if (this.readyLoad) {
+                                    this.addFilterCategory();
+                                }
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                readyLoad: function readyLoad() {
+                    return this.$store.state.itemsFullLoader && this.$store.state.appState == 'ready';
+                },
+                viewId: function viewId() {
+                    return "unique__" + this.filteredItems.length + "__" + this.$store.state.itemTimeFlag;
+                },
+                initItem: function initItem() {
+                    return this.$store.getters.getItemPerPage * this.$store.getters.getOffset;
+                },
+                lastItem: function lastItem() {
+                    return this.$store.getters.getItemPerPage * this.$store.getters.getOffset + this.$store.getters.getItemPerPage;
+                },
+                moduleObject: function moduleObject() {
+                    return { 'green-text': this.viewmode == 'module' };
+                },
+                listObject: function listObject() {
+                    return { 'green-text': this.viewmode == 'list' };
+                },
+                isLoading: function isLoading() {
+                    if (!this.$store.state.itemsFullLoader) return true;
+                    if (this.$store.getters.getAppState == "loading") return true;
+                    if (this.$store.getters.getAppState == "ready") return false;
+                    if (this.$store.getters.getAppState == "fast-ready") return false;
+                    return true;
+                },
+
+                itemClassObject: function itemClassObject() {
+                    return {
+                        'oo-item-container-list': this.viewmode == 'list',
+                        'oo-item-container': this.viewmode == 'module' || this.viewmode == 'module-small',
+                        'oo-item-container-small': this.viewmode == 'module-small',
+                        'oo-item-container-normal': this.viewmode == 'module',
+                        'col-12': this.viewmode == 'list',
+                        'col-6 col-sm-6 col-lg-3 px-1 px-lg-2': this.viewmode == 'module',
+                        'col-6 col-sm-4 col-lg-2 px-1 px-lg-2': this.viewmode == 'module-small'
+                    };
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                addFilterCategory: this.addFilterCategory,
+                fetchData: _.throttle(this.fetchData, 1500, { 'trailing': true }),
+                loadItems: this.loadItems,
+                searchCategory: this.searchCategory,
+                toogleFavorite: this.toogleFavorite,
+                reorderItems: this.reorderItems,
+                createFilterCategory: this.createFilterCategory,
+                resetCurrentFilters: this.resetCurrentFilters,
+                updateContext: this.updateContext
+            };
+        }
+    }, {
+        key: "createFilterCategory",
+        value: function createFilterCategory(urlCategory) {
+            var _this2 = this;
+
+            var global = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+            if (!urlCategory) return new Promise(function (resolve, reject) {
+                resolve(true);
+            });
+            var categoryName = urlCategory.split("__"); //.replace("%2F", "/")
+            var catData = void 0;
+            if (categoryName.length == 1) catData = this.$store.getters.getCategoryDataByName(categoryName[0]);else catData = this.$store.getters.getCategoryDataByCode(categoryName[0]);
+            if (catData) {
+                if (this.$store.state.cat_selected && catData.code == this.$store.state.cat_selected.code) return new Promise(function (resolve, reject) {
+                    _this2.fetchData();resolve(true);
+                });
+                var filterType = global ? 'globalClassification' : "classificationFilter";
+                var filterName = filterType + '_' + catData.code;
+                var objectFilter = {};
+                objectFilter.type = filterType;
+                objectFilter.name = filterName;
+                objectFilter.condition = "(x.ClassificationPath['" + catData.code + "']!=undefined || (x.Classification.split(',').indexOf('" + catData.code + "') != -1))";
+                objectFilter.label = catData.code;
+                objectFilter.code = catData.code;
+                objectFilter.filterField = "Classification";
+                objectFilter.result = true;
+                objectFilter.hiddens = new Map();
+                if (global) {
+                    return new Promise(function (resolve, reject) {
+                        _this2.$store.dispatch('addGlobalFilter', objectFilter).then(function (res) {
+                            _this2.fetchData();
+                            resolve(true);
+                        });
+                    });
+                } else {
+                    objectFilter.name = "classification-filter-" + catData.name + "-" + catData.code;
+                    objectFilter.value = catData.name;
+                    objectFilter.active = true;
+                    objectFilter.itemCount = 0;
+                    return new Promise(function (resolve, reject) {
+                        _this2.$store.dispatch('addFilter', objectFilter).then(function (res) {
+                            _this2.fetchData();
+                            resolve(true);
+                        });
+                    });
+                }
+            }
+            return new Promise(function (resolve, reject) {
+                _this2.fetchData();resolve(true);
+            });
+        }
+    }, {
+        key: "resetCurrentFilters",
+        value: function resetCurrentFilters() {
+            if (this.$store.state.filtersObjects && this.$store.state.filtersObjects.size > 0) {
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = this.$store.state.filtersObjects.keys()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var filterKey = _step.value;
+
+                        var filter = this.$store.state.filtersObjects.get(filterKey);
+                        if (filter.type != "globalClassification") {
+                            this.$store.dispatch('addFilter', filter);
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+            }
+            this.$store.dispatch('restoreFilter');
+        }
+    }, {
+        key: "addFilterCategory",
+        value: function addFilterCategory() {
+            var _this3 = this;
+
+            this.updateContext();
+            this.resetCurrentFilters();
+            if (this.$route.params.category && this.$route.query.category && this.$route.params.category.split("__")[0] != this.$route.query.category.split("__")[0] && this.$store.state.itemsFullLoader) {
+                this.promiseStack.push(this.createFilterCategory(this.$route.params.category, true));
+                this.callbackPromise = function () {
+                    return new Promise(function (resolve, reject) {
+                        setTimeout(function () {
+                            _this3.createFilterCategory(_this3.$route.query.category, false).then(function (res) {
+                                resolve(true);
+                            });
+                        }, 500);
+                    });
+                };
+            } else {
+                var categoryCode = this.$route.params.category;
+                if (!categoryCode) categoryCode = this.$route.query.category;
+                if (this.$store.state.itemsFullLoader) {
+                    this.createFilterCategory(categoryCode, true).then(function (res) {
+                        if (_this3.$store.state.screenState) _this3.$store.dispatch('toogleLockScreen');
+                    });
+                } else {
+                    this.promiseStack.push(this.createFilterCategory(categoryCode, true));
+                }
+            }
+
+            if (this.$route.query.search && this.$store.state.filtersObjects.size == 0 && this.$store.state.itemsFullLoader) {
+                var filter = {};
+                var searchWords = this.$route.query.search.toString();
+                var synonym = this.$store.getters.trSynonyms(searchWords);
+                filter.name = 'inputSearch-' + uuidv4();
+                filter.type = "inputSearch";
+                filter.filterValue = searchWords;
+                var settings = this.$store.getters.getSetting;
+                filter.condition = "";
+                if (settings.SearchFields && settings.SearchFields.split(",").length > 0) {
+                    var filterFields = settings.SearchFields.split(",");
+                    var isFirts = true;
+                    var itemTemplate = this.$store.state.items_store.values().next().value;
+                    var _iteratorNormalCompletion2 = true;
+                    var _didIteratorError2 = false;
+                    var _iteratorError2 = undefined;
+
+                    try {
+                        for (var _iterator2 = filterFields[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            var filterField = _step2.value;
+
+                            if (itemTemplate.hasOwnProperty(filterField)) {
+                                //Se puede mejorar para evalua según tipo de valor.
+                                if (!isFirts) {
+                                    filter.condition += " || ";
+                                }
+                                filter.condition += " ( x." + filterField + " && ( score(x." + filterField + ".toLowerCase(),'" + searchWords + "')>=0.30 ";
+                                if (synonym) {
+                                    filter.condition += " || (x." + filterField + ".toLowerCase(),'" + synonym + "')>=0.30 ) ";
+                                }
+                                filter.condition += " )) ";
+                                var filterFormat = filterField + "_format";
+                                if (itemTemplate.hasOwnProperty(filterFormat)) {
+                                    filter.condition += "  || ( x." + filterFormat + " && ( score(x." + filterFormat + ".toLowerCase(),'" + searchWords + "')>=0.30 ";
+                                    if (synonym) {
+                                        filter.condition += " || (x." + filterFormat + ".toLowerCase(),'" + synonym + "')>=0.30 )  ";
+                                    }
+                                    filter.condition += " )) ";
+                                }
+                                isFirts = false;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError2 = true;
+                        _iteratorError2 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                _iterator2.return();
+                            }
+                        } finally {
+                            if (_didIteratorError2) {
+                                throw _iteratorError2;
+                            }
+                        }
+                    }
+                } else {
+                    if (synonym) filter.condition = "score(x.Name.toLowerCase(),'" + searchWords + "')>=0.30 || x.Code=='" + searchWords + "' || score(x.Name.toLowerCase(),'" + synonym + "')>=0.30";else filter.condition = "score(x.Name.toLowerCase(),'" + searchWords + "')>=0.30";
+                }
+                filter.synonym = synonym;
+                filter.result = true;
+                this.promiseStack.push(this.$store.dispatch('addGlobalFilter', filter));
+            }
+        }
+    }, {
+        key: "fetchData",
+        value: function fetchData() {
+            var _this4 = this;
+
+            this.itemFlag = !this.itemFlag;
+            this.firstrun = true;
+            this.itemFlag = !this.itemFlag;
+            var newitems = this.$store.getters.getItemsVisibles;
+            var itemWithPrices = [];
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = newitems[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var item = _step3.value;
+
+                    var storeItem = this.$store.getters.getItemByCode(item.Code);
+                    if (!storeItem.isCalculate) itemWithPrices.push(storeItem);
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+
+            if (itemWithPrices.length > 0) {
+                this.promiseStack.push(this.$store.commit('updateAppState', "load items"));
+                this.promiseStack.push(this.$store.dispatch('updatePrices', itemWithPrices));
+            }
+
+            Promise.all(this.promiseStack).then(function (values) {
+                if (_this4.callbackPromise) _this4.callbackPromise().then(function () {
+                    _this4.promiseStack = [];
+                    _this4.callbackPromise = null;
+                    _this4.filteredItems = _this4.$store.getters.getItemsVisibles;
+                });else {
+                    _this4.promiseStack = [];
+                    _this4.callbackPromise = null;
+                    _this4.filteredItems = _this4.$store.getters.getItemsVisibles;
+                }
+            });
+        }
+    }, {
+        key: "updateContext",
+        value: function updateContext() {
+            var newitems = this.$store.getters.getItemsVisibles;
+            var itemWithPrices = [];
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                for (var _iterator4 = newitems[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var item = _step4.value;
+
+                    var storeItem = this.$store.getters.getItemByCode(item.Code);
+                    if (!storeItem.isCalculate) itemWithPrices.push(storeItem);
+                }
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
+                    }
+                }
+            }
+
+            if (itemWithPrices.length > 0) {
+                this.$store.dispatch('updatePrices', itemWithPrices);
+            }
+        }
+    }, {
+        key: "loadItems",
+        value: function loadItems() {
+            var category = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+            var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+            var items_per_page = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 25;
+
+            this.$store.dispatch('loadItems', category, offset, items_per_page);
+        }
+    }, {
+        key: "searchCategory",
+        value: function searchCategory(category) {
+            function searchTree(element, matchingCode) {
+                if (element.code == matchingCode) {
+                    return element;
+                } else if (element && element.children != null) {
+                    var result = null;
+                    for (var i = 0; result == null && i < element.children.length; i++) {
+                        result = searchTree(element.children[i], matchingCode);
+                    }
+                    return result;
+                }
+                return null;
+            }
+
+            if (category) {
+                this.loadItems(category.code);
+                var cattree = this.$store.getters.getCategories;
+                var node = searchTree(cattree[0], category.code);
+                this.$store.dispatch('updateCategory', node);
+            } else this.loadItems(null);
+        }
+    }, {
+        key: "toogleFavorite",
+        value: function toogleFavorite(item) {
+            /*if ($('#favorite-item-' + item.internalId).prop('textContent') != 'favorite')
+                $('#favorite-item-' + item.internalId).prop('textContent', 'favorite');
+            else
+                $('#favorite-item-' + item.internalId).prop('textContent', 'favorite_border');*/
+
+            this.$store.dispatch('addItemToFavorite', item);
+        }
+    }, {
+        key: "reorderItems",
+        value: function reorderItems() {
+            //this.fetchData(); No es necesario
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row items-view-options\" >\n                    <itemsBreakcrumb></itemsBreakcrumb>\n                    <div class=\"col-12\">\n                        <div class=\"row justify-content-between align-items-center items-view-options mb-2 mb-md-1\">\n                            <div class=\"col-6 col-sm-7 px-2 mb-2 mb-sm-0\">\n                                <orderItemsSelect @reorder=\"reorderItems\"/>\n                            </div>\n                            <div class=\"col-6 col-sm-5 px-2\">\n                                <div class=\"row justify-content-end view-mode pr-2\">\n                                    <div class=\"mr-2 d-none d-sm-block\">\n                                        <span @click=\"viewmode='module-small'\" :class=\"{'active':viewmode=='module-small'}\">\n                                            <i class=\"fas fa-th fa-2x\"></i>\n                                        </span>\n                                    </div>\n                                    <div class=\"mr-2\">\n                                        <span @click=\"viewmode='module'\" :class=\"{'active':viewmode=='module'}\">\n                                            <i class=\"fas fa-th-large fa-2x\"></i>\n                                        </span>\n                                    </div>\n        \n                                    <div class=\"mr-2\">\n                                        <span @click=\"viewmode='list'\" :class=\"{'active':viewmode=='list'}\">\n                                            <i class=\"fas fa-th-list fa-2x\"></i>\n                                        </span>\n                                    </div>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                    <div class=\"col-12 pagination-top d-none d-md-block\" v-if=\"filteredItems.length>0\">\n                        <div class=\"row justify-content-center\">\n                            <paginationComponent :items=\"filteredItems\"></paginationComponent>\n                        </div>\n                    </div>\n                    <div class=\"col-12\">\n                        <div class=\"row\">\n                            <template v-if=\"isLoading || !readyLoad\">\n                                  <div class=\"loading-container\">\n                                      <div class=\"loading\">\n                                          <i class=\"fas fa-spinner fa-spin fa-3x\"></i>\n                                      </div>\n                                  </div>\n                            </template>\n                            <template v-else>\n                                <template v-if=\"filteredItems.filter(x=>x.visible).length>0\">\n                                    <template v-for=\"item in filteredItems.slice(initItem,lastItem)\">\n                                        <template v-if=\"item.visible\">\n                                            <div :class=\"itemClassObject\" >\n                                              <template v-if=\"viewmode=='list'\">\n                                                  <itemViewListComponent :item=\"item.fields? item.fields : item\" ></itemViewListComponent>\n                                              </template>\n                                              <template v-else>\n                                                  <itemViewModuleComponent :item=\"item.fields? item.fields : item\" ></itemViewModuleComponent>\n                                              </template>\n                                            </div>\n                                        </template>\n                                    </template>\n                                </template>\n                                <template v-else>\n                                    <div class=\"container text-center no-items\">\n                                        <h4>{{tr('Not items for current filters, choose a category')}}</h4>\n                                    </div>\n                                </template>\n                            </template>\n                        </div>\n                    </div>\n                    <div class=\"col-12\">\n                        <template v-if=\"filteredItems.length>0\">\n                            <paginationComponent :items=\"filteredItems\"></paginationComponent>\n                        </template>\n                    </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemsSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemsSectionComponent";
+        }
+    }]);
+
+    return itemsSectionComponent;
+}(Component);
+
+itemsSectionComponent.registerComponent();
+//# sourceMappingURL=itemsSectionComponent.js.map

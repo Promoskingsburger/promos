@@ -1,0 +1,197 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var LoginPage = function (_Component) {
+    _inherits(LoginPage, _Component);
+
+    function LoginPage() {
+        _classCallCheck(this, LoginPage);
+
+        return _possibleConstructorReturn(this, (LoginPage.__proto__ || Object.getPrototypeOf(LoginPage)).apply(this, arguments));
+    }
+
+    _createClass(LoginPage, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['register'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                disableLoginAction: function disableLoginAction() {
+                    return this.$store.getters.getSetting.DisableLoginAction;
+                },
+                disableRegisterAction: function disableRegisterAction() {
+                    return this.$store.getters.getSetting.DisableRegisterAction;
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                username: '',
+                password: '',
+                readOnly: false,
+                inSystem: false,
+                registerError: false
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "$store.getters.getIsLogin": 'closeModal'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.mustRedirect();
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                mustRedirect: this.mustRedirect,
+                clear: this.clear,
+                login: this.login,
+                closeModal: this.closeModal
+            };
+        }
+    }, {
+        key: "mustRedirect",
+        value: function mustRedirect() {
+            if (this.$route.query.redirect) return self.$store.commit('updateRedirectLogin', window.atob(this.$route.query.redirect));
+            if (this.$store.getters.getIsLogin) {
+                return self.$router.go(this.$store.state.afterLoginPath);
+            }
+        }
+    }, {
+        key: "clear",
+        value: function clear() {
+            this.username = '';
+            this.password = '';
+        }
+    }, {
+        key: "login",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var loginResult, redirectPath;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                _context2.next = 2;
+                                return this.$store.dispatch('login', {
+                                    username: this.username,
+                                    password: this.password
+                                });
+
+                            case 2:
+                                loginResult = _context2.sent;
+
+                                if (!loginResult.ok) {
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: this.tr('Login'),
+                                        message: this.tr("Incorrect Username or Password"),
+                                        type: 'error'
+                                    });
+                                    this.clear();
+                                }
+
+                                if (this.$store.state.mustUpdateInfo === true) this.router.push('/mustUpdateInfo');
+                                if (this.$store.getters.getIsLogin) {
+                                    this.clear();
+                                    if (!this.$store.state.redirectAfterLogin) {
+                                        //this.$store.commit( 'updateItemsIsLoaded', false );
+                                        this.$router.push(this.$store.state.afterLoginPath);
+                                    } else {
+                                        redirectPath = this.$store.state.redirectAfterLogin;
+
+                                        this.$store.dispatch('setRedirectLogin', null);
+                                        this.$store.dispatch('activePreserveCar', false);
+                                        this.$router.push(redirectPath);
+                                    }
+                                    //this.$router.push('indicators')
+                                } else {
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: this.tr('Login'),
+                                        message: this.tr("Incorrect Username or Password"),
+                                        type: 'error'
+                                    });
+                                }
+
+                            case 6:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function login() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return login;
+        }()
+    }, {
+        key: "closeModal",
+        value: function closeModal() {
+            if (this.$store.getters.getIsLogin) {
+                this.clear();
+            } else {
+                this.$store.dispatch('showNotificacion', {
+                    title: this.tr('Login'),
+                    message: this.tr("Incorrect Username or Password"),
+                    type: 'error'
+                });
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div :class=\"classContainer\">\n                      <div class=\"section-main\">\n                        <section class=\"padding-small\">\n                          <template v-if=\"$store.getters.getAppState=='ready'\">\n                            <div class=\"container\">\n                                <div class=\"row justify-content-center\">\n                                  <div class=\"col-lg-8\">\n                                    <div class=\"block\">\n                                      <div class=\"block-header\">\n                                        <h5 class=\"text-center\">{{tr('Login')}}</h5>\n                                      </div>\n                                      <div class=\"block-body\">\n                                        <hr>\n                                        <form aria-autocomplete=\"none\" autocomplete=\"off\">\n                                            <div class=\"col s6 offset-s3 center-align\">\n                                                <div class=\"form-group\">\n                                                    <input :placeholder=\"tr('User')\" v-model=\"username\" name=\"username\" type=\"text\" class=\"form-control validate\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                                </div>\n                                                <div class=\"form-group\">\n                                                    <input :placeholder=\"tr('Password')\" v-model=\"password\"  id=\"password\" name=\"password\" type=\"password\" class=\"form-control validate\" aria-autocomplete=\"none\" autocomplete=\"new-password\" >\n                                                </div>\n                                                <p class=\"\">\n                                                    <input name=\"redirect_on_success\" class=\"form-control\" type=\"hidden\" value=\"/ecommerce/#/\">\n                                                </p>\n                                                <div class=\"form-group text-right\">\n                                                    <router-link  to=\"/home\" class=\"btn btn-light\" role=\"button\">{{tr('Close')}}</router-link>\n                                                    <button class=\"center-align btn btn-secondary\" @click.prevent=\"login\">{{tr('Login')}}</button>\n                                                </div>\n                                                <hr>\n                                                <div class=\"text-center\">\n                                                  <span>{{tr('Not yet our customer?')}} </span>\n                                                  <router-link  to=\"/signup\" class=\"btn btn-link\" role=\"button\">{{tr('Register')}}</router-link>\n                                                  <router-link  to=\"/recovery_password\" class=\"btn btn-link\" role=\"button\">{{tr('Forgot your password?')}}</router-link>\n                                                </div>\n                                            </div>\n                                        </form>\n                                      </div>\n                                    </div>\n                                  </div>\n                                </div>\n                            </div>\n                          </template>\n                          <template v-if=\"$store.getters.getAppState=='onload'\">\n                              <div class=\"loading\">\n                                  <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                              </div>\n                          </template>\n                        </section>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "loginPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "loginPage";
+        }
+    }]);
+
+    return LoginPage;
+}(Component);
+
+LoginPage.registerComponent();
+//# sourceMappingURL=loginPage.js.map

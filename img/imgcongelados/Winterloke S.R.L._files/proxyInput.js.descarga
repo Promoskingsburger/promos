@@ -1,0 +1,164 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var proxyInput = function (_Component) {
+    _inherits(proxyInput, _Component);
+
+    function proxyInput() {
+        _classCallCheck(this, proxyInput);
+
+        return _possibleConstructorReturn(this, (proxyInput.__proto__ || Object.getPrototypeOf(proxyInput)).apply(this, arguments));
+    }
+
+    _createClass(proxyInput, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                'def': {
+                    type: Object,
+                    required: true
+                },
+                'value': {
+                    type: Object,
+                    default: null
+                },
+                'defaultValue': {
+                    type: String,
+                    default: null
+                },
+                'custom_css_classes': {
+                    type: Object,
+                    default: null
+                },
+                recordKey: {
+                    type: String,
+                    default: null
+                },
+                pasteFilters: {
+                    type: Object,
+                    default: null
+                },
+                disabled: {
+                    type: Boolean,
+                    default: false
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                isSet: false
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                id: function id() {
+                    if (this.getDef.id) return this.getDef.id;
+                    return this.getUI();
+                },
+                css_class: function css_class() {
+                    var default_css = {
+                        container: {
+                            'form-group': true,
+                            "d-none": this.getDef.hidden ? this.getDef.hidden : false,
+                            'input-field ': this.editor != 'checkbox' && this.editor != 'vuecomponent' && this.editor != 'matrix'
+                        },
+                        label: {
+                            "form-label": true
+                        },
+                        input: {
+                            'form-control': true
+                        }
+                    };
+                    if (this.custom_css_classes) {
+                        if (this.custom_css_classes.container) Object.assign(default_css.container, this.custom_css_classes.container);
+                        if (this.custom_css_classes.label) Object.assign(default_css.label, this.custom_css_classes.label);
+                        if (this.custom_css_classes.input) Object.assign(default_css.input, this.custom_css_classes.input);
+                    }
+                    return default_css;
+                },
+                getDef: function getDef() {
+                    var defaults = { visibility: true, readonly: false, pastewindow: null, fillpastewindow: null };
+                    Object.assign(defaults, this.def);
+                    return defaults;
+                },
+                label: function label() {
+                    if (this.isSet) {
+                        return this.tr(this.getDef.label) + "  (a,b)";
+                    }
+                    return this.getDef.label;
+                },
+                editor: function editor() {
+                    this.isSet = false;
+                    if (this.getDef.options || this.getDef.editor == 'combobox') return 'combobox';
+
+                    if (this.getDef.linkto) return 'linkto';
+
+                    switch (this.getDef.editor || this.getDef.type) {
+                        case 'string':
+                            return 'string';
+                        case 'boolean':
+                        case 'checkbox':
+                            return 'checkbox';
+                        case 'combobox':
+                            return 'combobox';
+                        case 'period':
+                            return 'period';
+                        case 'date':
+                            return 'date';
+                        case 'datepicker':
+                            return 'date';
+                        case 'set':
+                            this.isSet = true;
+                            return "string";
+                    }
+                    return "string";
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                focus: function focus() {
+                    this.$refs.input.focus();
+                },
+
+                fpw: function fpw() {
+                    return this.getDef.fillpastewindow ? this.getDef.fillpastewindow.bind(this.cardcomponent)() : 'NOHABILITADO';
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div key=\"id\" v-bind:class=\"css_class.container\" ref=\"div\" :currentEditor=\"editor\">\n                <label :class=\"css_class.label\" v-if=\"editor != 'period' & editor != 'checkbox' \" :for=\"id\">{{tr(label)}}</label>        \n                <input :class=\"css_class.input\" :disabled=\"getDef.readonly || disabled\" :label=\"label\" v-if=\"editor == 'string'\"  type=\"text\" :id=\"id\" placeholder=\"\" :value=\"value || defaultValue\" @input=\"$emit('input',$event.target.value)\" ref=\"input\" >\n                <input :class=\"css_class.input\" :disabled=\"getDef.readonly || disabled\" v-else-if=\"editor == 'checkbox'\" type=\"checkbox\" :id=\"id\" v-bind:checked=\"value\" @change=\"$emit('input', $event.target.value)\" ref=\"input\" >\n                <input :class=\"css_class.input\" :disabled=\"getDef.readonly || disabled\" v-else-if=\"editor == 'date'\" type=\"date\" :id=\"id\"  @change=\"$emit('input', $event.target.value)\" ref=\"input\" >\n                <template v-else-if=\"editor == 'combobox'\"> \n                    <select :class=\"css_class.input\" :disabled=\"getDef.readonly || disabled\" :id=\"id\" @change=\"$emit('input', $refs.input.value)\" ref=\"input\" >\n                            <template v-for=\"option in getDef.options\">\n                                <option :selected=\"option.value==getDef.default\" :value=\"option.value\">{{option.label}}</option>\n                            </template>\n                    </select>\n                </template>\n                <template v-else-if=\"editor == 'linkto'\">\n                    <selectLinkToComponent  :selected=\"defaultValue\" :disabled=\"getDef.readonly || disabled\" @change=\"$emit('input', $refs.input.value)\" ref=\"input\" :recordKey=\"recordKey\" :table=\"getDef.linkto\" :paste=\"getDef.linktoPaste\" :showField=\"getDef.linktoShow\"  @update-value-full=\"(data)=> $emit('input',data.value)\" > </selectLinkToComponent>\n                </template>\n                <template v-else-if=\"editor == 'text'\">\n                    <textarea :class=\"css_class.input\"  :disabled=\"getDef.readonly || disabled\" type=\"textarea\" :id=\"id\"  @change=\"$emit('input', $refs.input.value)\" ref=\"input\" ></textarea>    \n                </template>               \n        </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "proxyInput";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "proxyInput";
+        }
+    }]);
+
+    return proxyInput;
+}(Component);
+
+proxyInput.registerComponent();
+//# sourceMappingURL=proxyInput.js.map

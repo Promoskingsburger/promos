@@ -1,0 +1,173 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, md5 */
+var itemModalSliderComponent = function (_Component) {
+    _inherits(itemModalSliderComponent, _Component);
+
+    function itemModalSliderComponent() {
+        _classCallCheck(this, itemModalSliderComponent);
+
+        return _possibleConstructorReturn(this, (itemModalSliderComponent.__proto__ || Object.getPrototypeOf(itemModalSliderComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemModalSliderComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            /*
+                showCarusel:     muestra las miniaturas abajo de la imagen principal si hay mas de una
+                slideBigImage:   muestra las flechas a los costados de la imagen principal si hay mas de una
+            */
+            return ['item', 'container', "stockFlag", "showCarusel", "slideBigImage", "itemInSlider"];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                slidesItem: [],
+                selected: 0,
+                minIndex: 0,
+                openModal: false
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.getItemImage();
+                this.subscribeEvent('modalItemCick', this.toogleModal);
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                noStock: function noStock() {
+                    if (this.item.Qty <= 0 && this.stockFlag) return true;
+                    return false;
+                },
+                maxIndex: function maxIndex() {
+                    if (this.itemInSlider) this.itemInSlider;
+                    return 4;
+                }
+            };
+        }
+    }, {
+        key: "toogleModal",
+        value: function toogleModal() {
+            if (this.openModal) $(this.$refs.itemImgModal).modal('hide');else $(this.$refs.itemImgModal).modal('show');
+            this.openModal = !this.openModal;
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                toogleModal: this.toogleModal,
+                selectImage: this.selectImage,
+                getItemImage: this.getItemImage,
+                shouldRenderImg: this.shouldRenderImg,
+                moveLeft: this.moveLeft,
+                moveRight: this.moveRight
+            };
+        }
+    }, {
+        key: "selectImage",
+        value: function selectImage(index) {
+            this.selected = index;
+        }
+    }, {
+        key: "getItemImage",
+        value: function getItemImage() {
+            if (this.item && this.item.slideIds) {
+                var imagesList = [];
+                var slideValue = this.item.slideIds;
+                if (!Array.isArray(slideValue) && typeof slideValue === 'string') {
+                    imagesList = this.item.slideIds.split(",");
+                } else {
+                    imagesList = this.item.slideIds;
+                }
+
+                var _iteratorNormalCompletion = true;
+                var _didIteratorError = false;
+                var _iteratorError = undefined;
+
+                try {
+                    for (var _iterator = imagesList[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                        var imgId = _step.value;
+
+                        var dataDesTruct = imgId.split("--");
+                        var is360 = false;
+                        if (dataDesTruct.length > 1) is360 = dataDesTruct[1] === "360";
+                        this.slidesItem.push({ src: "/oo/api/get_attached_file?OriginRecordName=Item&OriginId=" + this.item.Code + "&id=" + imgId + "&ts=" + md5(dataDesTruct[0]), is360: is360 });
+                    }
+                } catch (err) {
+                    _didIteratorError = true;
+                    _iteratorError = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                        }
+                    } finally {
+                        if (_didIteratorError) {
+                            throw _iteratorError;
+                        }
+                    }
+                }
+
+                return this.slidesItem[0];
+            }
+            return [];
+        }
+    }, {
+        key: "shouldRenderImg",
+        value: function shouldRenderImg(index) {
+            return index >= this.minIndex && index < this.minIndex + this.maxIndex;
+        }
+    }, {
+        key: "moveLeft",
+        value: function moveLeft() {
+            if (this.minIndex > 0) {
+                this.minIndex = this.minIndex - 1;
+                this.selected = this.minIndex;
+            }
+        }
+    }, {
+        key: "moveRight",
+        value: function moveRight() {
+            if (this.minIndex + 1 < this.slidesItem.length) {
+                this.minIndex = this.minIndex + 1;
+            } else {
+                this.minIndex = 0;
+            }
+            this.selected = this.minIndex;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"modal fade\" ref=\"itemImgModal\" tabindex=\"-1\" role=\"dialog\" aria-hidden=\"true\">\n                    <div class=\"modal-dialog modal-full\" role=\"document\">\n                         <div class=\"container container-modal-img\">\n                             <button class=\"control-left\" @click=\"moveLeft\">\n                                <i class=\"icon fa fa-arrow-left text-white\" /> \n                             </button>\n                             <template v-if=\"noStock==true\">\n                                <img class=\"no-stock-image\" src=\"../static/ecommerce/img/sin_stock.gif\" width=\"140px\" height=\"140px\" style=\"position: absolute;\">\n                             </template>\n                             <template v-if=\"slidesItem.length>0\">\n                                <template v-if=\"container\">\n                                    <span class=\"slider-item-control-left big-image-control\" v-if=\"slideBigImage && slidesItem.length > 1\" @click=\"moveLeft()\"><i class=\"fas fa-chevron-left fa-2x\"></i></span>\n                                        <imgProxyComponent :is360=\"slidesItem[selected].is360\" myclass=\"item-image img-fluid\" :isthumbnails=\"false\" :src=\"slidesItem[selected].src\" mystyle=\"min-height:190px;\"/>\n                                    <span class=\"slider-item-control-right big-image-control\" v-if=\"slideBigImage && slidesItem.length > 1\" @click=\"moveRight()\"><i class=\"fas fa-chevron-right fa-2x\"></i></span>\n                                </template>\n                                <template v-else>\n                                    <imgProxyComponent :is360=\"slidesItem[selected].is360\" myclass=\"item-image img-fluid\" :isthumbnails=\"false\" :src=\"slidesItem[selected].src\" />\n                                </template>\n                             </template>\n                             <template v-else>\n                                <imgProxyComponent />\n                             </template>\n                             <button class=\"control-right\"@click=\"moveRight\">\n                                <i class=\"icon fa fa-arrow-right text-white\" />\n                             </button>\n                         </div>\n                         \n                    </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemModalSliderComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemModalSliderComponent";
+        }
+    }]);
+
+    return itemModalSliderComponent;
+}(Component);
+
+itemModalSliderComponent.registerComponent();
+//# sourceMappingURL=itemModalSliderComponent.js.map

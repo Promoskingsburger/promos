@@ -1,0 +1,129 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var inputComponent = function (_Component) {
+    _inherits(inputComponent, _Component);
+
+    function inputComponent() {
+        _classCallCheck(this, inputComponent);
+
+        return _possibleConstructorReturn(this, (inputComponent.__proto__ || Object.getPrototypeOf(inputComponent)).apply(this, arguments));
+    }
+
+    _createClass(inputComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['def', 'value', 'custom_css_classes'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                isSet: false
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {};
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return {};
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                css_class: function css_class() {
+
+                    var default_css = {
+                        'col-12': true,
+                        'input-field ': this.editor != 'checkbox' && this.editor != 'vuecomponent' && this.editor != 'matrix'
+                    };
+
+                    return this.custom_css_classes || default_css;
+                },
+                getDef: function getDef() {
+                    var defaults = { visibility: true, readonly: false, pastewindow: null, fillpastewindow: null };
+                    Object.assign(defaults, this.def);
+                    return defaults;
+                },
+                label: function label() {
+                    if (this.isSet) {
+                        return this.tr(this.getDef.label) + "  (a,b)";
+                    }
+                    return this.getDef.label;
+                },
+                editor: function editor() {
+                    this.isSet = false;
+                    switch (this.getDef.editor || this.getDef.type) {
+                        case 'string':
+                            return 'string';
+                        case 'boolean':
+                        case 'checkbox':
+                            return 'checkbox';
+                        case 'combobox':
+                            return 'combobox';
+                        case 'period':
+                            return 'period';
+                        case 'date':
+                            return 'date';
+                        case 'matrix':
+                            return 'matrix';
+                        case 'datepicker':
+                            return 'date';
+                        case 'set':
+                            this.isSet = true;
+                            return "string";
+                        case 'vuecomponent':
+                            if (this.getDef.component == "PeriodComponent") return "period";
+                    }
+                    return "string";
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                focus: function focus() {
+                    this.$refs.input.focus();
+                },
+
+                fpw: function fpw() {
+                    return this.getDef.fillpastewindow ? this.getDef.fillpastewindow.bind(this.cardcomponent)() : 'NOHABILITADO';
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div v-bind:class=\"css_class\" ref=\"div\" >\n                <label class=\"active\" v-if=\"editor != 'period' & editor != 'checkbox' \" :for=\"id\">{{tr(label)}}</label>        \n                <input :disabled=\"getDef.readonly\" :label=\"label\" v-if=\"editor == 'string'\"  type=\"text\" :id=\"id\" placeholder=\"\" :value=\"value\" @input=\"$emit('input',$event)\" ref=\"input\" >\n                <input :disabled=\"getDef.readonly\" v-else-if=\"editor == 'checkbox'\" type=\"checkbox\" :id=\"id\" v-bind:checked=\"value\" @change=\"$emit('input', $refs.input.checked)\" ref=\"input\">\n                <input :disabled=\"getDef.readonly\" v-else-if=\"editor == 'date'\" type=\"date\" :id=\"id\"  @change=\"$emit('input', $refs.input.value)\" ref=\"input\">\n                <material-select  :options=\"getDef.options\" :disabled=\"getDef.readonly\"  v-else-if=\"editor == 'combobox'\" :id=\"id\"  :value=\"value\" @change=\"$emit('input', $refs.input.value)\" ref=\"input\" />\n                <period-component :description=\"getDef\" v-else-if=\"editor == 'period'\" class=\"card-reveal-select\" :value=\"value\"  ref=\"input\" @change=\"$emit('input', $event);\" ></period-component>               \n        </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "input-component";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "input-component";
+        }
+    }]);
+
+    return inputComponent;
+}(Component);
+
+inputComponent.registerComponent();
+//# sourceMappingURL=input-component.js.map

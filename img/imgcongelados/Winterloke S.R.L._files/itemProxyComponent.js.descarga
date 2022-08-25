@@ -1,0 +1,435 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, uuidv4 */
+var itemProxyComponent = function (_Component) {
+    _inherits(itemProxyComponent, _Component);
+
+    function itemProxyComponent() {
+        _classCallCheck(this, itemProxyComponent);
+
+        return _possibleConstructorReturn(this, (itemProxyComponent.__proto__ || Object.getPrototypeOf(itemProxyComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemProxyComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                itemData: {
+                    type: Object,
+                    required: false
+                },
+                imgUseZoom: {
+                    type: Boolean,
+                    default: true
+                },
+                imgSlideBigImage: {
+                    type: Boolean,
+                    default: false
+                },
+                imgShowCarusel: {
+                    type: Boolean,
+                    default: true
+                },
+                showRelatedItems: {
+                    type: Boolean,
+                    default: false
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                itemInCar: 0,
+                Qty: 1,
+                favorite: false,
+                loadingPrice: false,
+                alertMsg: null,
+                showClassification: false,
+                varieties: []
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return this.loadItemPrices();
+
+                            case 2:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                _context2.next = 2;
+                                return this.loadItemPrices();
+
+                            case 2:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getItemUrl: this.getItemUrl,
+                loadItemPrices: this.loadItemPrices,
+                alertShowMessage: this.alertShowMessage,
+                ItemComponentAddToCar: this.ItemComponentAddToCar,
+                itemQtyIncrement: this.itemQtyIncrement,
+                itemQtyDecrement: this.itemQtyDecrement,
+                onChangeQty: this.onChangeQty,
+                goBack: this.goBack,
+                filterByCategory: this.filterByCategory,
+                getMaxStockByCode: this.getMaxStockByCode
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                canShopItem: function canShopItem() {
+                    return this.controlStock ? this.item.Qty > 0 : true;
+                },
+
+                showStock: function showStock() {
+                    return this.$store.getters.showStock;
+                },
+                useVariates: function useVariates() {
+                    return this.item && this.item.ItemType === 6;
+                },
+                allowDecimal: function allowDecimal() {
+                    if (this.item.OnlyIntegerValues !== 1) return "any";
+                    return 1;
+                },
+                enableLK: function enableLK() {
+                    return this.$store.state.setting.EnableLK;
+                },
+                linkLK: function linkLK() {
+                    var link = "#";
+                    if (this.$store.state.setting.LKLink) link = this.$store.state.setting.LKLink;
+                    return link;
+                },
+                enableIG: function enableIG() {
+                    return this.$store.state.setting.EnableIG;
+                },
+                linkIG: function linkIG() {
+                    var link = "https://instagram.com";
+                    if (this.$store.state.setting.IGLink) link = this.$store.state.setting.IGLink;
+                    return link;
+                },
+                enableFB: function enableFB() {
+                    return this.$store.state.setting.EnableFB;
+                },
+                enableTW: function enableTW() {
+                    return this.$store.state.setting.EnableTW;
+                },
+                controlStock: function controlStock() {
+                    return this.$store.getters.getControlStock;
+                },
+                item: function item() {
+                    var storeItem = this.itemData ? this.itemData : this.$store.getters.getItemByCode(this.$route.params.id);
+                    return storeItem;
+                },
+                classificationList: function classificationList() {
+                    var storeItem = this.$store.getters.getItemByCode(this.$route.params.id);
+                    var listClass = [];
+                    if (storeItem.Classification) {
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = storeItem.Classification.split(',')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var _catCode = _step.value;
+
+                                var tempCat = this.$store.getters.getCategoryDataByCode(_catCode);
+                                if (tempCat) listClass.push(tempCat);
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    }return listClass;
+                },
+                relatedItems: function relatedItems() {
+                    if (!this.loadingPrice && this.$store.state.itemsFullLoader && this.item && this.item.RelatedItems) {
+                        var related = [];
+                        var _iteratorNormalCompletion2 = true;
+                        var _didIteratorError2 = false;
+                        var _iteratorError2 = undefined;
+
+                        try {
+                            for (var _iterator2 = this.item.RelatedItems.split(',')[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                var relatedCode = _step2.value;
+
+                                var storeItem = this.$store.getters.getItemByCode(relatedCode);
+                                if (storeItem) related.push(storeItem);
+                            }
+                        } catch (err) {
+                            _didIteratorError2 = true;
+                            _iteratorError2 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+                            } finally {
+                                if (_didIteratorError2) {
+                                    throw _iteratorError2;
+                                }
+                            }
+                        }
+
+                        return related;
+                    }
+                    return [];
+                },
+                codeToShow: function codeToShow() {
+                    var settings = this.$store.getters.getSetting;
+                    if (!settings.CodeFieldDisplay) {
+                        return this.item.Code;
+                    } else if (settings.CodeFieldDisplay == 1) {
+                        return this.item.AlternativeCode;
+                    } else if (settings.CodeFieldDisplay == 2) {
+                        return this.item.BarCode;
+                    } else if (settings.CodeFieldDisplay == 3) {
+                        return this.item.BarCode2;
+                    }
+                }
+            };
+        }
+    }, {
+        key: "onChangeQty",
+        value: function onChangeQty(event) {
+            if (!isNaN(event.target.value)) {
+                var newValue = Number.parseInt(event.target.value, 10);
+                var maxQty = this.getMaxStockByCode(this.item.Code);
+                if (newValue <= maxQty) this.Qty = newValue;else {
+                    this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                    this.Qty = maxQty;
+                }
+            } else {
+                this.alertShowMessage(["FORMATVALUEERR", 'Qty']);
+                this.Qty = 1;
+            }
+        }
+    }, {
+        key: "getItemUrl",
+        value: function getItemUrl() {
+            return encodeURI(window.location.href);
+        }
+    }, {
+        key: "getMaxStockByCode",
+        value: function getMaxStockByCode(itemCode) {
+            var giftCardItem = this.$store.getters.getGiftCardItem;
+            if (this.$store.getters.getSetting.ControlStockForSales && !(giftCardItem && giftCardItem.fields.Code == itemCode)) {
+                var itemInStore = this.$store.getters.getItemByCode(itemCode);
+                var qtyInCar = this.$store.getters.getItemAmountInCar(itemCode);
+                if (itemInStore.Reserved) return itemInStore.Qty - itemInStore.Reserved - qtyInCar;
+                return itemInStore.Qty - qtyInCar;
+            }
+            return 10000000;
+        }
+    }, {
+        key: "loadItemPrices",
+        value: function loadItemPrices() {
+            var _this2 = this;
+
+            var storeItem = this.$store.getters.getItemByCode(this.$route.params.id);
+            if (storeItem) {
+                if (storeItem.Classification) this.$store.dispatch("updateCategory", this.$store.getters.getCategoryDataByCode(storeItem.Classification.split(',')[0]));
+
+                if (this.$store.getters.getSetting.ShowPriceByDefault || this.$store.getters.getIsLogin) {
+
+                    var itemWithOutPrice = [];
+                    if (!storeItem.isCalculate) {
+                        this.loadingPrice = true;
+                        itemWithOutPrice.push(storeItem);
+                    }
+                    if (this.item.RelatedItems) {
+                        var _iteratorNormalCompletion3 = true;
+                        var _didIteratorError3 = false;
+                        var _iteratorError3 = undefined;
+
+                        try {
+                            for (var _iterator3 = this.item.RelatedItems.split(',')[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                var _relatedCode = _step3.value;
+
+                                var relatedItem = this.$store.getters.getItemByCode(_relatedCode);
+                                if (relatedItem && !relatedItem.isCalculate) {
+                                    this.loadingPrice = true;
+                                    itemWithOutPrice.push(relatedItem);
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError3 = true;
+                            _iteratorError3 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                    _iterator3.return();
+                                }
+                            } finally {
+                                if (_didIteratorError3) {
+                                    throw _iteratorError3;
+                                }
+                            }
+                        }
+                    }if (itemWithOutPrice.length > 0) this.$store.dispatch("updatePrices", itemWithOutPrice).then(function (response) {
+                        _this2.loadingPrice = false;
+                    });
+                }
+            }
+        }
+    }, {
+        key: "alertShowMessage",
+        value: function alertShowMessage(alertMsg) {
+            var _this3 = this;
+
+            this.alertMsg = alertMsg;
+            setTimeout(function () {
+                return _this3.alertMsg = null;
+            }, 4500);
+        }
+    }, {
+        key: "ItemComponentAddToCar",
+        value: function ItemComponentAddToCar() {
+            var _this4 = this;
+
+            if (isNaN(this.Qty) || this.Qty == 0) {
+                this.Qty = 0;
+                return;
+            }
+
+            if (this.controlStock) {
+                var itemInCar = this.$store.getters.getItemCar.filter(function (x) {
+                    return x.id == _this4.item.Code;
+                })[0];
+                var maxQty = this.getMaxStockByCode(this.item.Code);
+                if (itemInCar) {
+                    var formaterQty = void 0;
+                    var formaterCarQty = void 0;
+                    if (this.item.OnlyIntegerValues === 1) {
+                        formaterQty = parseInt(this.Qty);
+                        formaterCarQty = parseInt(itemInCar.cant);
+                    } else {
+                        formaterQty = Math.round((parseFloat(this.Qty) + Number.EPSILON) * 100) / 100;
+                        formaterCarQty = Math.round((parseFloat(itemInCar.cant) + Number.EPSILON) * 100) / 100;
+                    }
+                    if (formaterCarQty + formaterQty > maxQty) {
+                        this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                        return;
+                    }
+                } else {
+                    if (parseInt(this.Qty) > this.item.Qty) {
+                        this.alertShowMessage(["This item {{$1}} is not longer available", this.item.Name]);
+                        return;
+                    }
+                }
+            }
+            this.item.carQty = this.Qty;
+            this.$store.dispatch('ItemComponentAddToCar', this.item);
+        }
+    }, {
+        key: "itemQtyIncrement",
+        value: function itemQtyIncrement() {
+            var maxQty = this.getMaxStockByCode(this.item.Code);
+            if (Number.isInteger(this.Qty) && this.Qty + 1 <= maxQty) this.Qty += 1;else this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+        }
+    }, {
+        key: "itemQtyDecrement",
+        value: function itemQtyDecrement() {
+            if (this.Qty > 1) this.Qty -= 1;else this.Qty = 0;
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "filterByCategory",
+        value: function filterByCategory(cat) {
+            if (cat) {
+                this.$store.commit('updateAppState', 'loading');
+                var objectFilter = {};
+                objectFilter.name = uuidv4();
+                objectFilter.type = 'globalClassification';
+                //objectFilter.condition = `x.Classification.split(',').indexOf('${cat.code}')!=-1`;
+                objectFilter.condition = "x.ClassificationPath['" + cat.code + "']!=undefined";
+                objectFilter.label = cat.code;
+                objectFilter.filterField = "Classification";
+                this.$store.dispatch('addGlobalFilter', objectFilter);
+                this.$store.dispatch('updateCategory', cat);
+                window.scrollTo(0, 0);
+                //window.Event.$emit("category-select");
+                this.emitEvent("category-select");
+                //console.log('after emit event');
+                //this.$store.commit('updateAppState', "ready");
+                this.$router.push('/items?category=' + encodeURI(cat.code + "__" + cat.name));
+            }
+            if (this.isMobile) {
+                this.emitEvent('closeSandwichMenu');
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"item-detail-container\" v-if=\"!isLoading\">\n                    <template v-if=\"!useVariates\">\n                        <itemStockComponent v-bind=\"{...$props, ...$attrs}\" />     \n                    </template>\n                    <template v-else>\n                        <itemVarietiesComponent v-bind=\"{...$props, ...$attrs}\"/>\n                    </template>\n\t\t\t    </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "singleItemComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "singleItemComponent";
+        }
+    }]);
+
+    return itemProxyComponent;
+}(Component);
+
+itemProxyComponent.registerComponent();
+//# sourceMappingURL=itemProxyComponent.js.map

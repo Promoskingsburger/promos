@@ -1,0 +1,74 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var reportTableViewSubRowComponent = function (_Component) {
+    _inherits(reportTableViewSubRowComponent, _Component);
+
+    function reportTableViewSubRowComponent() {
+        _classCallCheck(this, reportTableViewSubRowComponent);
+
+        return _possibleConstructorReturn(this, (reportTableViewSubRowComponent.__proto__ || Object.getPrototypeOf(reportTableViewSubRowComponent)).apply(this, arguments));
+    }
+
+    _createClass(reportTableViewSubRowComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['row', 'columns', 'headings'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                myoptions: function myoptions() {
+                    console.log('Options ', this.headings);
+                    return {
+                        filterable: false,
+                        columnsDropdown: false,
+                        preserveState: false,
+                        headings: this.headings,
+                        uniqueKey: 'internalId',
+                        rowClassCallback: function rowClassCallback(row) {
+                            //console.log('.rowClassCallback',row.is_footer);
+                            if (row.is_footer) {
+                                console.log('row ok ');
+                                return 'footer-row';
+                            }
+                            return false;
+                        }
+                    };
+                },
+                rows: function rows() {
+                    console.log('Calculated SubRows', this);
+                    return this.row.$subrows;
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<v-client-table :columns=\"columns\" :data=\"rows\" :options=\"myoptions\"  ></v-client-table>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "reportTableViewSubRow";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "reportTableViewSubRow";
+        }
+    }]);
+
+    return reportTableViewSubRowComponent;
+}(Component);
+
+reportTableViewSubRowComponent.registerComponent();
+//# sourceMappingURL=reportTableViewSubRowComponent.js.map

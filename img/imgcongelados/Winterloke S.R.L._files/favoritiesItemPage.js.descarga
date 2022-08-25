@@ -1,0 +1,53 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var FavoritiesItemPage = function (_Component) {
+    _inherits(FavoritiesItemPage, _Component);
+
+    function FavoritiesItemPage() {
+        _classCallCheck(this, FavoritiesItemPage);
+
+        return _possibleConstructorReturn(this, (FavoritiesItemPage.__proto__ || Object.getPrototypeOf(FavoritiesItemPage)).apply(this, arguments));
+    }
+
+    _createClass(FavoritiesItemPage, [{
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div :class=\"classContainer\">\n                      <div class=\"section-main\">\n                         <div class=\"row\">\n                             <template v-if=\"isLoading\">\n                                  <div class=\"loading\">\n                                      <i class=\"fas fa-spinner fa-spin fa-3x\"></i>\n                                  </div>\n                             </template>\n                             <template v-else>\n                                   <div class=\"col-10 offset-1\">\n                                      <favoritiesListComponent></favoritiesListComponent>\n                                  </div>\n                            </template>\n                         </div>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "favoritiesItemPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return 'favoritiesItemPage';
+        }
+    }]);
+
+    return FavoritiesItemPage;
+}(Component);
+
+FavoritiesItemPage.registerComponent();
+//# sourceMappingURL=favoritiesItemPage.js.map

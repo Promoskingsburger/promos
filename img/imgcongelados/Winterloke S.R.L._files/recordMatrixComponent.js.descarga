@@ -1,0 +1,292 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, _ */
+var centerCostTemplate = Object.freeze({
+    "__meta__": {
+        "__classname__": "CenterCost",
+        "__error_responses__": [],
+        "__ismodified__": true,
+        "__isnew__": true
+    },
+    "fields": {
+        "Closed": null,
+        "Code": null,
+        "Comment": null,
+        "CustCode": null,
+        "CustName": null,
+        "DelAddress": null,
+        "DelAddressCode": null,
+        "FromDay": null,
+        "LimitMaxSalesAmounts": null,
+        "MaxMonthlySalesAmount": null,
+        "MaxSalesAmount": null,
+        "MinSalesAmount": null,
+        "Name": null,
+        "QtyAllowedMonthly": null,
+        "RecordSource": null,
+        "ToDay": null,
+        "createTime": null,
+        "createUser": null,
+        "internalId": null,
+        "syncVersion": null,
+        "updateTime": null,
+        "updateUser": null,
+        "Contacts": [{
+            "__meta__": {
+                "__classname__": "CenterCostContactRow",
+                "__error_responses__": [],
+                "__ismodified__": true,
+                "__isnew__": true
+            },
+            "fields": {
+                "IsMainContact": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": 0
+            },
+            "oldFields": {
+                "IsMainContact": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": null
+            },
+            "removedRows": {}
+        }],
+        "Liberators": [{
+            "__meta__": {
+                "__classname__": "CenterCostLiberatorRow",
+                "__error_responses__": [],
+                "__ismodified__": true,
+                "__isnew__": true
+            },
+            "fields": {
+                "CanLiberate": true,
+                "OnlyModified": false,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": 0
+            },
+            "oldFields": {
+                "CanLiberate": null,
+                "OnlyModified": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": null
+            },
+            "removedRows": {}
+        }]
+    },
+    "oldFields": {
+        "Closed": null,
+        "Code": null,
+        "Comment": null,
+        "CustCode": null,
+        "CustName": null,
+        "DelAddress": null,
+        "DelAddressCode": null,
+        "FromDay": null,
+        "LimitMaxSalesAmounts": null,
+        "MaxMonthlySalesAmount": null,
+        "MaxSalesAmount": null,
+        "MinSalesAmount": null,
+        "Name": null,
+        "QtyAllowedMonthly": null,
+        "RecordSource": null,
+        "ToDay": null,
+        "createTime": null,
+        "createUser": null,
+        "internalId": null,
+        "syncVersion": null,
+        "updateTime": null,
+        "updateUser": null
+    },
+    "removedRows": {
+        "Contacts": [],
+        "Liberators": []
+    }
+});
+
+var recordMatrixComponent = function (_Component) {
+    _inherits(recordMatrixComponent, _Component);
+
+    function recordMatrixComponent() {
+        _classCallCheck(this, recordMatrixComponent);
+
+        return _possibleConstructorReturn(this, (recordMatrixComponent.__proto__ || Object.getPrototypeOf(recordMatrixComponent)).apply(this, arguments));
+    }
+
+    _createClass(recordMatrixComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                record: {
+                    type: Object,
+                    require: true
+                },
+                headers: {
+                    type: Object,
+                    require: true
+                },
+                rowField: {
+                    type: String,
+                    require: true
+                },
+                afterEditRow: {
+                    type: Function
+                },
+                afterDeleteRow: {
+                    type: Function
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                personSelected: null,
+                personCode: null,
+                newRowRecord: {},
+                isModified: false
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.createNewRow = this.createNewRow.bind(this);
+                                this.deleteRow = this.deleteRow.bind(this);
+                                this.subscribeEvent('editCenterCost', this.resetData);
+
+                            case 3:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "resetData",
+        value: function resetData() {
+            this.personCode = null;
+            this.emitEvent("clearAwesonLinkTo_" + this.rowField + "__PersonCode__Person");
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                rows: function rows() {
+                    //console.log('ROWWWW',this.record,this.rowField);
+                    return this.record.fields[this.rowField];
+                },
+                virtualHeaders: function virtualHeaders() {
+                    return Object.keys(this.headers);
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                resetData: this.resetData,
+                createNewRow: this.createNewRow,
+                deleteRow: this.deleteRow,
+                updateRow: this.updateRow,
+                getRowEditor: this.getRowEditor,
+                selectLinkToOptions: this.selectLinkToOptions
+            };
+        }
+    }, {
+        key: "createNewRow",
+        value: function createNewRow() {
+            if (this.personCode) {
+                var event = _.cloneDeep(this.personCode);
+                var newRowRecord = _.cloneDeep(centerCostTemplate.fields[this.rowField][0]);
+                newRowRecord.__meta__.__isnew__ = true;
+                newRowRecord.fields.PersonCode = this.personCode.value;
+                event.field = "PersonCode";
+                event.matriz = this.rowField;
+                if (this.afterEditRow) this.afterEditRow(newRowRecord, event, true);
+                this.emitEvent("clearAwesonLinkTo_" + this.rowField + "__PersonCode__Person");
+                this.personCode = null;
+            }
+        }
+    }, {
+        key: "deleteRow",
+        value: function deleteRow(row) {
+            this.record.fields[this.rowField] = this.record.fields[this.rowField].filter(function (x) {
+                return x.fields.internalId != row.fields.internalId;
+            });
+            if (this.record.removedRows) this.record.removedRows[this.rowField].push(row);
+            if (this.afterDeleteRow) this.afterDeleteRow(row);
+        }
+    }, {
+        key: "updateRow",
+        value: function updateRow(row, field) {
+            row.__meta__.__ismodified__ = true;
+            this.afterEditRow(row, { field: field, linkToData: [] }, false);
+        }
+    }, {
+        key: "getRowEditor",
+        value: function getRowEditor(header) {
+            if (this.headers[header] && this.headers[header].type) return this.headers[header].type;
+            return "text";
+        }
+    }, {
+        key: "selectLinkToOptions",
+        value: function selectLinkToOptions(event) {
+            this.personSelected = event.value;
+            this.personCode = event;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row\" :key=\"rowField+'__PersonCode'+'Container'\">\n                <div class=\"col-6\" :key=\"rowField+'__input_group'\" >\n                    <awesonLinkToComponent :recordKey=\"rowField+'__PersonCode'\" table=\"Person\" paste=\"Code\" :showField=\"['Name','LastName']\" :selected=\"personSelected\" :filters=\"{WebUserFlag:1}\" @update-value-full=\"selectLinkToOptions\"></awesonLinkToComponent>\n                </div>\n                <div class=\"col-6\">\n                    <button class=\"btn btn-light\" @click=\"createNewRow\"><i class=\"fas fa-plus\"></i> {{tr('Add Person')}}</button>\n                </div>\n                <div class=\"col-12\">\n                    <table class=\"table response-table\">\n                      <thead>\n                        <tr>\n                          <template v-for=\"header of virtualHeaders\">\n                                <th scope=\"col\">{{tr(headers[header].label)}}</th>\n                          </template>\n                          <th scope=\"col\">{{tr('Actions')}}</th>\n                        </tr>\n                      </thead>\n                      <tbody>\n                        <template v-for=\"row of rows\" >\n                            <tr>\n                                 <template v-for=\"header in virtualHeaders\">\n                                       <template v-if=\"getRowEditor(header)=='checkbox'\">\n                                          <td> <input :type=\"getRowEditor(header)\" v-model=\"row.fields[header]\" class=\"form-control form-control-sm\" @change=\"(event)=>updateRow(row,header)\"></td>\n                                       </template>\n                                       <template v-else>\n                                          <td>{{row.fields[header]}}</td> \n                                       </template>\n                                 </template>\n                                 <td @click=\"deleteRow(row)\" :title=\"tr('Delete')\"><span class=\"btn btn-light\"><i class=\"fa fa-trash\"></i></span></td>\n                            </tr>\n                        </template>\n                      </tbody>\n                    </table>\n                </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "recordMatrixComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "recordMatrixComponent";
+        }
+    }]);
+
+    return recordMatrixComponent;
+}(Component);
+
+recordMatrixComponent.registerComponent();
+//# sourceMappingURL=recordMatrixComponent.js.map

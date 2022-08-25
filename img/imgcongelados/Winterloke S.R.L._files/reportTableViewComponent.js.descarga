@@ -1,0 +1,294 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var reportTableViewComponent = function (_Component) {
+    _inherits(reportTableViewComponent, _Component);
+
+    function reportTableViewComponent() {
+        _classCallCheck(this, reportTableViewComponent);
+
+        return _possibleConstructorReturn(this, (reportTableViewComponent.__proto__ || Object.getPrototypeOf(reportTableViewComponent)).apply(this, arguments));
+    }
+
+    _createClass(reportTableViewComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                reportName: {
+                    type: String,
+                    required: true
+                },
+                tablename: {
+                    type: String,
+                    required: true
+                },
+                table: {
+                    type: Object,
+                    required: true
+                },
+                filtrable: {
+                    type: Boolean,
+                    default: true
+                },
+                columnsDropdown: {
+                    type: Boolean,
+                    default: false
+                },
+                paginationChuck: {
+                    type: Number,
+                    default: 15
+                },
+                perPage: {
+                    type: Number,
+                    default: 20
+                },
+                getReportColumns: function getReportColumns() {
+                    this.$store.getters.getReports;
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                templateFormatColumn: function templateFormatColumn() {
+                    var _this2 = this;
+
+                    var dateColumns = {};
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        var _loop = function _loop() {
+                            var column = _step.value;
+
+                            if (/date/g.test(column.toLowerCase())) dateColumns[column] = function (h, row) {
+                                return _this2.formatDate(row[column]);
+                            };
+                        };
+
+                        for (var _iterator = this.columns[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            _loop();
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return dateColumns;
+                },
+                options: function options() {
+                    return {
+                        filterable: this.filterable,
+                        columnsDropdown: this.columnsDropdown,
+                        preserveState: false,
+                        headings: this.headings,
+                        childRowTogglerFirst: this.childRowTogglerFirst,
+                        perPage: this.perPage,
+                        templates: this.templateFormatColumn,
+                        pagination: { chunk: this.paginationChuck },
+                        uniqueKey: 'internalId',
+                        texts: {
+                            count: "Mostrando {from} - {to} de {count} " + this.tr('Rows') + " |{count} " + this.tr('Rows') + " | Una " + this.tr('Row'),
+                            filter: this.tr('Search') + ':',
+                            limit: '',
+                            filterPlaceholder: this.tr('Write a value'),
+                            noResults: this.tr('No data were found'),
+                            page: this.tr('Page') + ":", // for dropdown pagination
+                            filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                            loading: this.tr('Loading') + '...', // First request to server
+                            defaultOption: 'Select {column}' // default option for list filters,
+                        },
+                        rowClassCallback: function rowClassCallback(row) {
+                            //console.log('.rowClassCallback',row.is_footer);
+                            if (row.is_footer) {
+                                //console.log('row ok ');
+                                return 'footer-row';
+                            }
+                            return false;
+                        }
+                    };
+                },
+                childRowTogglerFirst: function childRowTogglerFirst() {
+                    if (this.table.detail_columns.length > 0) return true;
+                    return false;
+                },
+                childRow: function childRow() {
+                    if (this.table.detail_columns.length > 0) return true;
+                    return false;
+                },
+                headings: function headings() {
+                    return this.table.column_titles_dict;
+                },
+                columns: function columns() {
+                    var _this3 = this;
+
+                    var columns = this.table.columns.filter(function (x) {
+                        if (_this3.table.columns_dict[x] && _this3.table.columns_dict[x]) return _this3.table.columns_dict[x].visible === true;
+                        return false;
+                    });
+                    return columns;
+                },
+                subheadings: function subheadings() {
+                    var _this4 = this;
+
+                    var subhead = {};
+                    Object.values(this.table.detail_columns_dict).map(function (x) {
+                        subhead[x.col] = _this4.tr(x.label);
+                    });
+                    return subhead;
+                },
+                reportColumns: function reportColumns() {
+                    var _this5 = this;
+
+                    var reportSpec = this.$store.state.setting.ReportsRow.filter(function (x) {
+                        return x.fields.ReportName == _this5.reportName && x.fields.isKPI != true;
+                    });
+                    if (reportSpec.length > 0) {
+                        return reportSpec[0].fields.showColumns;
+                    }
+                    return [];
+                },
+                subcolumns: function subcolumns() {
+                    var _this6 = this;
+
+                    var columns = this.table.detail_columns.filter(function (x) {
+                        return _this6.reportColumns.indexOf(x) != -1;
+                    });
+                    console.log(this.reportName, this.reportColumns, columns, this.table.detail_columns);
+                    return columns;
+                },
+                rows: function rows() {
+                    var rows = this.table.rows;
+                    if (this.table.footer.length > 0) {
+                        if (rows.length >= this.perPage) {
+                            var iter = 1;
+                            var max_iter = parseInt(rows.length / this.perPage);
+                            if (rows.length % this.perPage > 0) max_iter += 1;
+                            if (this.table.footer.length % max_iter > 0) max_iter += 1;
+                            max_iter = max_iter + parseInt(this.table.footer.length * max_iter / this.perPage);
+                            var insert_row = false;
+                            while (iter <= max_iter + 1) {
+                                var row_counter = 0;
+                                var _iteratorNormalCompletion2 = true;
+                                var _didIteratorError2 = false;
+                                var _iteratorError2 = undefined;
+
+                                try {
+                                    for (var _iterator2 = this.table.footer[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                        var footer_row = _step2.value;
+
+                                        var temp_footer = Object.assign({ is_footer: true }, footer_row);
+                                        var insert_index = parseInt(iter * this.perPage - this.table.footer.length + row_counter);
+                                        //console.log('Iterator',iter,max_iter,insert_index,rows.length);
+                                        if (insert_index < rows.length) rows.splice(insert_index, 0, temp_footer);else {
+                                            insert_row = true;
+                                            rows.push(temp_footer);
+                                        }
+                                        row_counter++;
+                                    }
+                                } catch (err) {
+                                    _didIteratorError2 = true;
+                                    _iteratorError2 = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                            _iterator2.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError2) {
+                                            throw _iteratorError2;
+                                        }
+                                    }
+                                }
+
+                                if (insert_row) break;
+                                iter++;
+                            }
+                        } else {
+                            var _iteratorNormalCompletion3 = true;
+                            var _didIteratorError3 = false;
+                            var _iteratorError3 = undefined;
+
+                            try {
+                                for (var _iterator3 = this.table.footer[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                    var _footer_row = _step3.value;
+
+                                    var _temp_footer = Object.assign({ is_footer: true }, _footer_row);
+                                    rows.push(_temp_footer);
+                                }
+                            } catch (err) {
+                                _didIteratorError3 = true;
+                                _iteratorError3 = err;
+                            } finally {
+                                try {
+                                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                        _iterator3.return();
+                                    }
+                                } finally {
+                                    if (_didIteratorError3) {
+                                        throw _iteratorError3;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return rows;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                formatDate: this.formatDate
+
+            };
+        }
+    }, {
+        key: "formatDate",
+        value: function formatDate(date) {
+            var mydate = moment(date);
+            if (mydate._isValid) return mydate.format('DD/MM/YYYY');
+            return date;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row col-12\">\n                    <template v-if=\"childRow\">\n                        <v-client-table :columns=\"columns\" :data=\"rows\" :options=\"options\" :ref=\"tablename\" >\n                            <template slot=\"child_row\"  slot-scope=\"props\" v-bind:subcolumns=\"subcolumns\" v-bind:subheadings=\"subheadings\">\n                                <reportTableViewSubRow :row=\"props.row\" :columns=\"subcolumns\" :headings=\"subheadings\" :reportName=\"reportName\"/>\n                            </template>\n                        </v-client-table>\n                    </template>\n                    <template v-else>\n                        <v-client-table :columns=\"columns\" :data=\"rows\" :options=\"options\" :ref=\"tablename\"></v-client-table>\n                    </template>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "reportTableView";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "reportTableView";
+        }
+    }]);
+
+    return reportTableViewComponent;
+}(Component);
+
+reportTableViewComponent.registerComponent();
+//# sourceMappingURL=reportTableViewComponent.js.map

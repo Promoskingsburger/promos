@@ -1,0 +1,96 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var footerSectionComponent = function (_Component) {
+    _inherits(footerSectionComponent, _Component);
+
+    function footerSectionComponent() {
+        _classCallCheck(this, footerSectionComponent);
+
+        return _possibleConstructorReturn(this, (footerSectionComponent.__proto__ || Object.getPrototypeOf(footerSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(footerSectionComponent, [{
+        key: "data",
+        value: function data() {
+            return { year: new Date().getFullYear() };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                menuTitle: function menuTitle() {
+                    return this.$store.getters.menuTitle;
+                },
+                menuSubTitle: function menuSubTitle() {
+                    return this.$store.getters.menuSubTitle;
+                },
+                mustRender: function mustRender() {
+                    return this.$store.getters.settingsIsLoaded;
+                },
+                enableLK: function enableLK() {
+                    return this.$store.state.setting.EnableLK;
+                },
+                linkLK: function linkLK() {
+                    var link = "#";
+                    if (this.$store.state.setting.LKLink) link = this.$store.state.setting.LKLink;
+                    return link;
+                },
+                enableIG: function enableIG() {
+                    return this.$store.state.setting.EnableIG;
+                },
+                linkIG: function linkIG() {
+                    var link = "https://instagram.com";
+                    if (this.$store.state.setting.IGLink) link = this.$store.state.setting.IGLink;
+                    return link;
+                },
+                enableFB: function enableFB() {
+                    return this.$store.state.setting.EnableFB;
+                },
+                linkFB: function linkFB() {
+                    var link = "https://facebook.com";
+                    if (this.$store.state.setting.IGLink) link = this.$store.state.setting.FBLink;
+                    return link;
+                },
+                enableTW: function enableTW() {
+                    return this.$store.state.setting.EnableTW;
+                },
+                linkTW: function linkTW() {
+                    var link = "https://twitter.com";
+                    if (this.$store.state.setting.IGLink) link = this.$store.state.setting.TWLink;
+                    return link;
+                },
+                footerTemplateCode: function footerTemplateCode() {
+                    return this.$store.state.setting.FooterTemplate;
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<footer class=\"container-fluid\" v-if=\"mustRender\">\n                 <template v-if=\"footerTemplateCode\">\n                    <htmlSectionComponent :templateCode=\"footerTemplateCode\" />\n                 </template>\n                 <template v-else>\n                    <div class=\"row justify-content-center py-3\">\n                         <div class=\"col-12 col-md-6 text-center text-md-left\">\n                            Copyright \xA9 {{year}} <a href=\"#\" class=\"brand\">{{menuTitle}}</a> All rights reserved.\n                        </div>\n                        <div class=\"col-12 col-md-6 text-center text-md-right mt-2 mt-md-0\">\n                            <span class=\"right\">with <i class=\"icon fas fa-heart\"></i> by <a href=\"https://oppen.io/\" target=\"_blank\" class=\"brand\">\xF6ppen</a></span>\n                        </div>\n                    </div>\n                </template>\n            </footer>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "footerSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "footerSectionComponent";
+        }
+    }]);
+
+    return footerSectionComponent;
+}(Component);
+
+footerSectionComponent.registerComponent();
+//# sourceMappingURL=footerSectionComponent.js.map

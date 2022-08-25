@@ -1,0 +1,104 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var NotificationComponent = function (_Component) {
+    _inherits(NotificationComponent, _Component);
+
+    function NotificationComponent() {
+        _classCallCheck(this, NotificationComponent);
+
+        return _possibleConstructorReturn(this, (NotificationComponent.__proto__ || Object.getPrototypeOf(NotificationComponent)).apply(this, arguments));
+    }
+
+    _createClass(NotificationComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                title: 0,
+                message: 0,
+                type: null,
+                visible: false,
+                defaultIcons: {
+                    success: "/static/ecommerce/img/success.png",
+                    info: "/static/ecommerce/img/info.png",
+                    warning: "/static/ecommerce/img/warning.png",
+                    error: "/static/ecommerce/img/error.png"
+                },
+                defaultBackground: {
+                    success: "#28a745",
+                    info: "#00a9c9",
+                    warning: "#F89406",
+                    error: "#BD362F"
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.subscribeEvent('toast', this.callback);
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                iconSrc: function iconSrc() {
+                    return this.defaultIcons[this.type];
+                },
+                toastBackgroundColor: function toastBackgroundColor() {
+                    return this.defaultBackground[this.type];
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                callback: this.callback
+            };
+        }
+    }, {
+        key: "callback",
+        value: function callback(obj) {
+            var _this2 = this;
+
+            //console.log('mounted Notification Component');
+            this.visible = true;
+            this.title = this.tr(obj.title);
+            this.message = this.tr(obj.message);
+            this.type = obj.type;
+            setTimeout(function () {
+                return _this2.visible = false;
+            }, 2500);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<transition name=\"slide-fade\" v-if=\"visible\">\n                    <div class=\"notification\"  :style=\"{backgroundColor:toastBackgroundColor}\">\n                        <div class=\"notification-icon\">\n                            <img :src=\"iconSrc\"/>\n                        </div>\n                        <div class=\"notification-body\">\n                            <div class=\"notification-title\">{{tr(title)}}</div>\n                            <div class=\" notification-message\">{{tr(message)}}</div>\n                        </div>\n                    </div>\n                </transition>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "NotificationComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "NotificationComponent";
+        }
+    }]);
+
+    return NotificationComponent;
+}(Component);
+
+NotificationComponent.registerComponent();
+//# sourceMappingURL=NotificationComponent.js.map

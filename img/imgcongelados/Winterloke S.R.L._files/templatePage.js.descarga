@@ -1,0 +1,47 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var TemplatePage = function (_Component) {
+    _inherits(TemplatePage, _Component);
+
+    function TemplatePage() {
+        _classCallCheck(this, TemplatePage);
+
+        return _possibleConstructorReturn(this, (TemplatePage.__proto__ || Object.getPrototypeOf(TemplatePage)).apply(this, arguments));
+    }
+
+    _createClass(TemplatePage, [{
+        key: "getProps",
+        value: function getProps() {
+            return ["templateCode"];
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                    <headerSectionComponent></headerSectionComponent>\n                    <div class=\"static-page w-100 px-4 px-md-5\" :class=\"[templateCode,classContainer]\">\n                        <htmlSectionComponent :templateCode=\"templateCode\" ></htmlSectionComponent>\n                    </div>\n                    <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "templatePage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "templatePage";
+        }
+    }]);
+
+    return TemplatePage;
+}(Component);
+
+TemplatePage.registerComponent();
+//# sourceMappingURL=templatePage.js.map

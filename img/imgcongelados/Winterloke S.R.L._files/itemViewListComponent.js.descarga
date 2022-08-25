@@ -1,0 +1,42 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global itemViewModuleComponent */
+var itemViewListComponent = function (_itemViewModuleCompon) {
+    _inherits(itemViewListComponent, _itemViewModuleCompon);
+
+    function itemViewListComponent() {
+        _classCallCheck(this, itemViewListComponent);
+
+        return _possibleConstructorReturn(this, (itemViewListComponent.__proto__ || Object.getPrototypeOf(itemViewListComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemViewListComponent, [{
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"card col-12 list-view\">\n                    <div class=\"discount\" v-if=\"discount && item.CrossedOutPrice\" >\n                        <discountComponent :item=\"item\" :currentItemPrice=\"currentItemPrice\"/>\n                    </div>\n                    <div class=\"favorite-icon\" v-if=\"$store.getters.getSession!=null\">\n                        <favoriteBtnComponent :itemCode=\"item.Code\"/>\n                    </div>\n                     <div class=\"card-body\">\n                        <div class=\"row\">\n                            <div class=\"col-sm-3 col-lg-2 item-image item-detail-modal\">\n                                <router-link :to=\"'/view/'+encodeToURL(item.Code)\">\n                                    <itemSliderComponent :key=\"'slide'+item.Code\" :item=\"item\" :stockFlag=\"$store.getters.showStock\" :container=\"false\" v-if=\"$store.getters.getSetting && $store.getters.getSetting.DemoPhotos\"></itemSliderComponent>\n                                </router-link>\n                            </div>\n                            <div class=\"col-sm-9 col-lg-10\">\n                                <h5 class=\"card-title\">{{item.Name}}</h5>\n                                <p class=\"card-text mb-1\">{{item.Comment}}</p>\n                                <p class=\"card-text mb-1\">Cod. {{item.Code}}</p>\n                                <p class=\"card-text item-name\" v-if=\"showStock\">Stock {{stockQty}}</p>\n                                <template v-if=\"$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin\">\n                                    <p class=\"card-text item-price\" :class=\"{'mb-0': item.PriceByUnit, 'mb-1': !item.PriceByUnit}\">\n                                        <strong v-if=\"item.CrossedOutPrice\" class=\"crossedoutprice\">$ {{item.CrossedOutPrice}}</strong>\n                                        <strong>$ {{parseFloat(item.Price).toFixed(2)}} </strong>\n                                        <small v-if=\"Currency\">{{Currency}}/{{item.Unit}}</small><small v-else>{{item.Unit}}</small>\n                                    </p>\n                                    <p v-if=\"item.PriceByUnit\" class=\"card-text mb-3 item-price-by-unit\"><small>{{item.PriceByUnit}}</small></p>\n                                </template>\n                                <div class=\"row cart-section\">\n                                    <div class=\"col-sm-8 col-md-5\">\n                                        <div class=\"row\">\n                                             <div class=\"item-list-control\" @click=\"itemQtyDecrement\" >\n                                                <i class=\"fas fa-angle-down waves-effect\" ></i>\n                                             </div>\n                                             <template v-if=\"alertMsg\">\n                                                <div class=\"alert alert-danger p-1 ml-2\" role=\"alert\">{{tr(alertMsg)}}</div>\n                                             </template>\n                                             <div class=\"col\">\n                                                 <template v-if=\"controlStock\">\n                                                     <template v-if=\"item.Qty>0\">\n                                                         <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"1\" :max=\"item.Qty\" type=\"number\">\n                                                     </template>\n                                                     <template v-else>\n                                                         <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"0\" :max=\"item.Qty\" type=\"number\" disabled aria-describedby=\"withOutStockHelpBlock\" >\n                                                         <small id=\"withOutStockHelpBlock\" class=\"form-text text-muted\">\n                                                             {{tr(\"Without Stock\")}}\n                                                         </small>\n                                                     </template>\n                                                 </template>\n                                                 <template v-else>\n                                                     <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"1\" type=\"number\">\n                                                 </template>\n                                             </div>\n                                            <div class=\"item-list-control\" @click=\"itemQtyIncrement\" >\n                                                <i class=\"fas fa-angle-up waves-effect\" ></i>\n                                            </div>\n                                        </div>\n                                    </div>\n                                    <div class=\"col\" :disabled=\"!isNaN(Qty)\">\n                                        <div class=\"cart-button mt-3 mt-md-0\">\n                                            <button class=\"btn secondary-btn px-3 px-xl-5\" :disabled=\"canShopItem\" type=\"button\" @click.stop=\"canShopItem? ItemComponentAddToCar(item) : null\">\n                                                <span class=\"icon\"><i class=\"fa-icon fas fa-cart-plus\"></i></span> {{tr(\"Load to Cart\")}}\n                                            </button>\n                                        </div>\n                                    </div>\n                                </div>\n                            </div>\n                        </div>\n                     </div>\n                  </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemViewListComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemViewListComponent";
+        }
+    }]);
+
+    return itemViewListComponent;
+}(itemViewModuleComponent);
+
+itemViewListComponent.registerComponent();
+//# sourceMappingURL=itemViewListComponent.js.map

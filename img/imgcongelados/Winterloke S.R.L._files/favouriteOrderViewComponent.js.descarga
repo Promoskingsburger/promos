@@ -1,0 +1,145 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var favouriteOrderViewComponent = function (_Component) {
+    _inherits(favouriteOrderViewComponent, _Component);
+
+    function favouriteOrderViewComponent() {
+        _classCallCheck(this, favouriteOrderViewComponent);
+
+        return _possibleConstructorReturn(this, (favouriteOrderViewComponent.__proto__ || Object.getPrototypeOf(favouriteOrderViewComponent)).apply(this, arguments));
+    }
+
+    _createClass(favouriteOrderViewComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                listMode: true,
+                columns: ['Name', "Actions"],
+                css: {
+                    ascendingIcon: 'blue chevron up icon',
+                    descendingIcon: 'blue chevron down icon',
+                    table: {
+                        loadingClass: 'loading',
+                        ascendingIcon: 'blue chevron up icon',
+                        descendingIcon: 'blue chevron down icon'
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                favouritesOrders_list: function favouritesOrders_list() {
+                    if (this.$store.getters.getAllFavouritesOrders) {
+                        var FavouriteOrderToObjArray = [];
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = this.$store.getters.getAllFavouritesOrders[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var fo = _step.value;
+
+                                var foObj = {};
+                                foObj.Name = fo[0];
+                                FavouriteOrderToObjArray.push(foObj);
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+
+                        return FavouriteOrderToObjArray;
+                    } else return [];
+                },
+                options: function options(h) {
+                    return {
+                        preserveState: true,
+                        filterByColumn: false,
+                        filterable: ["Name"],
+                        /* orderBy: {
+                             column: "SerNr",
+                             ascending: false
+                         },*/
+                        headings: {
+                            'Name': this.tr('Saved as'),
+                            'Actions': this.tr('Actions')
+                        },
+                        perPage: 10,
+                        pagination: {
+                            chunk: 15
+                        },
+                        templates: {
+                            Actions: 'FavouriteOrderActionsComponent'
+                        },
+                        texts: {
+                            count: "Showing {from} to {to} of {count} " + this.tr('Orders') + "|{count} " + this.tr('Orders') + "|One " + this.tr('Order'),
+                            filter: '',
+                            limit: '',
+                            filterPlaceholder: '',
+                            noResults: this.tr('No favorite orders found'),
+                            page: this.tr('Page') + ":", // for dropdown pagination
+                            filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                            loading: this.tr('Loading') + '...', // First request to server
+                            defaultOption: 'Select {column}' // default option for list filters,
+                        },
+                        dateFormat: "DD-MM-YYYY",
+                        uniqueKey: "SerNr"
+                    };
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack
+            };
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            this.emitEvent('reset-order-view');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"orders-list\">\n                  <div class=\"container-fluid px-0 px-md-3\">\n                      <div class=\"section-main m-0\">\n                          <favouriteOrderDetailModalComponent></favouriteOrderDetailModalComponent>\n                          <template v-if=\"$store.getters.getAppState=='ready'\">\n                              <div class=\"row\">\n                                  <div class=\"col-12\">\n                                    <div id=\"#favouriteorderList\">\n                                        <h5 class=\"row title\">\n                                            <span class=\"col-12 col-md-4 text-center text-md-left mb-2\">{{tr('Favorites Orders List')}}</span>\n                                            <div class=\"col-12 col-md-8 text-center text-md-right\">\n                                                <button class=\"btn secondary-btn\" @click='goBack'><i class=\"icon fas fa-history\"></i>{{tr('Historical orders')}}</button>\n                                            </div>\n                                        </h5>\n                                        <v-client-table class=\"custom-vue-table\" :key=\"this.$route.params.filter\" @rowclick=\"\" :columns=\"columns\" :data=\"favouritesOrders_list\" :options=\"options\" :css=\"css\">\n                                            <div slot=\"afterFilter\" class=\"VueTables__search-field\">\n                                               <div class=\"input-group-append\">\n                                                    <span class=\"input-group-text\" id=\"basic-addon2\"><i class=\"icon fas fa-search\"></i></span>\n                                              </div>\n                                            </div>\n                                        </v-client-table>\n                                    </div>\n                                </div>\n                              </div>\n                          </template>\n                      </div>\n                  </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "favouriteOrderViewComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "favouriteOrderViewComponent";
+        }
+    }]);
+
+    return favouriteOrderViewComponent;
+}(Component);
+
+favouriteOrderViewComponent.registerComponent();
+//# sourceMappingURL=favouriteOrderViewComponent.js.map

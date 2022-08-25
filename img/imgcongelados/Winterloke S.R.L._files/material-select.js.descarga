@@ -1,0 +1,94 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var materialSelect = function (_Component) {
+    _inherits(materialSelect, _Component);
+
+    function materialSelect() {
+        _classCallCheck(this, materialSelect);
+
+        return _possibleConstructorReturn(this, (materialSelect.__proto__ || Object.getPrototypeOf(materialSelect)).apply(this, arguments));
+    }
+
+    _createClass(materialSelect, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['value', 'label', 'options'];
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                value: function value(_value) {
+                    this.reload(_value);
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                var vm = this;
+                var select = $(this.$el);
+                select.val(this.value).on('change', function () {
+                    console.log('Test Event');
+                    vm.$emit('input', this.value);
+                });
+                //select.material_select();
+            };
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return function () {
+                this.reload();
+            };
+        }
+    }, {
+        key: "destroyed",
+        value: function destroyed() {
+            return function () {
+                $(this.$el).material_select('destroy');
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                reload: function reload(value) {
+                    var select = $(this.$el);
+                    select.val(value || this.value);
+                    //.material_select('destroy');
+                    //select.material_select();
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<select class=\"icons\" @keydown.prevent=\"\" @keydown.prevent=\"\" @keyup.prevent=\"\" >\n                    <option value=\"\" >{{tr('Select One')}}</option>\n                    <option :value=\"option.value\" v-for=\"option in options\">{{tr(option.label)}}</option>\n                </select>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "material-select";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "material-select";
+        }
+    }]);
+
+    return materialSelect;
+}(Component);
+
+materialSelect.registerComponent();
+//# sourceMappingURL=material-select.js.map

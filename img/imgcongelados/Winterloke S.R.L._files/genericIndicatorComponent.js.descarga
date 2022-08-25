@@ -1,0 +1,108 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var genericIndicatorComponent = function (_Component) {
+    _inherits(genericIndicatorComponent, _Component);
+
+    function genericIndicatorComponent() {
+        _classCallCheck(this, genericIndicatorComponent);
+
+        return _possibleConstructorReturn(this, (genericIndicatorComponent.__proto__ || Object.getPrototypeOf(genericIndicatorComponent)).apply(this, arguments));
+    }
+
+    _createClass(genericIndicatorComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                indicator: {
+                    type: Object,
+                    required: true
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                isLoading: true,
+                params: {},
+                report: null
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                reportTables: function reportTables() {
+                    if (this.report) return Object.keys(this.report);
+                    return [];
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getReportName: this.getReportName,
+                runReport: this.runReport
+            };
+        }
+    }, {
+        key: "getReportName",
+        value: function getReportName() {
+            return this.indicator.fields.ReportName;
+        }
+    }, {
+        key: "runReport",
+        value: function runReport(parameters) {
+            var self = this;
+            if (!parameters) parameters = {};
+            Object.assign(parameters, { run_kpi: true, kpiView: self.indicator.fields.kpiDetail });
+            return new Promise(function (resolve, reject) {
+                self.isLoading = true;
+                self.report = null;
+                $(".card-reveal").attr('style', '');
+                axios.post('/ecommerce/api/runReport', {
+                    reportName: self.getReportName(),
+                    params: parameters
+                }).then(function (response) {
+                    self.report = Object.freeze(response.data.report);
+                    self.isLoading = false;
+                    resolve(true);
+                }).catch(function (error) {
+                    console.log(error);
+                    self.isLoading = false;
+                    $(".card-reveal").attr('style', '');
+                    reject(false);
+                });
+            });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"indicatorCard col s12 m6\" :ref=\"'indicatorContainer-'+getReportName()\">\n                 <div class=\"card large\">\n                     <div class=\"card-content\">\n                          <span class=\"card-title activator grey-text text-darken-4 row\">\n                            <p class=\"col s12\">\n                                {{tr(indicator.fields.kpiDetail)}}\n                            </p>    \n                          </span>\n                          <slot name=\"parameters\" :runAction=\"runReport\" :params=\"params\" :loading=\"isLoading\"></slot> \n                          <template v-if=\"isLoading\" >\n                             <div class=\"col s12 container center section white\" style=\"min-height: 60%;\" >\n                                <div class=\"preloader-wrapper big active\">\n                                      <div class=\"spinner-layer spinner-blue\">\n                                        <div class=\"circle-clipper left\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"gap-patch\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"circle-clipper right\">\n                                          <div class=\"circle\"></div>\n                                        </div>\n                                      </div>\n                                \n                                      <div class=\"spinner-layer spinner-red\">\n                                        <div class=\"circle-clipper left\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"gap-patch\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"circle-clipper right\">\n                                          <div class=\"circle\"></div>\n                                        </div>\n                                      </div>\n                                \n                                      <div class=\"spinner-layer spinner-yellow\">\n                                        <div class=\"circle-clipper left\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"gap-patch\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"circle-clipper right\">\n                                          <div class=\"circle\"></div>\n                                        </div>\n                                      </div>\n                                \n                                      <div class=\"spinner-layer spinner-green\">\n                                        <div class=\"circle-clipper left\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"gap-patch\">\n                                          <div class=\"circle\"></div>\n                                        </div><div class=\"circle-clipper right\">\n                                          <div class=\"circle\"></div>\n                                        </div>\n                                      </div>\n                                </div>\n                                <h4>{{tr('Page loading please wait')}}</h4>\n                             </div>\n                          </template>\n                          <template v-else>\n                                 <div :key=\"'indicatorRenderContainer-'+getReportName()\" id=\"genericIndicatorView\" :ref=\"'reportRenderContainer-'+getReportName()\" class=\"indicatorRenderContainer col s12\" >\n                                      <template v-if=\"reportTables.length>0\" v-for=\"table in reportTables\">\n                                            <reportTableView :table=\"Object.freeze(report[table])\" :key=\"getReportName()+table\" :tablename=\"table\"></reportTableView>\n                                      </template>\n                                 </div>           \n                          </template>\n                    </div>\n                 </div>  \n             </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "indicatorComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "indicatorComponent";
+        }
+    }]);
+
+    return genericIndicatorComponent;
+}(Component);
+
+genericIndicatorComponent.registerComponent();
+//# sourceMappingURL=genericIndicatorComponent.js.map

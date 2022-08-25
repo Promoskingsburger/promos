@@ -1,0 +1,198 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var PersonManagerComponent = function (_Component) {
+    _inherits(PersonManagerComponent, _Component);
+
+    function PersonManagerComponent() {
+        _classCallCheck(this, PersonManagerComponent);
+
+        return _possibleConstructorReturn(this, (PersonManagerComponent.__proto__ || Object.getPrototypeOf(PersonManagerComponent)).apply(this, arguments));
+    }
+
+    _createClass(PersonManagerComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                isloading: false,
+                customerPersons: [],
+                onlyActived: false,
+                columns: ['Avatar', 'Name', 'WebUser', 'WebAccessGroup', 'WebFlag', "Actions"],
+                css: {
+                    ascendingIcon: 'blue chevron up icon',
+                    descendingIcon: 'blue chevron down icon',
+                    table: {
+                        loadingClass: 'loading',
+                        ascendingIcon: 'blue chevron up icon',
+                        descendingIcon: 'blue chevron down icon'
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                getCustomerPersons: function getCustomerPersons() {
+
+                    this.customerPersons = this.$store.getters.getCustomerPersons;
+
+                    if (this.onlyActived) return this.customerPersons.filter(function (x) {
+                        return x.WebUserFlag == '1';
+                    });
+                    return this.customerPersons.sort(function (x, y) {
+                        return x.WebUserFlag === y.WebUserFlag ? 0 : x.WebUserFlag ? -1 : 1;
+                    });
+                },
+                options: function options(h) {
+                    return {
+                        preserveState: true,
+                        filterByColumn: false,
+                        filterable: ["Name", "WebUser"],
+                        headings: {
+                            'Avatar': '',
+                            'Name': this.tr('Name'),
+                            'WebFlag': this.tr('Enabled'),
+                            'WebUser': this.tr('User'),
+                            'WebAccessGroup': this.tr('Web Access'),
+                            'Actions': this.tr('Edit')
+                        },
+                        perPage: 10,
+                        pagination: {
+                            chunk: 15
+                        },
+                        templates: {
+                            Actions: 'CustomerPersonsActionsComponent',
+                            Avatar: 'AvatarPersonsListComponent',
+                            WebFlag: 'WebFlagComponent'
+                        },
+                        texts: {
+                            count: "Showing {from} to {to} of {count} " + this.tr('Person') + "|{count} " + this.tr('Persons') + "|One " + this.tr('Person'),
+                            filter: '',
+                            limit: '',
+                            filterPlaceholder: '',
+                            noResults: this.tr('No Persons founds'),
+                            page: this.tr('Page') + ":", // for dropdown pagination
+                            filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                            loading: this.tr('Loading') + '...', // First request to server
+                            defaultOption: 'Select {column}' // default option for list filters,
+                        },
+                        dateFormat: "DD-MM-YYYY",
+                        uniqueKey: "Code"
+                    };
+                }
+
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'onlyActived': function onlyActived() {
+                    console.log('CAMBIO ', this.onlyActived);
+                }
+
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.loadPersons();
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadPersons: this.loadPersons,
+                AddPerson: this.AddPerson
+            };
+        }
+    }, {
+        key: "loadPersons",
+        value: function loadPersons() {
+            //let self=this;
+            this.isloading = true;
+            this.$store.dispatch('loadCustomerPersons');
+            this.isloading = false;
+
+            // axios.get('/ecommerce/api/getPersonsAssociated')
+            //     .then(function (response) {
+            //         if (response.data.ok) {
+            //             self.customerPersons = [];
+            //             let customerPersonsList = [];
+            //             if(response.data.persons.length>0) {
+            //                 for (let p of response.data.persons) {
+            //                     let clone_p = Object.assign({}, p);
+            //                     clone_p.Name = clone_p.Name + ' ' + clone_p.LastName;
+            //                     //Esto lo hago para q aparezca el nombre con los apellidos, y lo copio para q no me afecte el state
+            //                     if(self.viewmode == 'active-persons') {
+            //                         if (clone_p.WebUserFlag)
+            //                             customerPersonsList.push(clone_p);
+            //                     } else
+            //                         customerPersonsList.push(clone_p);
+            //                 }
+            //             }
+            //             self.customerPersons = customerPersonsList;
+            //             self.$store.commit('loadCustomerPersons',response.data.persons);
+            //         }
+            //         self.isloading=false;
+            //     })
+        }
+    }, {
+        key: "AddPerson",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                //limpiar selects
+                                this.$store.dispatch('clearSelectsLinkto');
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function AddPerson() {
+                return _ref.apply(this, arguments);
+            }
+
+            return AddPerson;
+        }()
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div  class=\"row\" id=\"AdminPerson\" >\n                    <template v-if=\"isLoading\">\n                        <div class=\"row justify-content-center align-items-center\" style=\"height:35rem;\">\n                                <h3 class=\"col-8\" >\n                                    <img src=\"../static/ecommerce/img/lg-spinner-gif.gif\" >\n                                    {{tr('Loading Report Data')}}\n                                </h3>\n                        </div>\n                    </template>\n                    <template v-else>\n                        <PersonModalComponent> </PersonModalComponent>\n                        <PersonEditModalComponent> </PersonEditModalComponent>\n                        <closePersonConfirmModalComponent></closePersonConfirmModalComponent>\n                        <div class=\"row justify-content-end\" style=\"position: absolute;right:2rem;z-index: 999;\">\n                            <div class=\"btn-group-toggle\" data-toggle=\"buttons\">\n                              <label class=\"btn btn-secondary\" :class=\"{'active': onlyActived}\" @click=\"onlyActived=!onlyActived\">\n                                    <template v-if=\"onlyActived\">{{tr('See all')}}</template>\n                                    <template v-else>{{tr('Only actives')}}</template> \n                              </label>\n                            </div>\n                            <div class=\"view-mode float-sm-right mb-3 ml-1 mr-2\" >\n                                <button type=\"submit\" class=\"btn btn-custom\" data-toggle=\"modal\" data-target=\"#PersonModal\" @click=\"AddPerson()\"><i class=\"fas fa-user-plus fa-fw\"></i> {{tr('Add Person')}}</button>\n                            </div>\n                        </div>\n                        <div class=\"container center section white\" v-if=\"isloading\">\n                             <div class=\"row col-12 justify-content-center align-items-center\" style=\"min-height:15rem\" >\n                              <div class=\"spinner-border\" role=\"status\">\n                                    <span class=\"sr-only\">Loading...</span>\n                              </div>\n                              <h3>\n                                   {{tr('Page loading please wait')}}\n                              </h3>\n                             </div>\n                        </div>\n                        <v-client-table class=\"custom-vue-table\" @rowclick=\"\" :columns=\"columns\" :data=\"getCustomerPersons\" :options=\"options\" :css=\"css\" v-else>\n                            <div slot=\"afterFilter\" class=\"VueTables__search-field\">\n                               <div class=\"input-group-append\">\n                                    <span class=\"input-group-text\" id=\"basic-addon2\"><i class=\"icon fas fa-search\"></i></span>\n                              </div>\n                            </div>\n                        </v-client-table>\n                    </template>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "PersonManagerComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "PersonManagerComponent";
+        }
+    }]);
+
+    return PersonManagerComponent;
+}(Component);
+
+PersonManagerComponent.registerComponent();
+//# sourceMappingURL=PersonManagerComponent.js.map

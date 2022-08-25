@@ -1,0 +1,335 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component , moment , value */
+var orderViewComponentB2C = function (_Component) {
+    _inherits(orderViewComponentB2C, _Component);
+
+    function orderViewComponentB2C() {
+        _classCallCheck(this, orderViewComponentB2C);
+
+        return _possibleConstructorReturn(this, (orderViewComponentB2C.__proto__ || Object.getPrototypeOf(orderViewComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(orderViewComponentB2C, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['renderMenu', 'renderSearch', 'headerTitle'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                selectedOrder: null,
+                paymentStatus: null,
+                paymentStatusCode: null,
+                listMode: true,
+                viewLoading: false,
+                goBackView: "Orders",
+                css: {
+                    ascendingIcon: 'blue chevron up icon',
+                    descendingIcon: 'blue chevron down icon',
+                    table: {
+                        loadingClass: 'loading',
+                        ascendingIcon: 'blue chevron up icon',
+                        descendingIcon: 'blue chevron down icon'
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'activeFilter': "fetchData",
+                "$route.query.order": function $routeQueryOrder(newValue, oldValue) {
+                    this.loadDetail();
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                columns: function columns() {
+                    var basicColumns = ["Actions", 'SerNr', 'TransDate', 'ContactName', 'OrderStatus'];
+                    if (this.$store.getters.getPriceToShow) basicColumns.push("Total");else {
+                        basicColumns.push("SubTotal");
+                    }
+                    return basicColumns;
+                },
+                isLiberator: function isLiberator() {
+                    if (this.$store.getters.getIsLogin) return this.$store.state.liberatorCodes.length > 0 || this.$store.state.CenterLiberators.length > 0;
+                    return false;
+                },
+                isOnlyModifier: function isOnlyModifier() {
+                    if (this.$store.getters.getIsLogin) return this.$store.state.onlyModifiedCodes.length > 0 || this.$store.state.CenterOnlyModifiedCodes.length > 0;
+                    return false;
+                },
+                activeFilter: function activeFilter() {
+                    return this.$store.getters.getOrderView;
+                },
+                order_list: function order_list() {
+                    var orderList = this.$store.getters.getOrderList || [];
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = orderList[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var order = _step.value;
+
+                            order.TransDate = moment(order.TransDate, 'YYYY-MM-DD').format("DD/MM/YYYY");
+                            if (order.ecommerceUpdateDatetime && order.ecommerceUpdateDatetime != "") order.ecommerceUpdateDatetime = moment(order.ecommerceUpdateDatetime).format("DD/MM/YYYY HH:MM:ss");else order.ecommerceUpdateDatetime = "";
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return orderList;
+                },
+                currentOrder: function currentOrder() {
+                    return this.$store.getters.getCurrentOrder;
+                },
+                options: function options(h) {
+                    var basicOption = {
+                        preserveState: true,
+                        filterByColumn: false,
+                        filterable: ["SerNr", "TransDate", "ContactName"],
+                        dateColumns: ["TransDate"],
+                        dateFormat: ["DD/MM/YYYY"],
+                        multiSorting: {
+                            name: [{
+                                column: 'SerNr',
+                                matchDir: true
+                            }, {
+                                column: 'TransDate',
+                                matchDir: true
+                            }]
+                        },
+                        headings: {
+                            'SerNr': this.tr('Order'),
+                            'TransDate': this.tr('Date'),
+                            'ContactName': this.tr('Contact'),
+                            'OrderStatus': this.tr('Status'),
+                            'SubTotal': this.tr('Total') + " (IVA EXC)",
+                            'Total': this.tr('Total') + " (IVA INC)",
+                            'Actions': this.tr('Actions')
+                        },
+                        perPage: 25,
+                        pagination: {
+                            chunk: 20
+                        },
+                        templates: {
+                            Actions: 'orderActionsComponent',
+                            Total: function Total(h, row, index) {
+                                try {
+                                    return parseFloat(row.Total).toFixed(2);
+                                } catch (e) {
+                                    return value;
+                                }
+                            }
+
+                        },
+                        texts: {
+                            count: "Mostrando desde {from} a {to} de {count} " + this.tr('Orders') + "|{count} " + this.tr('Orders') + "|One " + this.tr('Order'),
+                            filter: '',
+                            limit: '',
+                            filterPlaceholder: '',
+                            noResults: this.tr('No orders founds'),
+                            page: this.tr('Page') + ":", // for dropdown pagination
+                            filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                            loading: this.tr('Loading') + '...', // First request to server
+                            defaultOption: 'Select {column}' // default option for list filters,
+                        },
+                        uniqueKey: "SerNr"
+                    };
+
+                    if (this.$store.getters.getPriceToShow) delete basicOption.headings['SubTotal'];else {
+                        delete basicOption.headings['Total'];
+                    }
+
+                    return basicOption;
+                },
+                listTitle: function listTitle() {
+                    switch (this.activeFilter) {
+                        case 'awaiting':
+                            return this.tr("Orders to Authorize");
+                        case 'favorites':
+                            return this.tr("Favorities Orders");
+                        case 'modifier':
+                            return this.tr("Orders to Review");
+                        default:
+                            return this.tr("Tracking Orders");
+                    }
+                }
+            };
+        }
+    }, {
+        key: "autoRefresh",
+        value: function autoRefresh() {
+            if (!this.couldown) {
+                this.couldown = setTimeout(this.fetchData.bind(this), 10000);
+            }
+        }
+    }, {
+        key: "beforeDestroy",
+        value: function beforeDestroy() {
+            return function () {
+                if (this.couldown) clearTimeout(this.couldown);
+            };
+        }
+    }, {
+        key: "filterOrders",
+        value: function filterOrders(newFilter) {
+            this.$store.dispatch('setOrderView', newFilter);
+            //this.activeFilter=newFilter;
+            //this.fetchData();
+        }
+    }, {
+        key: "viewOrder",
+        value: function viewOrder(event) {
+            this.$store.dispatch('setOrderView', "all");
+            this.selectedOrder = null;
+            this.paymentStatus = null;
+            this.paymentStatusCode = null;
+            this.goBackView = "all";
+            if (this.$route.path != '/profile') this.$router.push({ path: 'profile', params: {}, query: {} });
+        }
+    }, {
+        key: "viewDetail",
+        value: function viewDetail(salesOrder) {
+            this.selectedOrder = salesOrder.SerNr;
+            this.paymentStatus = salesOrder.PaymentStatus;
+            this.paymentStatusCode = salesOrder.PaymentStatusCode;
+            this.goBackView = this.activeFilter;
+            this.$store.dispatch('setOrderView', 'orderDetail');
+        }
+    }, {
+        key: "loadDetail",
+        value: function loadDetail() {
+            var orderDetail = null;
+            if (this.$route.query.order) {
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
+
+                try {
+                    for (var _iterator2 = this.order_list[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var _so = _step2.value;
+
+                        if (_so.SerNr === this.$route.query.order) orderDetail = _so;
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+            }if (orderDetail) {
+                this.emitEvent('viewOrderDetail', orderDetail);
+            }
+        }
+    }, {
+        key: "fetchData",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                //console.log('Fetch Params', this.activeFilter);
+                                this.viewLoading = true;
+                                _context.next = 3;
+                                return this.$store.dispatch('loadOrderHistory', this.activeFilter);
+
+                            case 3:
+                                this.viewLoading = false;
+                                this.loadDetail();
+                                this.autoRefresh();
+
+                            case 6:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function fetchData() {
+                return _ref.apply(this, arguments);
+            }
+
+            return fetchData;
+        }()
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.fetchData();
+                this.subscribeEvent('viewOrderDetail', this.viewDetail);
+                this.subscribeEvent('reset-order-view', this.viewOrder);
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                autoRefresh: this.autoRefresh,
+                filterOrders: this.filterOrders,
+                viewOrder: this.viewOrder,
+                viewDetail: this.viewDetail,
+                loadDetail: this.loadDetail,
+                fetchData: this.fetchData
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"orders-list\">\n                  <div class=\"container-fluid pt-3 px-0 px-md-3\">\n                       <div class=\"col-12 px-1 px-md-3\">\n                            <template v-if=\"activeFilter=='favorities'\">\n                                <favouriteOrderViewComponent></favouriteOrderViewComponent>\n                            </template>\n                            <template  v-else-if=\"activeFilter=='orderDetail'\" id=\"OrderDetail\" >\n                                <orderDetailComponent :SOSerNr=\"selectedOrder\" :paymentStatus=\"paymentStatus\" :paymentStatusCode=\"paymentStatusCode\" :goBackView=\"goBackView\"></orderDetailComponent>\n                            </template>\n                            <template v-else>\n                                <addSOFavModalComponent :from=\"'so-items'\"></addSOFavModalComponent>\n                                <template v-if=\"$store.getters.getAppState=='ready'\">\n                                  <div class=\"row justify-content-center\">\n                                      <div class=\"col-12 px-0 px-lg-3\">\n                                        <div id=\"#orderList\">\n                                            <h5 class=\"row title\">\n                                                <span class=\"col-12 col-md-4 text-center text-md-left mb-2\">{{listTitle}}</span>\n                                                <div class=\"col-12 col-md-8 text-center text-md-right\">\n                                                    <button key=\"btn-order-1\" v-if=\"activeFilter!='all'\" class=\"btn secondary-btn all-orders-button\"  @click=\"filterOrders('all')\"><span class=\"icon\"><icon class=\"fa-icon\" name=\"list-ul\"></icon></span>{{tr(\"Tracking Orders\")}}</button>\n                                                    <button key=\"btn-order-2\" v-if=\"activeFilter!='favorities'\"   class=\"btn secondary-btn fav-button\"  @click=\"filterOrders('favorities')\"><span class=\"icon\"><i class=\"fa-icon fas fa-star\"></i></span>{{tr('Favorites Orders')}}</button>\n                                                    <button key=\"btn-order-3\" v-if=\"isLiberator && activeFilter!='awaiting'\" class=\"btn secondary-btn to-approve-button\"  @click=\"filterOrders('awaiting')\" ><span class=\"icon\"><icon class=\"fa-icon\" name=\"user-lock\"></icon></span>{{tr('Orders to Approved')}}</button>\n                                                    <button key=\"btn-order-4\" v-if=\"isOnlyModifier && activeFilter!='modifier'\"   class=\"btn secondary-btn to-review-button\"  @click=\"filterOrders('modifier')\"><span class=\"icon\"><icon class=\"fa-icon\" name=\"user-edit\"></icon></span>{{tr('Orders to Review')}}</button>\n                                                </div>\n                                            </h5>\n                                            <form autocomplete=\"off\" onsubmit=\"return false\">\n                                                 <div class=\"container center section white\" v-if=\"viewLoading\">\n                                                     <div class=\"row justify-content-center align-items-center profile-loading\">\n                                                          <div class=\"col-8 text-center\">\n                                                              <img class=\"img-fluid\" src=\"../static/ecommerce/img/lg-spinner-gif.gif\" >\n                                                              <p class=\"font-weight-bold\">{{tr('Page loading please wait')}}</p>\n                                                          </div>\n                                                      </div>\n                                                 </div>\n                                                 <v-client-table class=\"custom-vue-table\"  :key=\"activeFilter+'orderView-'+UIComponentID\" @rowclick=\"\" :columns=\"columns\" :data=\"order_list\" :options=\"options\" :css=\"css\" v-else>\n                                                    <div slot=\"afterFilter\" class=\"VueTables__search-field\">\n                                                       <div class=\"input-group-append\">\n                                                            <span class=\"input-group-text\" id=\"basic-addon2\"><i class=\"icon fas fa-search\"></i></span>\n                                                      </div>\n                                                    </div>\n                                                 </v-client-table>\n                                            </form>\n                                        </div>\n                                    </div>\n                                  </div>\n                                </template>\n                            </template>\n                       </div>\n                  </div>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "orderViewComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "orderViewComponent";
+        }
+    }]);
+
+    return orderViewComponentB2C;
+}(Component);
+
+orderViewComponentB2C.registerComponent();
+//# sourceMappingURL=orderViewComponent.js.map

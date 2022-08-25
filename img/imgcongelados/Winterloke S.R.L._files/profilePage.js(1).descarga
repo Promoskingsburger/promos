@@ -1,0 +1,377 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios */
+var profilePageB2C = function (_Component) {
+    _inherits(profilePageB2C, _Component);
+
+    function profilePageB2C() {
+        _classCallCheck(this, profilePageB2C);
+
+        return _possibleConstructorReturn(this, (profilePageB2C.__proto__ || Object.getPrototypeOf(profilePageB2C)).apply(this, arguments));
+    }
+
+    _createClass(profilePageB2C, [{
+        key: "data",
+        value: function data() {
+            return {
+                editAvatar: false,
+                activeView: "Orders",
+                showReportSubMenu: false,
+                response: null,
+                oldPassword: null,
+                newPassword: null,
+                confirmPassword: null,
+                errorAlertDataSession: null,
+                errorAlert: null,
+                listMode: true,
+                loadingImage: false
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "session": function session() {
+                    if (this.session) {
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_Province', value: this.session.fields.ProvinceCode });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_Country', value: this.session.fields.Country });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_ZipCode', value: this.session.fields.ZipCode });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_CenterCost', value: this.session.fields.CenterCost });
+                    }
+                },
+                "$route.params.activeView": function $routeParamsActiveView(newValue, oldValue) {
+                    if (oldValue != newValue) this.changeView(newValue);
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                if (this.$route.params.activeView) {
+                    this.activeView = this.$route.params.activeView;
+                }
+            };
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return function () {
+                if (this.$store.getters.getAppState === "ready" && !this.$store.getters.getIsLogin) {
+                    this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                    this.$router.push("login");
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                showInvoiceListInProfile: function showInvoiceListInProfile() {
+                    return this.$store.getters.getSetting.ShowInvoiceListInProfile;
+                },
+
+                stringPattern: function stringPattern() {
+                    return this.$store.getters.getPhoneMaskPattern;
+                },
+                phonePattern: function phonePattern() {
+                    return new RegExp(this.stringPattern);
+                },
+                orderSerNr: function orderSerNr() {
+                    return this.$route.params.SerNr;
+                },
+                viewmode: function viewmode() {
+                    if (this.$store.getters.getUserIsAdmin) return 'alls-persons';
+                    return 'active-persons';
+                },
+                session: function session() {
+                    var storeSession = this.$store.getters.getSession;
+                    if (storeSession) return storeSession;
+                    return null;
+                },
+                salesman: function salesman() {
+                    return this.$store.getters.getSalesMan;
+                },
+                customer: function customer() {
+                    return this.$store.getters.getCustomer;
+                },
+                isAdmin: function isAdmin() {
+                    return this.$store.getters.getUserIsAdmin;
+                },
+                avatarUrl: function avatarUrl() {
+                    if (this.$store.getters.getAvatar) return this.$store.getters.getAvatar;else return "../static/ecommerce/img/user.png";
+                },
+                customClass: function customClass() {
+                    return [];
+                }
+            };
+        }
+    }, {
+        key: "clearFile",
+        value: function clearFile() {
+            var fileInput = document.querySelector('#avatarFile');
+            fileInput.value = '';
+            this.editAvatar = false;
+        }
+    }, {
+        key: "resetDefault",
+        value: function resetDefault() {
+            var _this2 = this;
+
+            // eslint-disable-next-line no-alert
+            if (confirm(this.tr('Do you want to reset your profile image to default?'))) {
+                axios.post("/ecommerce/api/resetAvatar/" + this.session.fields.Code, { reset: true }).then(function (response) {
+                    _this2.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image changed", type: 'info' });
+                    _this2.clearFile();
+                }).catch(function (error) {
+                    _this2.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image was't changed", type: 'error' });
+                    _this2.clearFile();
+                    // eslint-disable-next-line no-console
+                    console.log('FAILURE!!', error);
+                });
+            }
+        }
+    }, {
+        key: "submitFile",
+        value: function submitFile() {
+            var self = this;
+            var formData = new FormData();
+            var imagefile = document.querySelector('#avatarFile');
+            if (imagefile.files.length > 0) {
+                this.loadingImage = true;
+                formData.append("image", imagefile.files[0]);
+                axios.post("/ecommerce/api/changeAvatar/" + this.session.fields.Code, formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(function (response) {
+                    self.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image changed", type: 'info' });
+                    self.clearFile();
+                    self.$store.dispatch('updateAvatar', response.data.newURL);
+                    self.loadingImage = false;
+                }).catch(function (error) {
+                    self.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image was't changed", type: 'error' });
+                    self.clearFile();
+                    self.loadingImage = false;
+                    // eslint-disable-next-line no-console
+                    console.log('FAILURE!!', error);
+                });
+            } else {
+                this.$store.dispatch('showNotificacion', { title: "Information", message: "Please select an Image", type: 'info' });
+            }
+        }
+    }, {
+        key: "clearAvatar",
+        value: function clearAvatar(e, key) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.avatarData = null;
+        }
+    }, {
+        key: "changeView",
+        value: function changeView(newactiveView) {
+            this.activeView = newactiveView;
+        }
+    }, {
+        key: "activeReport",
+        value: function activeReport(reportName) {
+            var _this3 = this;
+
+            this.showReportSubMenu = false;
+            this.activeView = "Reports";
+            this.reportName = reportName;
+            setTimeout(function () {
+                return _this3.emitEvent('changeReportView', reportName);
+            }, 500);
+        }
+    }, {
+        key: "logout",
+        value: function logout() {
+            var self = this;
+            this.$store.dispatch("logout").then(function () {
+                document.cookie = "connect.ecommerce.sid" + "=;expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                self.$router.push("/home");
+            });
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues() {
+            this.session.fields.ProvinceCode = this.$store.getters.getSelectLinkToValue('Session_Province');
+            this.session.fields.ZipCode = this.$store.getters.getSelectLinkToValue('Session_ZipCode');
+            this.session.fields.Country = this.$store.getters.getSelectLinkToValue('Session_Country');
+            this.session.fields.DefaultCenterCost = this.$store.getters.getSelectLinkToValue('Session_CenterCost');
+        }
+    }, {
+        key: "loadSelects",
+        value: function loadSelects() {
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_Province', value: this.session.fields.ProvinceCode });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_Country', value: this.session.fields.Country });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_ZipCode', value: this.session.fields.ZipCode });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_CenterCost', value: this.session.fields.DefaultCenterCost });
+        }
+    }, {
+        key: "EditProfileSession",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var _this4 = this;
+
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.errorAlertDataSession = null;
+
+                                if (!this.session.fields.Name) this.errorAlertDataSession = 'Please fill the field Name';else {
+                                    if (!this.session.fields.LastName) this.errorAlertDataSession = 'Please fill the field Last Name';
+                                }
+
+                                if (!this.session.fields.Phone) this.errorAlertDataSession = 'Please fill the field Last Name';else {
+                                    if (!this.phonePattern.test(this.session.fields.Phone)) this.errorAlertDataSession = ['Incorrect Format {{$1}}', "Phone"];else if (!/^([a-zA-Z0-9_\-.]+)@([a-zA-Z0-9_\-.]+)\.([a-zA-Z]{2,5})$/g.test(this.session.fields.Email)) this.errorAlertDataSession = ['FORMATVALUEERR', "Email"];
+                                }
+
+                                if (this.errorAlertDataSession) {
+                                    _context.next = 7;
+                                    break;
+                                }
+
+                                _context.next = 6;
+                                return axios.post('/ecommerce/api/updatePerson', this.session).then(function (response) {
+                                    _this4.response = response;
+                                }).catch(function (error) {
+                                    // eslint-disable-next-line no-console
+                                    console.log('Error response in Register Person', error);
+                                });
+
+                            case 6:
+
+                                if (this.response.data.success) {
+                                    this.$store.dispatch('showNotificacion', { title: 'Guardar', message: 'Datos Personales guardados', type: 'success' });
+                                }
+
+                            case 7:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function EditProfileSession() {
+                return _ref.apply(this, arguments);
+            }
+
+            return EditProfileSession;
+        }()
+    }, {
+        key: "changePassword",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var _this5 = this;
+
+                var strongRegex, mediumRegex, data;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.errorAlert = null;
+                                if (!this.oldPassword) this.errorAlert = 'Please type your actual password';else if (!this.newPassword) this.errorAlert = 'Please type a new password';else if (!this.confirmPassword) this.errorAlert = 'Please confirm the new password';else if (this.newPassword !== this.confirmPassword) this.errorAlert = "The Passwords does'nt match";
+
+                                if (this.newPassword.length < 6) this.errorAlert = ["Password length must be greater than {{$1}}", "5"];
+
+                                strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})");
+                                mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
+
+
+                                if (!strongRegex.test(this.newPassword) && !mediumRegex.test(this.newPassword)) this.errorAlert = "Password must include uppercase, lowercase and number";
+
+                                if (this.errorAlert) {
+                                    _context2.next = 11;
+                                    break;
+                                }
+
+                                data = {
+                                    oldPassword: this.oldPassword,
+                                    newPassword: this.newPassword
+                                };
+                                _context2.next = 10;
+                                return axios.post('/ecommerce/api/changePassword', data).then(function (response) {
+                                    _this5.response = response;
+                                });
+
+                            case 10:
+
+                                if (!this.response.data.success) {
+                                    this.errorAlert = this.response.data.errors;
+                                    this.oldPassword = null;
+                                    this.newPassword = null;
+                                    this.confirmPassword = null;
+                                } else {
+                                    this.oldPassword = null;
+                                    this.newPassword = null;
+                                    this.confirmPassword = null;
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: 'Cambio de Password',
+                                        message: 'Password cambiado satisfactoriamente',
+                                        type: 'success'
+                                    });
+                                }
+
+                            case 11:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function changePassword() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return changePassword;
+        }()
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                clearFile: this.clearFile,
+                resetDefault: this.resetDefault,
+                submitFile: this.submitFile,
+                clearAvatar: this.clearAvatar,
+                changeView: this.changeView,
+                activeReport: this.activeReport,
+                logout: this.logout,
+                updateSelectValues: this.updateSelectValues,
+                loadSelects: this.loadSelects,
+                EditProfileSession: this.EditProfileSession,
+                changePassword: this.changePassword
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"profile-view\">\n                    <headerSectionComponent headerTitle=\"Actualizaci\xF3n de Datos\" :renderMenu=\"false\" :renderSearch=\"false\"></headerSectionComponent>\n                    <div class=\"section white\" >\n                        <template v-if=\"!isLoading\">\n                            <div style=\"min-height: 36.5rem;\">\n                                <section class=\"padding-small\">\n                                    <div class=\"container-fluid\" :class=\"customClass\">\n                                        <div class=\"row\">\n                                            <div class=\"customer-sidebar col-xl-2 col-lg-3 mb-md-5 text-sm-left\">\n                                                <div class=\"customer-sidebar-content col-12\">\n                                                    <a class=\"navbar-brand col-12\" href=\"#\"><h5 class=\"title\">{{tr('Your profile')}}</h5></a>\n                                                    <div class=\"list-group\" id=\"navbarText\">\n                                                        <a class=\"list-group-item list-group-item-action\" data-toggle=\"list\" href=\"#/profile\" @click=\"logout\">\n                                                            <span><i class=\"icon fas fa-sign-out-alt\"></i> {{tr('Log Out')}}</span>\n                                                        </a>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Orders\"}' data-toggle=\"list\" to=\"/profile/Orders\" @click2=\"changeView('Orders')\">{{tr(\"Orders\")}}</router-link>\n                                                        <router-link v-if=\"showInvoiceListInProfile\" class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Invoices\"}' data-toggle=\"list\" to=\"/profile/Invoices\" @click2=\"changeView('Invoices')\">{{tr(\"Invoices\")}}</router-link>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Addresses\"}' data-toggle=\"list\" to=\"/profile/Addresses\" @click2=\"changeView('Addresses')\" >{{tr('Addresses')}}</router-link>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Profile\"}' data-toggle=\"list\" to=\"/profile/Profile\" @click2=\"changeView('Profile')\" >{{tr('Profile')}}</router-link>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"ChangePassword\"}' data-toggle=\"list\" to=\"/profile/ChangePassword\" @click2=\"changeView('ChangePassword')\">{{tr('Change Password')}}</router-link>\n                                                    </div>\n                                                    <div class=\"col-12 row justify-content-center m-0 p-0 pr-1\">\n                                                        <template v-if=\"loadingImage\">\n                                                            <div class=\"avatar-container py-5\">\n                                                                <i class=\"fas fa-spinner fa-spin fa-2x\"></i>\n                                                            </div>\n                                                        </template>\n                                                        <template v-else>\n                                                            <div class=\"avatar-container\">\n                                                                <img :src=\"avatarUrl\" alt=\"Avatar Profile\" class=\"rounded rounded-circle d-block custom-avatar\" />\n                                                                <span v-if=\"!editAvatar\" class=\"edit-button\" @click=\"editAvatar=true\" :title=\"tr('Edit')\" ><i class=\"fa fa-edit\"></i></span>\n                                                            </div>\n                                                        </template>\n                                                        <div class=\"change-avatar col-12 mt-1 p-2\" v-if=\"editAvatar\">\n                                                            <div class=\"form-group mb-2\">\n                                                                <span class=\"close-button\" :title=\"tr('Cancel')\" @click=\"clearFile\"><i class=\"fas fa-times\"></i></span>\n                                                                <div class=\"custom-file\">\n                                                                    <input type=\"file\" id=\"avatarFile\" class=\"file-input\" hidden :lang=\"$store.state.language\" @change=\"submitFile\">\n                                                                    <label for=\"avatarFile\" class=\"custom-file-label\" :data-browse=\"tr('Change Avatar')\" :lang=\"$store.state.language\">{{tr(\"Change Avatar\")}}</label>\n                                                                </div>\n                                                            </div>\n                                                            <!--<div class=\"form-group text-center mb-0\">\n                                                                <button class=\"btn btn-secondary\" :title=\"tr('Reset Image')\" @click=\"resetDefault\"><i class=\"fa fa-redo\"></i></button>\n                                                            </div>-->\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-12 p-0 text-center text-lg-left\">\n                                                        <p class=\"name\">{{session.fields.Name}} {{session.fields.LastName}}</p>\n                                                        <p class=\"customer\">{{tr('Customer')}}: <span>{{customer.Name}}</span></p>\n                                                        <p class=\"text-muted text-small\" v-if=\"salesman\">\n                                                            {{tr(\"Your account executive is\")}}:<br>\n                                                            {{salesman.Name}} {{salesman.LastName}} <br>\n                                                            {{salesman.Phone}}<br>\n                                                            {{salesman.Email}}\n                                                        </p>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                            <div class=\"col-xl-10 col-lg-9 pl-lg-3 mt-3\">\n                                                <div class=\"tab-content p-1 p-md-3\">\n                                                    <div v-if=\"activeView=='Addresses'\" id=\"AddressesView\" >\n                                                        <addressesManagerComponent> </addressesManagerComponent>\n                                                    </div>\n                                                    <div v-if=\"activeView=='Orders'\" id=\"OrderView\" >\n                                                        <orderViewComponent orderId=\"orderSerNr\"> </orderViewComponent>\n                                                    </div>\n                                                    <div v-if=\"activeView=='Invoices'\" id=\"InvoiceView\" >\n                                                        <invoice-list />\n                                                    </div>\n                                                    <div v-if=\"activeView=='ChangePassword'\" id=\"ChangePassword\" >\n                                                        <div class=\"col-sm-12\">\n                                                            <div ref='errorChangePassword' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"errorAlert\">\n                                                                <strong>{{tr(errorAlert)}}!</strong>\n                                                                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"errorAlert = ''\">\n                                                                    <span aria-hidden=\"true\">&times;</span>\n                                                                </button>\n                                                            </div>\n                                                        </div>\n                                                        <div class=\"content-block\">\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_old\" class=\"form-label\">{{tr('Old Password')}}</label>\n                                                                        <input id=\"password_old\" type=\"password\" class=\"form-control\" v-model=\"oldPassword\">\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_1\" class=\"form-label\">{{tr('New Password')}}</label>\n                                                                        <input id=\"password_1\" type=\"password\" class=\"form-control\" v-model=\"newPassword\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_2\" class=\"form-label\">{{tr('Retype New Password')}}</label>\n                                                                        <input id=\"password_2\" type=\"password\" class=\"form-control\" v-model=\"confirmPassword\">\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <!-- /.row-->\n                                                            <div class=\"text-right\">\n                                                                <button class=\"btn btn-custom change-password\" @click.prevent=\"changePassword\"><span class=\"icon\"><i class=\"fa-icon fa fa-save\"></i></span> {{tr('Change Password')}}</button>\n                                                            </div>\n                                                        </div>\n                                                    </div>\n                                                    <div  v-if=\"activeView=='Profile'\" id=\"Profile\" class=\"py-2\" >\n                                                        <h5 class=\"my-4\">{{tr('Personal Details')}}</h5>\n                                                        <div class=\"content-block\">\n                                                            <div ref='errorEditProfile' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"errorAlertDataSession\">\n                                                                <strong>{{tr('Error')}}: {{tr(errorAlertDataSession)}}!</strong>\n                                                                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"errorAlertDataSession = ''\">\n                                                                    <span aria-hidden=\"true\">&times;</span>\n                                                                </button>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"firstname\" class=\"form-label\">{{tr('Name')}}</label>\n                                                                        <input id=\"firstname\" type=\"text\" class=\"form-control\" v-model=\"session.fields.Name\" >\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"lastname\" class=\"form-label\">{{tr('Last Name')}}</label>\n                                                                        <input id=\"lastname\" type=\"text\" class=\"form-control\" v-model=\"session.fields.LastName\" >\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <!-- /.row-->\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6 d-none\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"WorkAddress\" class=\"form-label\">{{tr('Address')}}</label>\n                                                                        <input id=\"WorkAddress\" type=\"text\" class=\"form-control\" v-model=\"session.fields.WorkAddress\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6 d-none\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"Province\" class=\"form-label\">{{tr('Province')}}</label>\n                                                                        <selectLinkToComponent  recordKey=\"Session\" table=\"Province\" paste=\"Code\" showField=\"Name\" :selected=\"session.fields.ProvinceCode\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6 d-none\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"zip\" class=\"form-label\">{{tr('ZIP')}}</label>\n                                                                        <selectLinkToComponent recordKey=\"Session\" table=\"ZipCode\" paste=\"Code\" showField=\"Code\" :selected=\"session.fields.ZipCode\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6 d-none\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"company\" class=\"form-label\">{{tr('Country')}}</label>\n                                                                        <selectLinkToComponent recordKey=\"Session\" table=\"Country\" paste=\"Code\" showField=\"Name\" :selected=\"$store.getters.getSelectLinkToValue('Country')\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"phone\" class=\"form-label\">{{tr('Personal Phone')}}</label>\n                                                                        <input id=\"phone\" type=\"text\" class=\"form-control\"  v-model=\"session.fields.Phone\" aria-autocomplete=\"none\" autocomplete=\"none\" placeholder=\"+549XXXXXXXXX\" :pattern=\"phonePattern.source\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"email\" class=\"form-label\">{{tr('Mail')}} (Se utilizar\xE1 como Usuario)</label>\n                                                                        <input id=\"email\" type=\"email\" class=\"form-control\" v-model=\"session.fields.Email\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-12 text-right\">\n                                                                    <button class=\"btn btn-custom save-changes\" @click=\"EditProfileSession\"><span class=\"icon\"><i class=\"fa-icon fa fa-save mr-1\"></i></span>  {{tr('Save Changes')}}</button>\n                                                                </div>\n                                                            </div>\n                                                        </div>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                </section>\n                            </div>\n                        </template>\n                        <template v-else>\n                            <div class=\"row\">\n                                <div class=\"loading\" style=\"min-height: 36.5rem;\">\n                                    <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                                </div>\n                            </div>\n                        </template>\n                    </div>\n                    <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "profilePage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "profilePage";
+        }
+    }]);
+
+    return profilePageB2C;
+}(Component);
+
+profilePageB2C.registerComponent();
+//# sourceMappingURL=profilePage.js.map

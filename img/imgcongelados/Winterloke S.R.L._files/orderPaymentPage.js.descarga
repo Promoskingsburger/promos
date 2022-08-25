@@ -1,0 +1,189 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var OrderPayment = function (_Component) {
+    _inherits(OrderPayment, _Component);
+
+    function OrderPayment() {
+        _classCallCheck(this, OrderPayment);
+
+        return _possibleConstructorReturn(this, (OrderPayment.__proto__ || Object.getPrototypeOf(OrderPayment)).apply(this, arguments));
+    }
+
+    _createClass(OrderPayment, [{
+        key: 'getProps',
+        value: function getProps() {
+            return ['orderSerNr'];
+        }
+    }, {
+        key: 'data',
+        value: function data() {
+            return {
+                appIsReady: false,
+                isLoadingInfo: true,
+                orderIsPayment: false,
+                mpdata: {},
+                errorMsg: null,
+                paymentMsg: null,
+                paymentIsProcess: false,
+                SOPayTerm: null
+            };
+        }
+    }, {
+        key: 'getRoutes',
+        value: function getRoutes() {
+            return {};
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                '$store.getters.getAppState': function $storeGettersGetAppState(param1, param2) {
+                    if (this.$store.getters.getAppState == 'ready') {
+                        if (this.$store.state.session) {
+                            this.loadPaymentData();
+                            this.appIsReady = true;
+                        } else {
+                            this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                            this.$router.push({ name: 'LoginLink' });
+                        }
+                    }
+                }
+            };
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (this.$store.getters.getAppState == 'ready') {
+                                    this.loadPaymentData();
+                                    this.appIsReady = true;
+                                }
+
+                            case 1:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: 'orderSerNr',
+        value: function orderSerNr() {
+            // console.log('computed SerNr');
+        }
+    }, {
+        key: 'getPayTermObj',
+        value: function getPayTermObj() {
+            var _this2 = this;
+
+            return this.$store.state.setting.PayTermRow.find(function (row) {
+                return row.fields.PayTermCode === _this2.SOPayTerm;
+            });
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {
+                loadPaymentData: this.loadPaymentData,
+                paymentProcess: this.paymentProcess,
+                paymentInit: this.paymentInit,
+                getPayTermObj: this.getPayTermObj
+            };
+        }
+    }, {
+        key: 'loadPaymentData',
+        value: function loadPaymentData() {
+            var _this3 = this;
+
+            this.isLoadingInfo = true;
+            if (!this.$store.state.screenState) this.$store.dispatch('toogleLockScreen', null);
+            this.$store.dispatch("loadPaymentData", { SerNr: this.soSerNr }).then(function (response) {
+                //console.log('Component Load Payment',response);
+                if (!response.isPayment && _this3.soSerNr == response.so.fields.SerNr) {
+                    _this3.orderIsPayment = response.isPayment;
+                    var mpdata = {};
+                    mpdata.email = "";
+                    mpdata.salesorder = _this3.soSerNr;
+                    mpdata.amount = response.total;
+                    _this3.mpdata = mpdata;
+                    _this3.SOPayTerm = response.so.fields.PayTerm;
+                } else {
+                    _this3.orderIsPayment = true;
+                    if (response.errors) _this3.errorMsg = response.errors;else _this3.errorMsg = response.salesorder;
+                }
+                _this3.$store.dispatch('toogleLockScreen', "");
+                _this3.isLoadingInfo = false;
+            });
+        }
+    }, {
+        key: 'paymentProcess',
+        value: function paymentProcess(event) {
+            this.paymentMsg = [];
+            this.$store.dispatch('toogleLockScreen', "");
+            if (event.actionResult && event.paymentResult.ok) {
+                this.paymentIsProcess = true;
+                this.paymentMsg = null;
+                this.$store.dispatch("approvedOrder", this.soSerNr);
+            } else {
+                this.orderIsPayment = false;
+                if (event.cause) this.paymentMsg = event.cause;
+                if (event.paymentResult && event.paymentResult.message) {
+                    this.paymentMsg = event.paymentResult.message;
+                }
+                if (event.hasOwnProperty("paymentResult")) {
+                    this.error = true;
+                    if (event.paymentResult.error && event.paymentResult.error.message) this.paymentMsg = event.paymentResult.error.message;else {
+                        if (event.paymentResult.message) this.paymentMsg = event.paymentResult.message;
+                    }
+                }
+                window.scrollTo(0, 0);
+            }
+        }
+    }, {
+        key: 'paymentInit',
+        value: function paymentInit() {
+            this.$store.dispatch('toogleLockScreen', this.tr('Payment Processing'));
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                soSerNr: function soSerNr() {
+                    if (this.$route.params.orderid) return atob(this.$route.params.orderid);
+                    return this.orderSerNr;
+                }
+            };
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div :class="classContainer" >\n                      <div class="section-main col-lg-8 offset-lg-2" v-if="appIsReady">\n                           <h5 class="text-center my-4">{{tr("Payment")}} {{tr(\'Sales Order\')}} <strong>{{soSerNr}}</strong></h5>\n                           <template  v-if="!isLoadingInfo">\n                              <template v-if="orderIsPayment">\n                                 <div v-if="errorMsg" class="alert alert-warning"  role="alert">\n                                     <h5 class="text-center">{{tr("Information")}}</h5>\n                                     <template v-if="Array.isArray(errorMsg)">\n                                        <h6 v-for="msg_error of errorMsg" class="text-center">{{tr([msg_error.code,...msg_error.params.params])}}</h6>\n                                    </template>\n                                    <template v-else>\n                                        <h6 class="text-center">{{tr(errorMsg)}}</h6>\n                                    </template>\n                                 </div>\n                                 <div class="row justify-content-center mt-4" >\n                                      <router-link key="btn-1-step-3" to="/profile" class="btn btn-custom">{{tr(\'View Shopping List\')}}</router-link>\n                                 </div>\n                              </template>\n                              <template v-else>\n                                   <div class="col-md-6 offset-md-3 alert alert-warning" role="alert" v-if="paymentMsg">\n                                         <h5 class="text-center">{{tr("Information")}}</h5>\n                                         <template v-if="Array.isArray(paymentMsg)">\n                                            <p v-for="error of paymentMsg" class="text-center">{{tr(error.description.charAt(0).toUpperCase() + error.description.slice(1))}}</p>\n                                        </template>\n                                        <template v-else>\n                                            <p class="text-center">{{tr(paymentMsg)}}</p>\n                                        </template>\n                                        <div class="row justify-content-center mt-4"  v-if="paymentIsProcess">\n                                           <router-link key="btn-1-step-3" to="/profile" class="btn btn-custom">{{tr(\'View Shopping List\')}}</router-link>\n                                        </div>\n                                   </div>\n                                    <template v-if="paymentIsProcess">\n                                        <div class="col-12 col-md-6 offset-md-3 alert alert-success text-center" role="alert">\n                                            <icon name="regular/check-circle" scale="5" class="col-6"/>\n                                            <h4 class="col-12 text-center mt-2">{{tr("The payment was approved successfully")}}</h4>\n                                            <strong class="d-block mt-2">{{tr(\'It may take a few minutes to be reflected\')}}</strong>\n                                        </div>\n                                        <div class="row justify-content-center mt-4">\n                                           <router-link key="btn-1-step-3" to="/profile" class="btn btn-custom">{{tr(\'View Shopping List\')}}</router-link>\n                                        </div>\n                                    </template>\n                                    <div class="row justify-content-center mt-4"  v-else>\n                                        <template v-if="$store.getters.getSetting.MercadoPagoMode==1">\n                                            <mercadopagoFormCustom :info="mpdata" @payment-init="paymentInit" @payment-result="paymentProcess"></mercadopagoFormCustom>\n                                        </template>\n                                        <template v-else-if=\'$store.getters.getSetting.MercadoPagoMode==0\'>\n                                            <mercadopagoCustom :info="mpdata" @payment-init="paymentInit" @payment-result="paymentProcess"></mercadopagoCustom>\n                                        </template>\n                                        <template v-else-if=\'$store.getters.getSetting.MercadoPagoMode==2\'>\n                                            <redirectPaymentComponent :SO=\'soSerNr\' :PayTermObj=\'getPayTermObj()\'/>\n                                        </template>\n                                    </div>\n                              </template>\n                           </template>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>';
+        }
+    }], [{
+        key: 'componentName',
+        value: function componentName() {
+            return 'orderPaymentPage';
+        }
+    }]);
+
+    return OrderPayment;
+}(Component);
+
+OrderPayment.registerComponent();
+//# sourceMappingURL=orderPaymentPage.js.map

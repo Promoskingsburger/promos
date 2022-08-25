@@ -1,0 +1,47 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var appComponent = function (_Component) {
+    _inherits(appComponent, _Component);
+
+    function appComponent() {
+        _classCallCheck(this, appComponent);
+
+        return _possibleConstructorReturn(this, (appComponent.__proto__ || Object.getPrototypeOf(appComponent)).apply(this, arguments));
+    }
+
+    _createClass(appComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['categoryString', 'categoryName'];
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div class=\"container-fluid\">\n                      <div class=\"section-main\">\n                            <div class=\"row\">\n                              <div class=\"col-sm-3 col-md-2 col-xs-12 mb-2 mb-sm-0 pt-0 px-2 pb-2 p-sm-2 pl-xl-3 pr-xl-4 filters-section\">\n                                  <homeCategorySectionComponent :only_icons_view=true></homeCategorySectionComponent>\n                                  <categorySectionComponent :categories=false></categorySectionComponent>\n                              </div>\n                              <div class=\"col-sm-9 col-md-10 col-xs-12 pt-2 pt-sm-0 px-0 px-md-3\">\n                                  <div class=\"col-12\">\n                                    <itemsSectionComponent :items=\"$store.items\" :items_in_car=\"$store.items_in_car\" :cat_history=\"$store.cat_history\"></itemsSectionComponent>\n                                  </div>\n                              </div>\n                          </div>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "appComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "appComponent";
+        }
+    }]);
+
+    return appComponent;
+}(Component);
+
+appComponent.registerComponent();
+//# sourceMappingURL=appComponent.js.map

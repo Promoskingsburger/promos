@@ -1,0 +1,210 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, __lodash__ */
+var subheaderSectionComponent = function (_Component) {
+    _inherits(subheaderSectionComponent, _Component);
+
+    function subheaderSectionComponent() {
+        _classCallCheck(this, subheaderSectionComponent);
+
+        return _possibleConstructorReturn(this, (subheaderSectionComponent.__proto__ || Object.getPrototypeOf(subheaderSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(subheaderSectionComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                selectedCategory: "",
+                menu: "dropdown-menu",
+                scrolled: false,
+                isMobile: $(window).width() <= 991,
+                currentCategory: ""
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                var self = this;
+                this.closeSubMenu.bind(this);
+                //window.Event.$on()'category-select', self.closeSubMenu();
+                this.subscribeEvent('close-submenu', this.closeSubMenu);
+                window.addEventListener('scroll', function () {
+                    self.scrolled = $(this).scrollTop() > 120;
+                });
+                this.subscribeEvent('closeSandwichMenu', this.closeSandwichMenu);
+                if (this.$route.query.category) this.currentCategory = this.$route.query.category.split('_')[0];
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                homeCategory: function homeCategory() {
+                    return this.$store.getters.getHomeCategories;
+                },
+                subMenuCSS2: function subMenuCSS2() {
+                    return {
+                        'category-preview': true,
+                        'scrolled': this.scrolled,
+                        'dropdown-menu': this.selectedCategory !== "",
+                        "d-none": this.selectedCategory === ""
+                    };
+                },
+                subMenuCSS: function subMenuCSS() {
+                    return {
+                        'nav-item': true,
+                        'dropdown': true
+                    };
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                searchCat: this.searchCat,
+                getCatInfo: this.getCatInfo,
+                filterByCategory: this.filterByCategory,
+                openSubMenu: this.openSubMenu,
+                closeSubMenu: this.closeSubMenu,
+                closeSandwichMenu: this.closeSandwichMenu
+            };
+        }
+    }, {
+        key: "searchCat",
+        value: function searchCat(catName, catObject) {
+            if (catObject) {
+                if (catName == catObject.name) return catObject;
+                if (catObject.children && catObject.children.length > 0) {
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = catObject.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var subCat = _step.value;
+
+                            //console.log(catName, subCat, subCat.name, 'catName,subCat,subCat.name')
+                            var isSubCat = this.searchCat(catName, subCat);
+                            if (isSubCat) return isSubCat;
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+    }, {
+        key: "getCatInfo",
+        value: function getCatInfo(catName) {
+            var subcat = this.searchCat(catName, this.$store.state.cat_list[0]);
+            var subCategories = [];
+            if (subcat) subCategories = subcat.children;
+            return __lodash__.orderBy(subCategories, ['sort', 'name']);
+        }
+    }, {
+        key: "filterByCategory",
+        value: function filterByCategory(catCode) {
+            if (this.isMobile) {
+                this.emitEvent('closeSandwichMenu');
+            }
+            if (catCode) {
+                var cat = this.$store.getters.getCategoryDataByCode(catCode);
+                if (cat) {
+                    var encodeCat = encodeURI(cat.code + "__" + cat.name);
+                    if (this.$route.fullPath !== "/category/" + encodeCat + "?category=" + encodeCat) {
+                        window.scrollTo(0, 0);
+                        this.emitEvent("close-submenu");
+                        this.$router.push("/category/" + encodeCat + "?category=" + encodeCat);
+                    }
+                }
+            }
+        }
+    }, {
+        key: "openSubMenu",
+        value: function openSubMenu(cat) {
+            if (this.getCatInfo(cat.fields.CatName).length == 0) {
+                var storeCategory = this.$store.getters.getCategoryDataByCode(cat.fields.CatCode);
+                if (storeCategory) {
+                    window.scrollTo(0, 0);
+                    this.emitEvent("close-submenu");
+                    this.$router.push('/items?category=' + encodeURI(storeCategory.code + "__" + storeCategory.name));
+                }
+            } else {
+                if (this.selectedCategory && cat.fields.Code == this.selectedCategory.fields.Code) {
+                    this.closeSubMenu();
+                } else {
+                    this.selectedCategory = cat;
+                }
+            }
+        }
+    }, {
+        key: "closeSubMenu",
+        value: function closeSubMenu() {
+            this.scrolled = false;
+            this.selectedCategory = "";
+        }
+    }, {
+        key: "closeSandwichMenu",
+        value: function closeSandwichMenu() {
+            if (this.isMobile) {
+                $(this.$el).find('#navbarSupportedContent').collapse('hide');
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<nav class=\"navbar-expand-lg category-nav\" role=\"navigation\">\n                <div class=\"collapse navbar-collapse\" id=\"navbarSupportedContent\">\n                  <ul class=\"navbar-nav mr-auto categories\" v-click-outside=\"closeSubMenu\">\n                    <template v-for=\"cat in homeCategory\">\n                        <template v-if=\"getCatInfo(cat.fields.CatName).length>0\">\n                            <li :class=\"[{'show': (selectedCategory == cat),'multi-link':true },subMenuCSS]\"  @click=\"openSubMenu(cat)\">\n                                <span class=\"nav-link dropdown-toggle\" :class=\"{'active': currentCategory == cat.fields.CatCode}\" :id=\"'navbarDropdown'+cat.fields.CatCode\" :data-toggle=\"'#menu'+cat.fields.CatCode\" aria-haspopup=\"true\" aria-labelledby=\"false\">\n                                            {{capitalize(cat.fields.CatName)}}\n                                </span>\n                                <ul :id=\"'navbarDropdown'+cat.fields.CatCode\" :class=\"[{show:(selectedCategory == cat)},subMenuCSS2]\"  aria-labelledby=\"false\" >\n                                  <div class=\"row\">\n                                    <div class=\"col category-menu\">\n                                      <categoryMenuComponent v-for=\"(subcat,keycat) in getCatInfo(cat.fields.CatName)\"\n                                                     :key=\"keycat\"\n                                                     :category=\"subcat\"\n                                      ></categoryMenuComponent>\n                                      <div class=\"category-image\" v-if=\"cat.fields.CatPhotoUri\">\n                                        <div class=\"image\" v-bind:style=\"{backgroundImage: 'url(' + cat.fields.CatPhotoUri + ')'}\"></div>\n                                      </div>\n                                    </div>\n                                  </div>\n                                </ul>\n                            </li>\n                        </template>\n                        <template v-else>\n                            <li :class=\"[{'show': (selectedCategory == cat), 'single-link':true },subMenuCSS]\"  @click=\"filterByCategory(cat.fields.CatCode)\" @mouseover=\"closeSubMenu()\">\n                                <span class=\"nav-link dropdown-toggle\" :class=\"{'active': currentCategory == cat.fields.CatCode}\" :id=\"'navbarDropdown'+cat.fields.CatCode\" :data-toggle=\"'#menu'+cat.fields.CatCode\" aria-haspopup=\"true\" aria-labelledby=\"false\">\n                                    {{capitalize(cat.fields.CatName)}}\n                                </span>\n                            </li>\n                        </template>\n                    </template>\n                  </ul>\n                </div>\n              </nav>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "subheaderSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "subheaderSectionComponent";
+        }
+    }]);
+
+    return subheaderSectionComponent;
+}(Component);
+
+subheaderSectionComponent.registerComponent();
+
+Vue.directive('click-outside', {
+    bind: function bind(el, binding, vnode) {
+        el.clickOutsideEvent = function (event) {
+            if (!(el == event.target || el.contains(event.target))) {
+                vnode.context[binding.expression](event);
+            }
+        };
+        document.body.addEventListener('click', el.clickOutsideEvent);
+    },
+    unbind: function unbind(el) {
+        document.body.removeEventListener('click', el.clickOutsideEvent);
+    }
+});
+//# sourceMappingURL=subheaderSectionComponent.js.map

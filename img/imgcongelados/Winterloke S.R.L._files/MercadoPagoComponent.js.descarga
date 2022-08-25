@@ -1,0 +1,408 @@
+class MercadoPagoComponent {
+
+
+    static mounted() {
+        return async function () {
+            window.$mercadopago = this;
+            let key = await this.getKey();
+            this.amount = this.info ? this.info.amount : 0;
+            this.salesorder = this.info ? this.info.salesorder : "";
+            this.email = this.info ? this.info.email : "";
+            this.mpsernr = window.SerNr;
+            window.Mercadopago.setPublishableKey(key);
+
+            let callback = (res, res2) => {
+                this.docTypes = res2;
+            };
+            callback.bind(this);
+            try {
+                window.Mercadopago.getIdentificationTypes(callback);
+            } catch (e) {
+                setTimeout(callback, 100);
+            }
+            let self = this;
+            $("#cardNumber").inputmask({
+                mask: "9999 9999 9999 9999",
+                placeholder: "",
+                onBeforePaste: function (pastedValue, opts) {
+                    self.cardnumber = pastedValue.replace(/ /g, '');
+                    self.guessingPaymentMethod();
+                },
+                onBeforeWrite: function (ev, buff) {
+                    if (ev.target) {
+                        self.cardnumber = ev.target.value.replace(/ /g, '');
+                        self.guessingPaymentMethod();
+                    }
+
+
+                }
+            });
+
+            $('#securityCode').inputmask({
+                mask: "9999",
+                placeholder: "",
+                onBeforePaste: function (pastedValue, opts) {
+                    self.form.ccv = pastedValue;
+                },
+                onBeforeWrite: function (ev, buff) {
+                    if (ev.target)
+                        self.form.ccv = ev.target.value.replace(/ /g, '');
+                }
+            })
+                .on('focus', function () {
+                    $('.credit-card-box').addClass('hover');
+                }).on('blur', function () {
+                $('.credit-card-box').removeClass('hover');
+            });
+        };
+    }
+
+    static created() {
+        return async function () {
+        };
+
+    }
+
+    static getMethods() {
+        return {
+            getTemplatePaymentMethod: this.getTemplatePaymentMethod,
+            checkBeforePay() {
+                if (!this.cardnumber)
+                    return {ok: false, message: "Número de tarjeta no puede estar en blanco"};
+                let secq = document.querySelector("#securityCode").value;
+                let exmoth = document.querySelector("#cardExpirationMonth").value;
+                let exyear = document.querySelector("#cardExpirationYear").value;
+                let dni = document.querySelector("#docNumber").value;
+                let name = document.querySelector("#cardholderName").value;
+                if (!name) {
+                    return {ok: false, message: "Nombre del portador no puede estar en blanco"};
+                }
+                if (!exmoth) {
+                    return {ok: false, message: "Mes de Exp. no puede estar en blanco"};
+                }
+                if (!exyear) {
+                    return {ok: false, message: "Año de Exp. no puede estar en blanco"};
+                }
+                if (!secq) {
+                    return {ok: false, message: "Código de seguridad no puede estar en blanco"};
+                }
+                //Se agrega esto porque en algunos paises no es necesario agregar el numero de Documento
+                if (!dni && document.querySelector("#docNumber").style.display != "none") {
+                    return {ok: false, message: "DNI no puede estar en blanco"};
+                }
+                if (!this.email)
+                    return {ok: false, message: "Correo electrónico no puede estar en blanco"};
+                let reg = new RegExp("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$");
+                if (!this.email.match(reg))
+                    return {ok: false, message: "Correo tiene un formato invalido"};
+                return {ok: true};
+            },
+            async tokenizeAmount(amount) {
+                axios.defaults.withCredentials = true;
+                let response = await axios.post("/mercadopago/infoCode", {pay: amount});
+            },
+            async getKey() {
+                axios.defaults.withCredentials = true;
+                let response = await axios.get("/mercadopago/getPublicIdMpToken");
+                return response.data.token;
+            },
+            getBin() {
+                const cardnumber = this.cardnumber;
+                return cardnumber.substring(0, 6);
+            },
+            guessingPaymentMethod() {
+                let bin = this.getBin();
+                this.issuersOptions = [];
+                this.issuerId = null;
+                if (bin.length >= 6) {
+                    window.Mercadopago.getPaymentMethod({
+                        "bin": bin
+                    }, this.setPaymentMethodInfo);
+                }
+
+            },
+            doPay(event) {
+                if (this.disableBtn)
+                    return;
+
+
+                this.disableBtn = true;
+                if (event)
+                    event.preventDefault();
+
+                this.$emit('payment-init');
+                let res = this.checkBeforePay();
+                if (!res.ok) {
+                    res.error = true;
+                    res.cause = [];
+                    res.cause.push({description: res.message});
+                    this.$emit('payment-result', res);
+                    this.disableBtn = false;
+                    return;
+                }
+                let $form = document.querySelector('#pay');
+                window.Mercadopago.createToken($form, this.sdkResponseHandler);
+
+            },
+            setPaymentMethodInfo(status, response) {
+                if (status == 200) {
+                    this.paymentMethodId = response[0].id;
+                    if (response[0].additional_info_needed.indexOf("issuer_id") > -1) {
+                        window.Mercadopago.getIssuers(this.paymentMethodId, this.setIssuers);
+                    }
+                    // console.log("ID", this.paymentMethodId, response);
+                }
+            },
+            setIssuers(status, response) {
+                if (status == 200) {
+                    this.issuersOptions = response;
+                }
+            },
+            async sdkResponseHandler(status, response) {
+                this.disableBtn = false;
+                if (status != 200 && status != 201) {
+                    if (this.paymentRefresh && status == 400 && response.cause && response.cause.filter(x => x.code = "001").length > 0) {
+                        this.paymentRefresh = false;
+                        this.doPay();
+                    } else {
+                        response.actionResult = false;
+                    }
+                } else {
+                    this.card_token = response.id;
+                    let inforpayload = {
+                        payAmount: this.amount,
+                        email: this.email,
+                        so: this.salesorder,
+                        mpId: this.mpsernr
+                    };
+                    let payObject = {
+                        token: this.card_token,
+                        description: 'Order Nr ' + this.salesorder,
+                        installments: 1,
+                        payment_method_id: this.paymentMethodId,
+                        issuer_id: this.issuerId
+                    };
+                    if (this.info.mpsernr) {
+                        payObject["mpsernr"] = this.info.mpsernr;
+                        payObject.description = this.info.comment;
+                    }
+                    axios.defaults.withCredentials = true;
+                    let payed = await axios.post("/mercadopago/processPayment", {payObject, inforpayload});
+
+                    if (payed)
+                        response.actionResult = payed.data.ok || false;
+                    response.paymentResult = payed.data;
+                }
+                window.Mercadopago.clearSession();
+                this.$emit('payment-result', response);
+            },
+            validate() {
+                this.isValid = $(this.$el).find('input:invalid').length == 0;
+                if (this.issuersOptions.length) {
+                    this.isValid = $(this.$el).find('select:invalid').length == 0;
+                }
+            }
+        };
+    }
+
+    static getProps() {
+
+        return ["info"];
+
+    }
+
+    static getData() {
+        let self = this;
+        return function () {
+            return self.data();
+        };
+    }
+
+    static data() {
+        return {
+            disableBtn: false,
+            mpsernr: null,
+            paymentRefresh: true,
+            amount: 0,
+            paymentMethodId: "",
+            cardnumber: "",
+            email: "",
+            salesorder: "",
+            isValid: false,
+            issuersOptions: [],
+            issuerId: null,
+            form: {
+                holderName: '',
+                expirationMonth: '',
+                expirationYear: '',
+                ccv: '',
+            },
+            docTypes: [],
+        };
+    }
+
+    static getTemplatePaymentMethod() {
+        if (this.paymentMethodId === "debmaster") {
+            return "master";
+        }
+        if (this.paymentMethodId === "debvisa") {
+            return "visa";
+        }
+        return this.paymentMethodId;
+    }
+
+    static getTemplate() {
+        /* Examples
+            card 4509 9535 6623 3704
+            security 123
+            month 12
+            year 2019
+            dni 12345678
+            name APRO
+        */
+        return `
+                <div class="card">
+                    <div class="card-content">
+                        <div class="credit-card-box">
+                            <div class="flip">
+                                <div class="front">
+                                    <div class="card-logo" :class="getTemplatePaymentMethod()"></div>
+                                    <div class="number">{{cardnumber}}</div>
+                                    <div class="card-holder">
+                                        <label>Nombre del Portador</label>
+                                        <div>{{form.holderName}}</div>
+                                    </div>
+                                    <div class="card-expiration-date">
+                                        <label>Vencimiento</label>
+                                        <div>{{form.expirationMonth}}/{{form.expirationYear}}</div>
+                                    </div>
+                                </div>
+                                <div class="back">
+                                    <div class="strip"></div>
+                                    <div class="card-logo" :class="[paymentMethodId]"></div>
+                                    <div class="ccv">
+                                        <label>CCV</label>
+                                        <div>{{form.ccv}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <form id="pay">
+                            <div class="row">
+                                <div :class="{'col s12': true, 'l6': this.issuersOptions.length == 0, 'l4': this.issuersOptions.length > 0}">
+                                    <label for="cardNumber">Número de Tarjeta</label>
+                                    <input v-model="cardnumber" v-on:keyup="validate()" required type="text" data-inputmask="'mask': '9999 9999 9999 9999'" id="cardNumber" maxlength="20" data-checkout="cardNumber" placeholder="XXXX XXXX XXXX XXXX" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                                </div>
+                                <div :class="{'col s12': true, 'l6': this.issuersOptions.length == 0, 'l4': this.issuersOptions.length > 0}">
+                                    <label for="cardholderName">Nombre y apellido</label>
+                                    <input type="text" id="cardholderName" v-model="form.holderName" v-on:keyup="validate()" required data-checkout="cardholderName" placeholder="" />
+                                </div>
+                                <div class="col s12 l4">
+                                    <label for="cardExpirationMonth">Mes de exp.</label>
+                                    <input type="text" maxlength="2" id="cardExpirationMonth" v-model="form.expirationMonth" pattern="[0-9]{2}" title="Dos números del mes de expiración" v-on:keyup="validate()" required data-checkout="cardExpirationMonth" placeholder="xx" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                                </div>
+                                <div class="col s12 l4">
+                                    <label for="cardExpirationYear">Año de exp.</label>
+                                    <input type="text" maxlength="4" id="cardExpirationYear" v-model="form.expirationYear" pattern="[0-9]{4}" title="Cuatro números del año de expiración" v-on:keyup="validate()" required data-checkout="cardExpirationYear" placeholder="xxxx" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                                </div>
+                                <div class="col s12 l4">
+                                   <label for="securityCode">Código de seguridad</label>
+                                   <input type="text" maxlength="4" id="securityCode" v-model="form.ccv" title="Código de tres números al reverso de la tarjeta" v-on:keyup="validate()" required data-checkout="securityCode" placeholder="xxxx" />
+                                </div>
+                                <template v-if="docTypes.length>0">
+                                <div class="col s12 l2">
+                                    <label for="docType">Tipo de doc.</label>
+                                    <select type="text" id="docType" v-on:keyup="validate()" required data-checkout="docType" >
+                                      <template v-for="docType in docTypes">
+                                        <option :value="docType.id" :selected="docType.id=='DNI'" >{{docType.name}}</option>
+                                     </template>   
+                                    </select>
+                                </div>
+                                </template>
+                                <div class="col s12 l6">
+                                    <label for="docNumber">Documento</label>
+                                    <input type="text" id="docNumber" v-on:keyup="validate()" required data-checkout="docNumber" placeholder="" />
+                                </div>
+                                <div class="col s12 l6">
+                                    <label for="email">Correo electrónico</label>
+                                    <input id="email" name="email" v-model="email" v-on:keyup="validate()" required type="email" placeholder="email@address.com"/>
+                                </div>
+
+                                <div class="col s12">
+                                    <div class="row payment-info">
+                                        <p class="comment center-align">{{info.comment}}</p>
+                                        <p class="col s12 m6 l4 offset-m3 offset-l4 amount valign-wrapper">{{info.currency}}{{amount}}</p>
+                                    </div>
+                                </div>
+                                <div class="col s12 center-align">
+                                    <button class="col s12 m6 l4 offset-m3 offset-l4 btn submit-btn" @click="doPay" :disabled="!isValid || disableBtn"><i class="fa fa-lock"></i> Pagar</button>
+                                </div>
+                                <div class="mercadopago-logo">
+                                    <img class="responsive-img" src="/static/mercadopago/img/mercado-pago.png" />
+                                </div>
+                            </div>
+                            <input v-model="paymentMethodId" type="hidden" name="paymentMethodId" />
+                        </form>
+                    </div>
+                </div>
+        `;
+    }
+
+    static getComputed() {
+        return {};
+    }
+
+    static beforeMount() {
+        return function () {
+            // window.Mercadopago.setPublishableKey("TEST-64a7f018-5eb2-4939-b6de-1bbae19eefc6");
+        };
+    }
+
+    static getComponent() {
+
+        return {
+            beforeMount: this.beforeMount(),
+            props: this.getProps(),
+            data: this.getData(),
+            template: this.getTemplate(),
+            mounted: this.mounted(),
+            created: this.created(),
+            computed: this.getComputed(),
+            methods: this.getMethods(),
+            watch: this.getWatch(),
+            components: this.getComponents()
+        };
+
+
+    }
+
+    static getComponents() {
+        return {};
+    }
+
+    static getCards() {
+
+        return [];
+
+    }
+
+    static getWatch() {
+        return {
+            "cardnumber": function () {
+                this.guessingPaymentMethod();
+            },
+            "docTypes": function (newValue, oldValue) {
+                setTimeout(() => {
+                    $('select').material_select();
+                }, 500);
+            }
+        };
+    }
+
+
+}
+
+
+window.MercadoPagoComponent = MercadoPagoComponent;
+
+//# sourceMappingURL=MercadoPagoComponent.js.map

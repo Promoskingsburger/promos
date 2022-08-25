@@ -1,0 +1,76 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var itemsBreakcrumbComponent = function (_Component) {
+    _inherits(itemsBreakcrumbComponent, _Component);
+
+    function itemsBreakcrumbComponent() {
+        _classCallCheck(this, itemsBreakcrumbComponent);
+
+        return _possibleConstructorReturn(this, (itemsBreakcrumbComponent.__proto__ || Object.getPrototypeOf(itemsBreakcrumbComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemsBreakcrumbComponent, [{
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                goBack: this.goBack,
+                addFilterCategory: this.addFilterCategory
+            };
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            this.$router.go(-1);
+        }
+    }, {
+        key: "addFilterCategory",
+        value: function addFilterCategory(cat) {
+            if (cat) {
+                this.$store.commit('updateAppState', 'loading');
+                var objectFilter = {};
+                objectFilter.name = uuidv4();
+                objectFilter.type = 'globalClassification';
+                //objectFilter.condition = `x.Classification.split(',').indexOf('${cat.code}')!=-1`;
+                objectFilter.condition = "x.ClassificationPath.hasOwnProperty('" + cat.code + "')";
+                objectFilter.label = cat.code;
+                objectFilter.filterField = "Classification";
+                this.$store.dispatch('addGlobalFilter', objectFilter);
+                this.$store.dispatch('updateCategory', cat);
+                window.scrollTo(0, 0);
+                //window.Event.$emit("category-select");
+                this.emitEvent("category-select");
+                //console.log('after emit event');
+                //this.$store.commit('updateAppState', "loading");
+                this.$router.push('/items?category=' + encodeURI(cat.code + "__" + cat.name));
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"col-sm-12 breadcrumb-container\">\n                   <nav aria-label=\"breadcrumb\">\n                          <ol class=\"breadcrumb\">\n                             <li class=\"go-back\" title=\"Regresar al Listado\" @click=\"goBack\"><i class=\"fas fa-chevron-left\"></i></li>\n                             <li class=\"breadcrumb-item\"><router-link :to=\"'/home'\">{{tr(\"Home\")}}</router-link></li>\n                             <template v-for=\"cat in $store.getters.getCategoriesHistory\">\n                                <li class=\"breadcrumb-item\" :class=\"{active: $store.state.cat_selected.code==cat.code}\">\n                                    <span :key=\"'breakcrumb'+cat.name\" :class=\"{'btn-link': $store.state.cat_selected.code!=cat.code}\" @click=\"addFilterCategory(cat)\">{{capitalize(cat.name)}}</span>\n                                </li>\n                            </template>\n                          </ol>\n                  </nav>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemsBreakcrumb";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemsBreakcrumb";
+        }
+    }]);
+
+    return itemsBreakcrumbComponent;
+}(Component);
+
+itemsBreakcrumbComponent.registerComponent();
+//# sourceMappingURL=itemsBreakcrumbComponent.js.map

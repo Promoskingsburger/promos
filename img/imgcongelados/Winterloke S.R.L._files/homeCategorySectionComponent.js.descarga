@@ -1,0 +1,262 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/*global Component,__lodash__ */
+var homeCategorySectionComponent = function (_Component) {
+    _inherits(homeCategorySectionComponent, _Component);
+
+    function homeCategorySectionComponent() {
+        _classCallCheck(this, homeCategorySectionComponent);
+
+        return _possibleConstructorReturn(this, (homeCategorySectionComponent.__proto__ || Object.getPrototypeOf(homeCategorySectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(homeCategorySectionComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['only_icons_view', 'open_by_default'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                selectedCategory: '',
+                menuCategories: [],
+                submenucounter2: 0,
+                submenucounter3: 0,
+                itemsInSubMenu: 15
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                session: function session() {
+                    return this.$store.getters.getSession;
+                },
+                salesman: function salesman() {
+                    return this.$store.getters.getSalesMan;
+                },
+                showComponentCategory: function showComponentCategory() {
+                    return this.$store.getters.showCategoryTree;
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.$nextTick(function () {
+                                    // $('.collapsible').collapsible();
+                                });
+                                if (this.open_by_default != 'undefined') {
+                                    this.display = this.open_by_default;
+                                } else {
+                                    this.display = !this.isMobile;
+                                    $(window).resize(function () {
+                                        self.isMobile = $(window).width() <= 560;
+                                        self.display = !self.isMobile;
+                                    });
+                                }
+                                this.subscribeEvent('category-select', this.toggleMenu);
+
+                            case 4:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                tempCatHistory: this.tempCatHistory,
+                getSubCategoriesProxyTool: this.getSubCategoriesProxyTool,
+                getSubCategories: this.getSubCategories,
+                catMouseOver: this.catMouseOver,
+                catMouseClear: this.catMouseClear,
+                isLeafCategory: this.isLeafCategory,
+                processSubMenuLvl2: this.processSubMenuLvl2,
+                processSubMenuLvl3: this.processSubMenuLvl3,
+                mouseOver: this.mouseOver,
+                getCategoryChilds: this.getCategoryChilds,
+                toggleMenu: this.toggleMenu
+            };
+        }
+    }, {
+        key: "tempCatHistory",
+        value: function tempCatHistory(cat, lvl) {
+            this.$store.dispatch('updateCategoryHistory', { temp: true, category: cat, lvl: lvl });
+        }
+    }, {
+        key: "getSubCategoriesProxyTool",
+        value: function getSubCategoriesProxyTool(cat, categoryName) {
+            var result = null;
+            try {
+                if (cat && this.getName(cat) == categoryName) result = cat.children;else {
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = cat.children[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var chcat = _step.value;
+
+                            var deepSearch = this.getSubCategoriesProxyTool(chcat, categoryName);
+                            if (deepSearch) {
+                                return deepSearch;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+                }
+                return result;
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('Error in getSubCategoriesProxyTool');
+            }
+        }
+    }, {
+        key: "getSubCategories",
+        value: function getSubCategories(categoryName) {
+            var cat_list = this.$store.getters.getCategories;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = cat_list[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var cat = _step2.value;
+
+                    var deepSearch = this.getSubCategoriesProxyTool(cat, categoryName);
+                    if (deepSearch) return deepSearch;
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            return [];
+        }
+    }, {
+        key: "catMouseOver",
+        value: function catMouseOver(event) {
+            var oldValue = this.selectedCategory;
+            if (oldValue != event) {
+                var subMenu = this.getSubCategories(event);
+                this.menuCategories = subMenu;
+            }
+            this.selectedCategory = event;
+        }
+    }, {
+        key: "catMouseClear",
+        value: function catMouseClear(event) {
+            //this.menuCategories =[];
+        }
+    }, {
+        key: "isLeafCategory",
+        value: function isLeafCategory(cat) {
+            try {
+                if (cat.leaf || cat.children.length == 0) return true;
+                return false;
+            } catch (e) {
+                // eslint-disable-next-line no-console
+                console.log('isLeadCategory Error');
+            }
+        }
+    }, {
+        key: "processSubMenuLvl2",
+        value: function processSubMenuLvl2() {
+            this.submenucounter2 = this.submenucounter2 + 1;
+        }
+    }, {
+        key: "processSubMenuLvl3",
+        value: function processSubMenuLvl3() {
+            this.submenucounter3 = this.submenucounter3 - 1;
+        }
+    }, {
+        key: "mouseOver",
+        value: function mouseOver(cat) {
+            // eslint-disable-next-line no-console
+            console.log('Change Selected Category', cat);
+            this.selectedCategory = cat;
+        }
+    }, {
+        key: "getCategoryChilds",
+        value: function getCategoryChilds() {
+            var globalCategory = this.$store.getters.getGlobalCategories;
+            if (this.$store.getters.getCategories.length > 0) return __lodash__.orderBy(this.$store.getters.getCategories[0]['children'].filter(function (x) {
+                return globalCategory.indexOf(x.code) === -1;
+            }), 'name', 'asc');else return [];
+        }
+    }, {
+        key: "toggleMenu",
+        value: function toggleMenu() {
+            if (this.isMobile) {
+                this.display = !this.isMobile;
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter\" v-if=\"showComponentCategory\">\n                <p class=\"filter-title\" @click=\"display = !display\">\n                    {{tr(\"Categories\")}}\n                    <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                    <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                </p>\n                <div class=\"filter-options category-list\" :class=\"{'visible-filter': display}\">\n                    <template v-for=\"(cat, index)  in getCategoryChilds()\">\n                        <template v-if=\"cat.children.length > 0\">\n                            <catComponent :cat=\"cat\" :lvl=\"parseInt(0)\"></catComponent>\n                        </template>\n                    </template>\n                    <template v-for=\"(cat, index)  in getCategoryChilds()\">\n                        <template v-if=\"cat.children.length == 0\">\n                            <catComponent :cat=\"cat\" :lvl=\"parseInt(0)\"></catComponent>\n                        </template>\n                    </template>\n                 </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "homeCategorySectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "homeCategorySectionComponent";
+        }
+    }]);
+
+    return homeCategorySectionComponent;
+}(Component);
+
+homeCategorySectionComponent.registerComponent();
+//# sourceMappingURL=homeCategorySectionComponent.js.map

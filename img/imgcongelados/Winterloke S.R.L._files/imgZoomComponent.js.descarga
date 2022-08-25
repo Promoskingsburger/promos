@@ -1,0 +1,129 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/*global Component, _ */
+var imgZoomComponent = function (_Component) {
+    _inherits(imgZoomComponent, _Component);
+
+    function imgZoomComponent() {
+        _classCallCheck(this, imgZoomComponent);
+
+        return _possibleConstructorReturn(this, (imgZoomComponent.__proto__ || Object.getPrototypeOf(imgZoomComponent)).apply(this, arguments));
+    }
+
+    _createClass(imgZoomComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                isMounted: false,
+                scaleFactor: 1.1
+            };
+        }
+    }, {
+        key: "getProps",
+        value: function getProps() {
+            return {
+                useAsModal: {
+                    type: Boolean,
+                    default: false
+                },
+                'src': String,
+                'myclass': String,
+                'mystyle': {
+                    'type': Object,
+                    'defautl': {}
+                },
+                "isthumbnails": Boolean,
+                "eventclick": Function,
+                "imgIndex": Number
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                image: function image() {
+                    return this.getImageUrl();
+                },
+                containerWidth: function containerWidth() {
+                    if (this.isMounted) {
+                        return document.getElementById('zoomImage').offsetWidth * this.scaleFactor;
+                    }
+                    return 0;
+                },
+                containerHeight: function containerHeight() {
+                    if (this.isMounted) {
+                        return document.getElementById('zoomImage').offsetWidth * this.scaleFactor;
+                    }
+                    return 0;
+                }
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'showZoom': function showZoom(newValue, oldValue) {
+                    if (newValue) this.imageZoom();
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getImageUrl: this.getImageUrl
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                try {
+                    this.$nextTick(function () {
+                        this.isMounted = true;
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+        }
+    }, {
+        key: "getImageUrl",
+        value: function getImageUrl() {
+            return this.src || "../static/ecommerce/img/nophoto_128x128.jpg";
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div key=\"zoomImage\" id=\"zoomImage\"  class=\"img-zoom-container\" >\n                     <image-magnifier :src=\"image\"\n                                        :zoom-src=\"image\"\n                                        width=\"100%\"\n                                        height=\"100%\"\n                                        :zoom-width=\"containerWidth\"\n                                        :zoom-height=\"containerHeight\">\n                     </image-magnifier>\n                </div>";
+        }
+    }, {
+        key: "getTemplate2",
+        value: function getTemplate2() {
+            return "<div key=\"zoomImage\" class=\"img-zoom-container\"  @mouseleave=\"disableZoom\" @mouseenter=\"activateZoom\"   >\n                    <div ref=\"imgZoomLens2\" id=\"imgZoomLens2\"  class='img-zoom-lens2' :class=\"{'d-none':!showZoom}\" :style=\"styleObjectMap\" ></div>\n                    <div ref=\"myresult\" id=\"myresult\" class=\"img-zoom-result\" :class=\"{'d-none':!showZoom}\" :style=\"styleZoomImg\"></div>\n                    <div ref=\"myimage\" id=\"myimage\" class=\"min-vh-50\"  :class=\"classObjectMap\"  :style=\"styleImageMap\" alt=\"Product Image\"></div>\n                    <p>{{debug}}</p>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "imgZoomComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "imgZoomComponent";
+        }
+    }]);
+
+    return imgZoomComponent;
+}(Component);
+
+imgZoomComponent.registerComponent();
+//# sourceMappingURL=imgZoomComponent.js.map

@@ -1,0 +1,220 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios, __lodash__ */
+var centerCostModalComponent = function (_Component) {
+    _inherits(centerCostModalComponent, _Component);
+
+    function centerCostModalComponent() {
+        _classCallCheck(this, centerCostModalComponent);
+
+        return _possibleConstructorReturn(this, (centerCostModalComponent.__proto__ || Object.getPrototypeOf(centerCostModalComponent)).apply(this, arguments));
+    }
+
+    _createClass(centerCostModalComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                personList: {
+                    type: Array,
+                    default: function _default() {
+                        return [];
+                    }
+                },
+                recordKey: {
+                    type: String,
+                    default: 'CC_Modal'
+                },
+                paramCenterCostRecord: {
+                    type: Object,
+                    default: function _default() {
+                        return window.centerCostTemplate;
+                    }
+                },
+                saveCenterCost: {
+                    type: Function
+                },
+                addCenterCost: {
+                    type: Function
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                restoreRecord: null,
+                mode: "create",
+                selectOption: "contacts",
+                response: null,
+                alertError: null,
+                ContactsOptions: {
+                    "PersonCode": { label: "Person Code", linkto: "Person", pasteField: 'Code', showField: ["Name", "LastName"] },
+                    "PersonName": { label: "Person Name", readonly: true },
+                    "IsMainContact": { label: "Main Contact", type: "checkbox" }
+                },
+                LiberatorsOptions: {
+                    "PersonCode": { label: "Person Code", linkto: "Person", pasteField: 'Code', showField: "Name" },
+                    "PersonName": { label: "Person Name", type: "PersonName", readonly: true },
+                    "CanLiberate": { label: "Can Liberate", type: "checkbox" },
+                    "OnlyModified": { label: "Only Modified", type: "checkbox" }
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                //console.log('CC-Load');
+                                this.restoreRecord = Object.freeze(this.paramCenterCostRecord);
+                                this.openModal = this.openModal.bind(this);
+                                this.contactAfterEditRow = this.contactAfterEditRow.bind(this);
+                                this.liberatorAfterEditRow = this.liberatorAfterEditRow.bind(this);
+                                this.subscribeEvent('openModalCenterCost', this.openModal);
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                centerCostRecord: function centerCostRecord() {
+                    if (this.paramCenterCostRecord) return this.paramCenterCostRecord;else return window.centerCostTemplate;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                openModal: this.openModal,
+                contactAfterEditRow: this.contactAfterEditRow,
+                liberatorAfterEditRow: this.liberatorAfterEditRow,
+                windowAction: this.windowAction,
+                clearForm: this.clearForm
+            };
+        }
+    }, {
+        key: "openModal",
+        value: function openModal() {
+            $(this.$refs["centerCostModal"]).modal({ backdrop: 'static', keyboard: false, show: true });
+        }
+    }, {
+        key: "contactAfterEditRow",
+        value: function contactAfterEditRow(row, event, mustAdded) {
+            if (event.field == 'PersonCode') {
+                if (event.linkToData.length > 0) {
+                    row.fields.PersonName = event.linkToData[0]['Name'] + " " + event.linkToData[0]['LastName'];
+                }
+            }
+            if (mustAdded) this.centerCostRecord.fields['Contacts'].push(row);
+        }
+    }, {
+        key: "liberatorAfterEditRow",
+        value: function liberatorAfterEditRow(row, event, mustAdded) {
+            if (event.field == 'PersonCode') {
+                if (event.linkToData.length > 0) {
+                    row.fields.PersonName = event.linkToData[0]['Name'] + " " + event.linkToData[0]['LastName'];
+                    row.fields['CanLiberate'] = true;
+                }
+            }
+            if (event.field == 'OnlyModified') row.fields['CanLiberate'] = !row.fields['OnlyModified'];
+
+            if (event.field == 'CanLiberate') row.fields['OnlyModified'] = !row.fields['CanLiberate'];
+            if (mustAdded) this.centerCostRecord.fields['Liberators'].push(row);
+        }
+    }, {
+        key: "windowAction",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var centerCostRecord, response;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                centerCostRecord = __lodash__.cloneDeep(this.centerCostRecord);
+
+                                if (centerCostRecord.fields.syncVersion) centerCostRecord.fields.syncVersion = centerCostRecord.fields.syncVersion + 1;else centerCostRecord.fields.syncVersion = 1;
+
+                                /*let isNew = false;
+                                if(!centerCostRecord.fields.Code)
+                                    isNew = true;
+                                */
+
+                                _context2.next = 4;
+                                return axios.post("/ecommerce/api/saveCenterCost", { action: "save", record: JSON.stringify(centerCostRecord) });
+
+                            case 4:
+                                response = _context2.sent;
+
+                                if (response.data.success) {
+                                    this.emitEvent('addCenterCost', response.data.record);
+                                    $(this.$refs["centerCostModal"]).modal('hide');
+                                    this.$store.dispatch('showNotificacion', { title: "Centro de Costo", message: "Agregado nuevo centro de Costo " + response.data.record.fields.Code, type: 'info' });
+                                } else {
+                                    this.$store.dispatch('showNotificacion', { title: "Error", message: "Error al guardar centro de Cost", type: 'error' });
+                                }
+
+                            case 6:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function windowAction() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return windowAction;
+        }()
+    }, {
+        key: "clearForm",
+        value: function clearForm() {
+            this.emitEvent("editCenterCost", null);
+            this.emitEvent("clearAwesonLinkTo_Contacts__PersonCode__Person");
+            this.emitEvent("clearAwesonLinkTo_Liberators__PersonCode__Person");
+            $(this.$refs["centerCostModal"]).modal('hide');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div  class=\"modal fade item-detail-modal\" ref=\"centerCostModal\" id=\"centerCostModal\" tabindex=\"-1\" role=\"dialog\" data-backdrop=\"static\" data-keyboard=\"false\">\n                  <div class=\"modal-dialog modal-lg\" role=\"document\">\n                      <div class=\"modal-content\">\n                          <div class=\"modal-header\">\n                              <h5 class=\"modal-title\">{{tr(\"Cost Center\")}}</h5>\n                              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\" click=\"clearForm\">\n                                  <span aria-hidden=\"true\">&times;</span>\n                              </button>\n                          </div>\n                          <div class=\"modal-body\">\n                                <div class=\"col-sm-12\">\n                                      <div ref='errorRegisterFrom' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"alertError\">\n                                           <strong>{{tr(alertError)}}!</strong>\n                                           <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertError = null\">\n                                            <span aria-hidden=\"true\">&times;</span>\n                                            </button>\n                                       </div>\n                                </div>\n                               <div class=\"row\">\n                                    <div class=\"col-4\">\n                                        <div class=\"form-group\">\n                                            <label for=\"Name\" class=\"form-label\">{{tr('Name')}}</label>\n                                            <input id=\"Name\" v-model=\"centerCostRecord.fields.Name\" type=\"text\" class=\"form-control\">\n                                        </div>\n                                    </div>\n                                    <div class=\"col-4\">\n                                        <div class=\"form-group\">\n                                           <label for=\"Comment\" class=\"form-label\">{{tr('Delivery Address')}}</label>\n                                           <selectLinkToComponent recordKey=\"CC_Modal\" table=\"CompanyAddress\" paste=\"Code\" showField=\"Name\" :selected=\"centerCostRecord.fields.DelAddressCode\"></selectLinkToComponent>\n                                       </div>\n                                    </div>\n                                    <div class=\"col-12\">\n                                        <div class=\"form-group\">\n                                           <label for=\"Comment\" class=\"form-label\">{{tr('Comment')}}</label>\n                                            <textarea class=\"form-control\" rows=\"5\" v-model=\"centerCostRecord.fields.Comment\"></textarea>\n                                       </div>\n                                    </div>\n                                </div>\n                                <div class=\"col-sm-12\">\n                                     <ul class=\"nav nav-tabs\">\n                                          <li class=\"nav-item\">\n                                            <a class=\"nav-link\" :class=\"{active: selectOption=='contacts'}\" href=\"#\" @click=\"selectOption='contacts'\">{{tr('Contacts')}}</a>\n                                          </li>\n                                          <li class=\"nav-item\">\n                                            <a class=\"nav-link\" :class=\"{active: selectOption=='liberators'}\" href=\"#\" @click=\"selectOption='liberators'\" >{{tr('Liberators')}}</a>\n                                          </li>\n                                          <li class=\"nav-item\">\n                                            <a class=\"nav-link\" :class=\"{active: selectOption=='restrictions'}\" href=\"#\" @click=\"selectOption='restrictions'\" >{{tr('Restrictions')}}</a>\n                                          </li>\n                                      </ul>\n                                      <div class=\"tab-content\" id=\"myTabContent\">\n                                          <div  :class=\"{active: selectOption=='contacts',show: selectOption=='contacts'}\" class=\"tab-pane fade pt-2\" id=\"contacts\" role=\"tabpanel\" aria-labelledby=\"home-tab\">\n                                                <recordMatrixComponent rowField=\"Contacts\" :record=\"centerCostRecord\" :headers=\"ContactsOptions\" :afterEditRow=\"contactAfterEditRow\"></recordMatrixComponent>\n                                          </div>\n                                          <div  :class=\"{active: selectOption=='liberators',show: selectOption=='liberators'}\" class=\"tab-pane fade pt-2\" id=\"liberators\" role=\"tabpanel\" aria-labelledby=\"profile-tab\">\n                                                <recordMatrixComponent rowField=\"Liberators\" :record=\"centerCostRecord\"  :headers=\"LiberatorsOptions\" :afterEditRow=\"liberatorAfterEditRow\"></recordMatrixComponent>\n                                          </div>\n                                          <div  :class=\"{active: selectOption=='restrictions',show: selectOption=='restrictions'}\" class=\"tab-pane fade pt-2\" id=\"restrictions\" role=\"tabpanel\" aria-labelledby=\"contact-tab\">\n                                                <div class=\"row\">\n                                                    <div class=\"col-4\">\n                                                        <div class=\"custom-control custom-switch\">\n                                                          <input class=\"custom-control-input\" id=\"LimitMaxSalesAmounts\" v-model=\"centerCostRecord.fields.LimitMaxSalesAmounts\" type=\"checkbox\">\n                                                          <label for=\"LimitMaxSalesAmounts\" class=\"custom-control-label\">{{tr('Apply Max. Sales Limits')}}</label>\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"MinSalesAmount\" class=\"form-label\">{{tr('Minimum Sales Amount')}}</label>\n                                                            <input id=\"MinSalesAmount\" v-model=\"centerCostRecord.fields.MinSalesAmount\" type=\"number\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"MaxSalesAmount\" class=\"form-label\">{{tr('Maximum Sales Amount')}}</label>\n                                                            <input id=\"MaxSalesAmount\" v-model=\"centerCostRecord.fields.MaxSalesAmount\" type=\"number\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"MaxMonthlySalesAmount\" class=\"form-label\">{{tr('Maximum Sales Amount Per Month')}}</label>\n                                                            <input id=\"MaxMonthlySalesAmount\" v-model=\"centerCostRecord.fields.MaxMonthlySalesAmount\" type=\"number\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"QtyAllowedMonthly\" class=\"form-label\">{{tr('Quantity Allowed Monthly Orders')}}</label>\n                                                            <input id=\"QtyAllowedMonthly\" v-model=\"centerCostRecord.fields.QtyAllowedMonthly\" type=\"text\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                    <h6>\"Rango de Fecha Dentro del Mes\"</h6>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"FromDay\" class=\"form-label\">{{tr('From Date')}}</label>\n                                                            <input id=\"FromDay\"  v-model=\"centerCostRecord.fields.FromDay\" type=\"number\" min=\"1\" max=\"31\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-4\">\n                                                        <div class=\"form-group\">\n                                                            <label for=\"ToDay\" class=\"form-label\">{{tr('To Date')}}</label>\n                                                            <input id=\"ToDay\" v-model=\"centerCostRecord.fields.ToDay\" type=\"number\" min=\"1\" max=\"31\" class=\"form-control\">\n                                                        </div>\n                                                    </div>\n                                                </div>\n                                          </div>\n                                      </div>\n                                </div>\n                          </div>\n                          <div class=\"modal-footer\">\n                                <button class=\"btn secondary-btn\" @click=\"windowAction\" >{{tr('Save')}}</button>\n                                <button class=\"btn secondary-btn\" @click=\"clearForm\" data-dismiss=\"modal\" >{{tr('Cancel')}}</button>\n                          </div>\n                      </div>\n                  </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "centerCostModalComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "centerCostModalComponent";
+        }
+    }]);
+
+    return centerCostModalComponent;
+}(Component);
+
+centerCostModalComponent.registerComponent();
+//# sourceMappingURL=centerCostModalComponent.js.map

@@ -1,0 +1,285 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global LoginPage, axios, gapi */
+/* eslint-disable no-console */
+var LoginComponentB2C = function (_LoginPage) {
+    _inherits(LoginComponentB2C, _LoginPage);
+
+    function LoginComponentB2C() {
+        _classCallCheck(this, LoginComponentB2C);
+
+        return _possibleConstructorReturn(this, (LoginComponentB2C.__proto__ || Object.getPrototypeOf(LoginComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(LoginComponentB2C, [{
+        key: 'data',
+        value: function data() {
+            var superdata = _get(LoginComponentB2C.prototype.__proto__ || Object.getPrototypeOf(LoginComponentB2C.prototype), 'data', this).call(this);
+            superdata.validationMsg = false;
+            return superdata;
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                "$store.getters.getIsLogin": 'closeModal'
+            };
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                disableLoginAction: function disableLoginAction() {
+                    return this.$store.getters.getSetting.DisableLoginAction;
+                },
+                disableRegisterAction: function disableRegisterAction() {
+                    return this.$store.getters.getSetting.DisableRegisterAction;
+                }
+            };
+        }
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.username = '';
+            this.password = '';
+        }
+    }, {
+        key: 'login',
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var loginResult;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return this.$store.dispatch('login', {
+                                    username: this.username,
+                                    password: this.password
+                                });
+
+                            case 2:
+                                loginResult = _context.sent;
+
+                                if (!loginResult.ok) {
+                                    if (loginResult.userNotActive) {
+                                        this.validationMsg = true;
+                                        this.$store.dispatch('showNotificacion', {
+                                            title: this.tr('Account Validation'),
+                                            message: this.tr("Please validate your mail account"),
+                                            type: 'error'
+                                        });
+                                    } else {
+                                        this.$store.dispatch('showNotificacion', {
+                                            title: this.tr('Login'),
+                                            message: this.tr("Incorrect Username or Password"),
+                                            type: 'error'
+                                        });
+                                    }
+                                } else this.afterLoginRedirect();
+
+                            case 4:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function login() {
+                return _ref.apply(this, arguments);
+            }
+
+            return login;
+        }()
+    }, {
+        key: 'afterLoginRedirect',
+        value: function afterLoginRedirect() {
+            if (this.$store.state.mustUpdateInfo === true) this.router.push('/mustUpdateInfo');
+            if (this.$store.getters.getIsLogin) {
+                this.clear();
+                if (!this.$store.state.redirectAfterLogin) {
+                    //this.$store.commit( 'updateItemsIsLoaded', false );
+                    this.$router.push(this.$store.state.afterLoginPath);
+                } else {
+                    var redirectPath = this.$store.state.redirectAfterLogin;
+                    this.$store.dispatch('setRedirectLogin', null);
+                    this.$store.dispatch('activePreserveCar', false);
+                    this.$router.push(redirectPath);
+                }
+                //this.$router.push('indicators')
+            } else {
+                this.$store.dispatch('showNotificacion', {
+                    title: this.tr('Login'),
+                    message: this.tr("Incorrect Username or Password"),
+                    type: 'error'
+                });
+            }
+        }
+    }, {
+        key: 'closeModal',
+        value: function closeModal() {
+            if (this.$store.getters.getIsLogin) {
+                this.clear();
+            } else {
+                this.$store.dispatch('showNotificacion', {
+                    title: this.tr('Login'),
+                    message: this.tr("Incorrect Username or Password"),
+                    type: 'error'
+                });
+            }
+        }
+    }, {
+        key: 'onFBLoad',
+        value: function onFBLoad() {
+            if (window.FB) {
+                // In your onload method:
+                window.FB.api('/me', { fields: 'last_name' }, function (response) {
+                    console.log(response);
+                });
+                window.FB.Event.subscribe('auth.login', this.login_event);
+                window.FB.Event.subscribe('auth.logout', this.logout_event);
+                window.FB.getLoginStatus(function (response) {
+                    console.log("FACEBOOK Call Back", response);
+                });
+            }
+        }
+    }, {
+        key: 'onLoadGoogle',
+        value: function onLoadGoogle() {
+            var self = this;
+            if (window.gapi) {
+                gapi.load('auth2', function () {
+                    // Retrieve the singleton for the GoogleAuth library and set up the client.
+                    window.auth2 = gapi.auth2.init({ client_id: '411860170731-ocuredme9dg0khkmc8pmudfv94hfrhp2.apps.googleusercontent.com' }).then(function () {
+                        var a = gapi.auth2.getAuthInstance();
+                        console.log(a);
+                        window.gapi.signin2.render("google_button");
+                        if (a.isSignedIn.get()) {
+                            self.onSignIn(a.currentUser.get());
+                            $('#google_button').hide();
+                        } else {
+                            gapi.signin2.render('google_button', { onsuccess: self.onSignIn });
+                            $('#google_button').show();
+                            window.show_google_message = true;
+                        }
+                    });
+                });
+            }
+        }
+    }, {
+        key: 'onSignIn',
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(googleUser) {
+                var _this2 = this;
+
+                var id_token;
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                id_token = googleUser.getAuthResponse().id_token;
+
+                                axios.post('/ecommerce/api/google_login', {
+                                    id_token: id_token,
+                                    deviceId: localStorage.getItem("deviceId")
+                                }).then(function () {
+                                    var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(result) {
+                                        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                                            while (1) {
+                                                switch (_context2.prev = _context2.next) {
+                                                    case 0:
+                                                        if (!result.data.ok) {
+                                                            _context2.next = 4;
+                                                            break;
+                                                        }
+
+                                                        _context2.next = 3;
+                                                        return _this2.$store.dispatch('loadSession');
+
+                                                    case 3:
+                                                        _this2.afterLoginRedirect();
+
+                                                    case 4:
+                                                    case 'end':
+                                                        return _context2.stop();
+                                                }
+                                            }
+                                        }, _callee2, _this2);
+                                    }));
+
+                                    return function (_x2) {
+                                        return _ref3.apply(this, arguments);
+                                    };
+                                }());
+
+                            case 2:
+                            case 'end':
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function onSignIn(_x) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return onSignIn;
+        }()
+    }, {
+        key: 'login_event',
+        value: function login_event(response) {
+            console.log("login_event");
+            console.log(response.status);
+            console.log(response);
+        }
+    }, {
+        key: 'logout_event',
+        value: function logout_event(response) {
+            // eslint-disable-next-line no-console
+            console.log("logout_event");
+            // eslint-disable-next-line no-console
+            console.log(response.status);
+            // eslint-disable-next-line no-console
+            console.log(response);
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            var superMethods = _get(LoginComponentB2C.prototype.__proto__ || Object.getPrototypeOf(LoginComponentB2C.prototype), 'getMethods', this).call(this);
+            superMethods.clear = this.clear;
+            superMethods.login = this.login;
+            superMethods.afterLoginRedirect = this.afterLoginRedirect;
+            superMethods.closeModal = this.closeModal;
+            superMethods.onFBLoad = this.onFBLoad;
+            superMethods.onLoadGoogle = this.onLoadGoogle;
+            superMethods.onSignIn = this.onSignIn;
+            superMethods.login_event = this.login_event;
+            superMethods.logout_event = this.logout_event;
+            return superMethods;
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <div class="container-fluid">\n                      <div class="section-main">\n                        <section class="padding-small">\n                          <template v-if="$store.getters.getAppState==\'ready\'">\n                            <div class="container">\n                                <div class="row justify-content-center">\n                                  <div class="col-lg-8 text-center align-self-center mt-5" v-if="disableLoginAction">\n                                        <div class="block">\n                                            <div class="block-header">\n                                                <div class="text-center"><i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #666;"></i></div>\n                                                <h5 class="text-center mb-5">{{tr("LOGINNOTAVAILABLE")}}.</h5>\n                                                <router-link to="/" class="btn btn-custom">{{tr("Go to Homepage")}}</router-link>\n                                            </div>\n                                        </div>\n                                  </div>\n                                  <div class="col-lg-8" v-else>\n                                    <div class="block">\n                                      <div class="block-header">\n                                        <h5 class="text-center">{{tr(\'Login\')}}</h5>\n                                      </div>\n                                      <div class="block-body login-form">\n                                        <hr>\n                                        <form aria-autocomplete="none" autocomplete="off">\n                                            <div class="col s6 offset-s3 center-align">\n                                                <div class="form-group">\n                                                    <input :placeholder="tr(\'Email\')" v-model="username" name="username" type="text" class="form-control validate" aria-autocomplete="none" autocomplete="none">\n                                                </div>\n                                                <div class="form-group">\n                                                    <input :placeholder="tr(\'Password\')" v-model="password"  id="password" name="password" type="password" class="form-control validate" aria-autocomplete="none" autocomplete="new-password" >\n                                                </div>\n                                                <p class="">\n                                                    <input name="redirect_on_success" class="form-control" type="hidden" value="/ecommerce/#/">\n                                                </p>\n                                                <div class="alert alert-warning" role="alert" v-if="validationMsg">\n                                                    {{tr("You must validate your account to continue, check your mailbox and activate your account by visiting the link sent")}}.\n                                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n                                                        <span aria-hidden="true">&times;</span>\n                                                    </button>\n                                                </div>\n                                                <div class="form-group text-right">\n                                                    <router-link  to="/home" class="btn btn-light" role="button">{{tr(\'Close\')}}</router-link>\n                                                    <button class="center-align btn btn-secondary" @click.prevent="login">{{tr(\'Login\')}}</button>\n                                                </div>\n                                                <div class="row">\n                                                    <div id="google_button" class="col-6"></div>\n                                                    <div id="facebook_button" class="col-6 d-none">\n                                                        <div class="fb-login-button" data-width="" data-size="large" data-button-type="continue_with" data-layout="default" data-auto-logout-link="false" data-use-continue-as="false"></div>\n                                                    </div>\n                                                </div>\n                                                <hr>\n                                                <div class="text-center">\n                                                    <template v-if="disableRegisterAction">\n                                                        <div class="block text-center align-self-center" >\n                                                            <div class="block">\n                                                                 <div class="block-header">\n                                                                   <h5 class="text-center">{{tr(\'New account\')}}</h5>\n                                                               </div>\n                                                                <div class="block-Body">\n                                                                    <div class="text-center"><i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #666;"></i></div>\n                                                                    <h5 class="text-center mb-5">{{tr("REGISTERNOTAVAILABLE")}}.</h5>\n                                                                    <router-link to="/" class="btn btn-custom">{{tr("Go to Homepage")}}</router-link>\n                                                                </div>\n                                                            </div>\n                                                        </div>\n                                                    </template>\n                                                    <template v-else>\n                                                        <span>{{tr(\'Not yet our customer?\')}} </span>\n                                                        <router-link  to="/signup" class="btn btn-link" role="button">{{tr(\'Register\')}}</router-link>\n                                                        <router-link  to="/recovery_password" class="btn btn-link" role="button">{{tr(\'Forgot your password?\')}}</router-link>\n                                                    </template>\n                                                </div>\n                                            </div>\n                                        </form>\n                                      </div>\n                                    </div>\n                                  </div>\n                                </div>\n                            </div>\n                          </template>\n                          <template v-if="$store.getters.getAppState==\'onload\'">\n                              <div class="loading">\n                                  <i class="fas fa-spinner fa-spin fa-3x"></i>\n                              </div>\n                          </template>\n                        </section>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>';
+        }
+    }]);
+
+    return LoginComponentB2C;
+}(LoginPage);
+
+LoginComponentB2C.registerComponent();
+//# sourceMappingURL=loginPage.js.map

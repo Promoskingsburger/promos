@@ -1,0 +1,249 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, VueRecaptcha, axios */
+var complaintPage = function (_Component) {
+    _inherits(complaintPage, _Component);
+
+    function complaintPage() {
+        _classCallCheck(this, complaintPage);
+
+        return _possibleConstructorReturn(this, (complaintPage.__proto__ || Object.getPrototypeOf(complaintPage)).apply(this, arguments));
+    }
+
+    _createClass(complaintPage, [{
+        key: "getComponents",
+        value: function getComponents() {
+            return {
+                'vue-recaptcha': VueRecaptcha
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                thanks: false,
+                status: "loading",
+                useCaptcha: false,
+                readyCaptcha: false,
+                allowSubmit: false,
+                campaignRecord: null
+
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'isLoading': function isLoading(newValue, oldValue) {
+                    if (newValue == false) this.getFormData();
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var recaptcha;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                recaptcha = document.createElement("script");
+
+                                recaptcha.setAttribute("src", "https://www.google.com/recaptcha/api.js?onload=vueRecaptchaApiLoaded&render=explicit");
+                                recaptcha.setAttribute("nonce", "{GOOGLE}");
+                                document.head.appendChild(recaptcha);
+                                if (this.$route.params.thanks) this.thanks = true;
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                if (this.$store.getters.getAppState == 'ready') {
+                                    if (!this.$store.state.session) {
+                                        this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                                        this.$router.push({ name: 'LoginLink' });
+                                    } else {
+                                        if (!this.isLoading) this.getFormData();
+                                    }
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                leadCode: function leadCode() {
+                    if (this.$store.getters.getSetting) return this.$store.getters.getSetting.ComplaintFormCode;
+                    return null;
+                },
+                viewEnabled: function viewEnabled() {
+                    if (this.$store.getters.getSetting) return this.$store.getters.getSetting.ComplaintFormAction;
+                    return null;
+                },
+                apiKey: function apiKey() {
+                    if (this.campaignRecord.RecaptchaKey) return this.campaignRecord.RecaptchaKey;else return "6LdgryIUAAAAAELA-bx3qOsRyqaY1XAO7mDblil2";
+                }
+            };
+        }
+    }, {
+        key: "submit",
+        value: function submit(e) {
+            if (this.useCaptcha && !this.readyCaptcha) {
+                // esta es la traduccion de "Please validate captcha", ya esta creada
+                alert("Por favor valide el captcha");
+                e.preventDefault();
+            }
+            this.$store.dispatch('toogleLockScreen', this.tr('Processing'));
+            return this.readyCaptcha;
+        }
+    }, {
+        key: "onCaptchaVerified",
+        value: function onCaptchaVerified(recaptchaToken) {
+            this.readyCaptcha = true;
+        }
+    }, {
+        key: "onCaptchaExpired",
+        value: function onCaptchaExpired() {
+            this.readyCaptcha = false;
+            this.$refs.recaptcha.reset();
+        }
+    }, {
+        key: "getFormData",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var response;
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                _context3.prev = 0;
+                                _context3.next = 3;
+                                return axios.post('/ecommerce/api/getRecord', {
+                                    recordName: "CampaignForm",
+                                    recordId: this.leadCode
+                                });
+
+                            case 3:
+                                response = _context3.sent;
+
+                                if (response.data.success) {
+                                    this.campaignRecord = response.data.record;
+                                    this.useCaptcha = response.data.record.UseRecaptcha;
+                                    this.readyCaptcha = !response.data.record.UseRecaptcha;
+                                }
+                                this.status = "ready";
+                                _context3.next = 11;
+                                break;
+
+                            case 8:
+                                _context3.prev = 8;
+                                _context3.t0 = _context3["catch"](0);
+
+                                console.log("EOOR complaint", _context3.t0);
+
+                            case 11:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this, [[0, 8]]);
+            }));
+
+            function getFormData() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return getFormData;
+        }()
+    }, {
+        key: "formattedValue",
+        value: function formattedValue(defaultValue) {
+            if (defaultValue && defaultValue.startsWith("@")) {
+                var targetStore = null;
+                if (defaultValue.startsWith("@Customer.")) targetStore = this.$store.getters.getCustomer;
+                if (defaultValue.startsWith("@Person.")) targetStore = this.$store.getters.getSession.fields;
+
+                if (targetStore && defaultValue.search(".") != -1) {
+                    var targetField = defaultValue.split(".")[1];
+                    if (targetField == "FullName" && !targetStore[targetField]) return targetStore["Name"] + " " + targetStore["LastName"];
+                    return targetStore[targetField];
+                }
+            }
+            return defaultValue;
+        }
+    }, {
+        key: "initComponent",
+        value: function initComponent() {
+            if (this.$store.getters.getAppState == 'ready') {
+                if (this.$store.state.session && !this.isLoading) {
+                    this.getFormData();
+                } else {
+                    this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                    this.$router.push({ name: 'LoginLink' });
+                }
+            }
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                initComponent: this.initComponent,
+                getFormData: this.getFormData,
+                submit: this.submit,
+                onCaptchaExpired: this.onCaptchaExpired,
+                onCaptchaVerified: this.onCaptchaVerified,
+                formattedValue: this.formattedValue
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div ref=\"complain-form\" >\n                  <headerSectionComponent v-cloak ></headerSectionComponent>\n                  <div :class=\"classContainer\" v-if=\"!isLoading\">\n                      <div class=\"row section-main\">\n                          <template  v-if=\"viewEnabled\">\n                            <div class=\"col-12 col-md-6 offset-md-3\" v-if=\"thanks\">\n                              <div class=\"col-12 text-center align-self-center mt-5\">\n                                <div class=\"block\">\n                                    <div class=\"block-header\">\n                                        <div class=\"text-center\"><i class=\"fas fa-check-circle fa-3x mb-3 text-success\" ></i></div>\n                                        <h5 class=\"text-center mb-5\">{{tr(\"Thanks for you time\")}}.</h5>\n                                        <h6 class=\"text-center\">{{tr(\"Your complaint/suggestion was received\")}}.</h6>\n                                        <h6 class=\"text-center mb-5\">{{tr(\"An answer will be sent to you via email\")}}</h6>\n                                        <router-link to=\"/\" class=\"btn btn-custom\">{{tr(\"Go to Homepage\")}}</router-link>\n                                    </div>\n                                </div>\n                             </div>\n                            </div>\n                            <div class=\"col-12 col-md-6 offset-md-3 col-lg-4 offset-lg-3\" v-else>\n                              <form id=\"lead_form\" :action=\"'/leads/leads_process?uuid='+campaignRecord.Out_uuid\" method=\"post\" @submit=\"submit\" validate=\"validate\" v-if=\"campaignRecord\">\n                                <h5 class=\"col-12 mb-4 title underlined-title\">{{tr('Help Desk')}}</h5>\n                                <input type=\"hidden\" name=\"LeadSource\" :value=\"campaignRecord.Code\">\n                                <template v-for=\"field in campaignRecord.Items\">\n                                    <div class=\"form-group\">\n                                        <label :name=\"field.LinkedField\" v-if=\"field.Type!='hidden'\">{{field.Name}}</label>\n                                        <template v-if=\"field.Type=='textarea'\">\n                                            <textarea class=\"form-control\" :type=\"field.Type\" :name=\"field.LinkedField\" :value=\"formattedValue(field.Value)\" :placeholder=\"field.Description\" required>\n                                            {{formattedValue(field.Value)}}\n                                            </textarea>\n                                        </template>\n                                        <template v-else>\n                                            <input class=\"form-control\" :type=\"field.Type\" :name=\"field.LinkedField\" :value=\"formattedValue(field.Value)\" :placeholder=\"field.Description\" required>\n                                        </template>\n                                    </div>\n                                </template>\n                                <template v-if=\"campaignRecord.UseRecaptcha\">\n                                    <vue-recaptcha\n                                      ref=\"recaptcha\"\n                                      @verify=\"onCaptchaVerified\"\n                                      @expired=\"onCaptchaExpired\"\n                                      :sitekey=\"apiKey\" >\n                                    </vue-recaptcha>\n                                </template>\n                                <div class=\"form-group text-right mt-3\">\n                                    <router-link to=\"/profile\" class=\"btn btn-light\">\n                                        {{tr(\"Cancel\")}}\n                                    </router-link>\n                                    <button class=\"btn btn-custom\" type=\"submit\" id=\"send_action\" name=\"action\">Enviar</button>\n                                </div>\n                              </form>\n                            </div>\n                          </template>\n                          <template v-else>\n                             <div class=\"col-12 col-md-8 offset-md-2 text-center align-self-center mt-5\">\n                                <div class=\"block\">\n                                    <div class=\"block-header\">\n                                        <div class=\"text-center\"><i class=\"fas fa-exclamation-triangle fa-3x mb-3\" style=\"color: #666;\"></i></div>\n                                        <h5 class=\"text-center mb-5\">{{tr(\"COMPLAINTNOTAVAILABLE\")}}.</h5>\n                                        <router-link to=\"/\" class=\"btn btn-custom\">{{tr(\"Back to Homepage\")}}</router-link>\n                                    </div>\n                                </div>\n                             </div>\n                          </template>\n                      </div>\n                  </div>\n                  <footerSectionComponent></footerSectionComponent>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "complaintPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "complaintPage";
+        }
+    }]);
+
+    return complaintPage;
+}(Component);
+
+complaintPage.registerComponent();
+//# sourceMappingURL=complaintPage.js.map

@@ -1,0 +1,126 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var carDeliveryComponent = function (_Component) {
+    _inherits(carDeliveryComponent, _Component);
+
+    function carDeliveryComponent() {
+        _classCallCheck(this, carDeliveryComponent);
+
+        return _possibleConstructorReturn(this, (carDeliveryComponent.__proto__ || Object.getPrototypeOf(carDeliveryComponent)).apply(this, arguments));
+    }
+
+    _createClass(carDeliveryComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['createNewDelivey'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                Name: null,
+                Country: null,
+                LocalityCode: null,
+                ZipCode: null,
+                Address: null,
+                City: null,
+                ProvinceCode: null
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                provinceFilter: function provinceFilter() {
+                    //console.log('Reload Province Filter');
+                    var filter = {};
+                    if (this.Country) filter['Country'] = this.Country;
+                    return filter;
+                },
+                cityFilter: function cityFilter() {
+                    var filter = {};
+                    if (this.ProvinceCode) filter['Province'] = this.ProvinceCode;
+                    return null;
+                },
+                localityFilter: function localityFilter() {
+                    var filter = {};
+                    if (this.ProvinceCode) filter['ProvinceCode'] = this.ProvinceCode;
+                    return null;
+                },
+                zipCodeFilter: function zipCodeFilter() {
+                    var filter = {};
+                    if (this.LocalityCode) filter['LocalityCode'] = this.LocalityCode;
+                    return null;
+                },
+                customer: function customer() {
+                    return this.$store.getters.getCustomer;
+                },
+                orderTemplate: function orderTemplate() {
+                    return this.$store.getters.getOrderTemplate;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                updateSelectValues: this.updateSelectValues,
+                closeModal: this.closeModal,
+                saveRecord: this.saveRecord
+            };
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues(updateValue) {
+            this[updateValue] = event.target.value;
+        }
+    }, {
+        key: "closeModal",
+        value: function closeModal() {
+            this.Name = null;
+            this.Address = null;
+            this.Country = null;
+            this.LocalityCode = null;
+            this.ZipCode = null;
+            this.City = null;
+            this.ProvinceCode = null;
+            $("#newDeliveryModel").modal('hide');
+        }
+    }, {
+        key: "saveRecord",
+        value: function saveRecord() {
+            var self = this;
+            this.createNewDelivey(this.$data).then(function (success) {
+                if (success) self.closeModal();
+            });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"modal\" tabindex=\"-1\" role=\"dialog\" ref=\"newDeliveryModel\" id=\"newDeliveryModel\" >\n                  <div class=\"modal-dialog\" role=\"document\">\n                    <div class=\"modal-content\">\n                      <div class=\"modal-header\">\n                        <h5 class=\"modal-title\">{{tr(\"Delivery Data\")}}</h5>\n                        <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                          <span aria-hidden=\"true\">&times;</span>\n                        </button>\n                      </div>\n                      <div class=\"modal-body\">\n                        <div class=\"row\">\n                          <div class=\"col-12\">\n                            <div class=\"form-group row\">\n                                <label class=\"col-sm-4 col-form-label\">{{tr(\"Name\")}}</label>\n                                <div class=\"col-sm-8\">\n                                   <input class=\"form-control\" type=\"text\" name=\"\" v-model=\"Name\">\n                                </div>\n                            </div>\n                            <div class=\"form-group row\">\n                                <label class=\"col-sm-4 col-form-label\">{{tr(\"Country\")}}</label>\n                                 <div class=\"col-sm-8\">\n                                    <selectLinkToComponent recordKey=\"modalDelivery\" class=\"form-control\" :table=\"'Country'\" :paste=\"'Code'\" :showField=\"'Name'\" :selected=\"Country\"  @update-value=\"updateSelectValues('Country')\"> </selectLinkToComponent>\n                                 </div>\n                            </div>\n                            <div class=\"form-group row \">\n                                <label class=\"col-sm-4 col-form-label\">{{tr(\"Province\")}}</label>\n                                <div class=\"col-sm-8\">\n                                    <selectLinkToComponent recordKey=\"modalDelivery\" class=\"form-control\" :table=\"'Province'\" :paste=\"'Code'\" :showField=\"'Name'\" :filters=\"provinceFilter\" :selected=\"ProvinceCode\"  @update-value=\"updateSelectValues('ProvinceCode')\"> </selectLinkToComponent>\n                                </div>\n                            </div>\n                            <awesonLinkToComponent :noLinked=\"true\" :formInline=\"true\" recordKey=\"modalDelivery\" :showLabel=\"true\" label=\"City\"     :table=\"'City'\" :paste=\"'Code'\" :showField=\"'Code'\"  :filters=\"cityFilter\" :selected=\"City\" @update-value=\"updateSelectValues('City')\"> </awesonLinkToComponent>\n                            <awesonLinkToComponent :formInline=\"true\" recordKey=\"modalDelivery\" :showLabel=\"true\" label=\"Locality\" :table=\"'Locality'\" :paste=\"'Code'\"  :showField=\"'Description'\" :selected=\"LocalityCode\" :filters=\"localityFilter\" @update-value=\"updateSelectValues('LocalityCode')\"> </awesonLinkToComponent>\n                            <div class=\"form-group row\">\n                                <label class=\"col-sm-4 col-form-label\">{{tr(\"Zip Code\")}}</label>\n                                <div class=\"col-sm-8\">\n                                  <selectLinkToComponent class=\"form-control\" :table=\"'ZipCode'\" :paste=\"'Code'\" :showField=\"'Code'\" :filters=\"zipCodeFilter\"  :selected=\"ZipCode\" @update-value=\"updateSelectValues('ZipCode')\" > </selectLinkToComponent>\n                                </div>\n                            </div>\n                            <div class=\"col-12\">\n                                <div class=\"form-group text-left \">\n                                    <label class=\"col-12 col-form-label\">{{tr(\"Delivery Address\")}}</label>\n                                    <div class=\"col-sm-9\">\n                                      <textarea class=\"form-control\" rows=\"3\" v-model=\"Address\" ></textarea>\n                                    </div>\n                                </div>\n                            </div>\n                          </div>\n                        </div>\n                      </div>\n                      <div class=\"modal-footer\">\n                        <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\" v-on:click=\"closeModal\" >{{tr('Close')}}</button>\n                        <button type=\"button\" class=\"btn btn-primary\" v-on:click=\"saveRecord\" >{{tr('Save')}}</button>\n                      </div>\n                    </div>\n                  </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "carDeliveryComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "carDeliveryComponent";
+        }
+    }]);
+
+    return carDeliveryComponent;
+}(Component);
+
+carDeliveryComponent.registerComponent();
+//# sourceMappingURL=carDeliveryComponent.js.map

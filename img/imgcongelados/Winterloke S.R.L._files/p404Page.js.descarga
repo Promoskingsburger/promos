@@ -1,0 +1,41 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var p404Page = function (_Component) {
+    _inherits(p404Page, _Component);
+
+    function p404Page() {
+        _classCallCheck(this, p404Page);
+
+        return _possibleConstructorReturn(this, (p404Page.__proto__ || Object.getPrototypeOf(p404Page)).apply(this, arguments));
+    }
+
+    _createClass(p404Page, [{
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"profile-view\">\n\t                <headerSectionComponent></headerSectionComponent>\n\t                <div :class=\"classContainer\" style=\"min-height: 36.5rem;\">\n\t                    <div class=\"row justify-content-center\">\n                            <div class=\"row section-main\">\n                                <div class=\"col align-self-center\">\n                                    <img class=\"\" src=\"/oo/ui/images/404_oppen.png\" class=\"img-fluid    \" alt=\"oppen 404\">\n                                </div>\n                                <div class=\"col align-self-center\">\n                                    <template v-if=\"$route.query.message\">\n                                        <h4 class=\"col-12 align-self-center\">{{tr('Information')}}</h4>\n                                        <h5 class=\"col-12 align-self-center\">\n                                            {{tr($route.query.message)}}\n                                        </h5>\n                                    </template>\n                                    <template v-else>\n                                    <div class=\"alert alert-dark\" role=\"alert\">\n                                          <h4 class=\"alert-heading\">{{tr(\"Page Not Found\")}}</h4>\n                                          <p>Sorry if you can see this page something are not good.</p>\n                                          <hr>\n                                          <p class=\"mb-0\">If this page appearly more the one time.</p>\n                                        </div>\n                                        <h4 class=\"col-12 align-self-center\">from e-commerce</h4>\n                                        <router-link to=\"/home\" class=\"btn waves-effect waves-light\" href=\"#\" >\n                                            <i class=\"fa fa-backward\"></i>Go Home\n                                        </router-link>\n                                    </template>\n                                </div>\n                            </div>\n                        </div>\n\t                </div>\n\t               <footerSectionComponent></footerSectionComponent>\n\t         </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "p404Component";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "p404Component";
+        }
+    }]);
+
+    return p404Page;
+}(Component);
+
+p404Page.registerComponent();
+//# sourceMappingURL=p404Page.js.map

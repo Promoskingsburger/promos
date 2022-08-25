@@ -1,0 +1,107 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var homeItemComponent = function (_Component) {
+    _inherits(homeItemComponent, _Component);
+
+    function homeItemComponent() {
+        _classCallCheck(this, homeItemComponent);
+
+        return _possibleConstructorReturn(this, (homeItemComponent.__proto__ || Object.getPrototypeOf(homeItemComponent)).apply(this, arguments));
+    }
+
+    _createClass(homeItemComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ["itemCode"];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                Qty: 1,
+                reloadComponent: false,
+                viewmode: 'module-small'
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$route': 'forceUpdate',
+                '$store.state.setting': 'forceUpdate',
+                '$store.state.itemTimeFlag': 'forceUpdate',
+                '$store.state.appState': 'forceUpdate'
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                item: function item() {
+                    if (this.reloadComponent) this.reloadComponent = false;
+                    var homeItem = this.$store.getters.getItemByCode(this.itemCode);
+                    //homeItem.visible=true;
+                    return homeItem;
+                },
+                itemClassObject: function itemClassObject() {
+                    return {
+                        'oo-item-container-list': this.viewmode == 'list',
+                        'oo-item-container': this.viewmode == 'module' || this.viewmode == 'module-small',
+                        'oo-item-container-small': this.viewmode == 'module-small',
+                        'oo-item-container-normal': this.viewmode == 'module',
+                        'col-12': this.viewmode == 'list',
+                        'col-6 col-sm-6 col-lg-3 px-1 px-lg-2': this.viewmode == 'module',
+                        'col-6 col-sm-4 col-lg-2 px-1 px-lg-2': this.viewmode == 'module-small'
+                    };
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                forceUpdate: this.forceUpdate
+            };
+        }
+    }, {
+        key: "forceUpdate",
+        value: function forceUpdate() {
+            this.reloadComponent = !this.reloadComponent;
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                if (!this.item) this.forceUpdate();
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div :class=\"itemClassObject\" v-if=\"item\">\n                <itemViewModuleComponent :item=\"item\" ></itemViewModuleComponent>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "homeItemComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "homeItemComponent";
+        }
+    }]);
+
+    return homeItemComponent;
+}(Component);
+
+homeItemComponent.registerComponent();
+//# sourceMappingURL=homeItemComponent.js.map

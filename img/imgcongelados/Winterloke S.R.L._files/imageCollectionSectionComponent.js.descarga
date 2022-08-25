@@ -1,0 +1,129 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, uuidv4 */
+var imageCollectionSectionComponent = function (_Component) {
+    _inherits(imageCollectionSectionComponent, _Component);
+
+    function imageCollectionSectionComponent() {
+        _classCallCheck(this, imageCollectionSectionComponent);
+
+        return _possibleConstructorReturn(this, (imageCollectionSectionComponent.__proto__ || Object.getPrototypeOf(imageCollectionSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(imageCollectionSectionComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                items: {
+                    type: Array,
+                    required: true
+                },
+                section: {
+                    type: Object,
+                    required: true
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                ColumnSize: null
+            };
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return function () {
+                this.ColumnSize = this.section.ColumnSize;
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {};
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                columnClass: function columnClass() {
+                    return "row-cols-1 row-cols-sm-" + this.ColumnSize;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getCategory: this.getCategory,
+                getCategoryLink: this.getCategoryLink,
+                filterByCategory: this.filterByCategory
+            };
+        }
+    }, {
+        key: "getCategory",
+        value: function getCategory(catCode) {
+            return this.$store.getters.getCategoryDataByCode(catCode);
+        }
+    }, {
+        key: "getCategoryLink",
+        value: function getCategoryLink(catCode) {
+            var cat = this.$store.getters.getCategoryDataByCode(catCode);
+            if (cat) return "/items?category=" + encodeURI(catCode + '__' + cat.name);
+            return "";
+        }
+    }, {
+        key: "filterByCategory",
+        value: function filterByCategory(itemFields) {
+            if (itemFields.ItemCode) {
+                var cat = this.getCategory(itemFields.ItemCode);
+                if (cat) {
+                    this.$store.commit('updateAppState', 'loading');
+                    var objectFilter = {};
+                    objectFilter.name = uuidv4();
+                    objectFilter.type = 'globalClassification';
+                    objectFilter.condition = "x.ClassificationPath['" + cat.code + "']!=undefined";
+                    objectFilter.label = cat.code;
+                    objectFilter.filterField = "Classification";
+                    this.$store.dispatch('addGlobalFilter', objectFilter);
+                    this.$store.dispatch('updateCategory', cat);
+                    this.emitEvent("category-select");
+                    window.scrollTo(0, 0);
+                    this.$router.push('/items?category=' + encodeURI(cat.code + "__" + cat.name));
+                }
+            } else if (itemFields.ItemLink) {
+                this.$store.commit('updateAppState', 'loading');
+                this.$router.push(itemFields.ItemLink.replace("#", ""));
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"container\">\n                    <h5 class=\"col-sm-12 section-title\">{{section.Title}} <small>({{items.length}})</small></h5>\n                    <div class=\"row\" :class=\"columnClass\">\n                        <div v-if=\"section.SectionType=='categoryList'\" class=\"col oo-image-container\" v-for=\"item of items\">\n                            <div  class=\"card\" @click.stop=\"filterByCategory(item.fields)\">\n                               <template v-if=\"item.fields.ItemPhotoUri\">\n                                  <img  :src=\"item.fields.ItemPhotoUri\" alt=\"Category\" class=\"item-image\" >\n                                  <div class=\"image-title\">\n                                      <span><b>{{getCategoryLink(item.fields.ItemCode).name}}</b></span>\n                                  </div>\n                               </template>\n                               <template v-else>\n                                  <svg class=\"bd-placeholder-img rounded float-left\" width=\"100%\" height=\"auto\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" focusable=\"false\" role=\"img\" aria-label=\"Placeholder: 200x200\"><title>Placeholder</title><rect width=\"100%\" height=\"100%\" fill=\"#868e96\"></rect><text x=\"50%\" y=\"50%\" fill=\"#dee2e6\" dy=\".3em\">{{getCategoryLink(item.fields.ItemCode).name}}</text></svg>\n                              </template>\n                            </div>\n                        </div>\n                        <div v-if=\"section.SectionType=='officesList'\" class=\"col oo-image-container\" v-for=\"item of items\">\n                            <div class=\"card\">\n                               <img  :src=\"item.fields.ItemPhotoUri\" alt=\"\" class=\"office-image\">\n                                  <div class=\"text-center py-3 py-md-4\">\n                                    <p class=\"text-uppercase highlighted\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[0] : ''}}</p>\n                                    <p class=\"secondary-text\">{{item.fields.ItemName ? (item.fields.ItemName).split('_')[1] : ''}}</p>\n                                  </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "imageCollectionSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "imageCollectionSectionComponent";
+        }
+    }]);
+
+    return imageCollectionSectionComponent;
+}(Component);
+
+imageCollectionSectionComponent.registerComponent();
+//# sourceMappingURL=imageCollectionSectionComponent.js.map

@@ -1,0 +1,380 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios */
+var profilePage = function (_Component) {
+    _inherits(profilePage, _Component);
+
+    function profilePage() {
+        _classCallCheck(this, profilePage);
+
+        return _possibleConstructorReturn(this, (profilePage.__proto__ || Object.getPrototypeOf(profilePage)).apply(this, arguments));
+    }
+
+    _createClass(profilePage, [{
+        key: "data",
+        value: function data() {
+            return {
+                editAvatar: false,
+                activeView: "Orders",
+                showReportSubMenu: false,
+                response: null,
+                oldPassword: null,
+                newPassword: null,
+                confirmPassword: null,
+                errorAlertDataSession: null,
+                errorAlert: null,
+                listMode: true,
+                loadingImage: false
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "session": function session() {
+                    if (this.session) {
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_Province', value: this.session.fields.ProvinceCode });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_Country', value: this.session.fields.Country });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_ZipCode', value: this.session.fields.ZipCode });
+                        this.$store.dispatch('updateSelectLinkto', { table: 'Session_CenterCost', value: this.session.fields.CenterCost });
+                    }
+                },
+                "$route.params.activeView": function $routeParamsActiveView(newValue, oldValue) {
+                    if (oldValue != newValue) {
+                        if (!newValue) newValue = "Orders";
+                        this.changeView(newValue);
+                    }
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.loadCustomerPersons();
+                if (this.$route.params.activeView) {
+                    this.activeView = this.$route.params.activeView;
+                }
+            };
+        }
+    }, {
+        key: "updated",
+        value: function updated() {
+            return function () {
+                if (this.$store.getters.getAppState == "ready" && !this.$store.getters.getIsLogin) {
+                    this.$store.dispatch('setRedirectLogin', this.$route.fullPath);
+                    this.$router.push("login");
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                showInvoiceListInProfile: function showInvoiceListInProfile() {
+                    return this.$store.getters.getSetting.ShowInvoiceListInProfile;
+                },
+                enableComplainForm: function enableComplainForm() {
+                    return this.$store.getters.useComplaintForm;
+                },
+
+                orderSerNr: function orderSerNr() {
+                    return this.$route.params.SerNr;
+                },
+                viewmode: function viewmode() {
+                    if (this.$store.getters.getUserIsAdmin) return 'alls-persons';
+                    return 'active-persons';
+                },
+                session: function session() {
+                    var storeSession = this.$store.getters.getSession;
+                    if (storeSession) return storeSession;
+                    return null;
+                },
+                salesman: function salesman() {
+                    return this.$store.getters.getSalesMan;
+                },
+                customer: function customer() {
+                    return this.$store.getters.getCustomer;
+                },
+                isAdmin: function isAdmin() {
+                    return this.$store.getters.getUserIsAdmin;
+                },
+                avatarUrl: function avatarUrl() {
+                    if (this.$store.getters.getAvatar) return this.$store.getters.getAvatar;else return "../static/ecommerce/img/user.png";
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                clearFile: this.clearFile,
+                resetDefault: this.resetDefault,
+                submitFile: this.submitFile,
+                clearAvatar: this.clearAvatar,
+                changeView: this.changeView,
+                activeReport: this.activeReport,
+                logout: this.logout,
+                loadCustomerPersons: this.loadCustomerPersons,
+                updateSelectValues: this.updateSelectValues,
+                loadSelects: this.loadSelects,
+                EditProfileSession: this.EditProfileSession,
+                changePassword: this.changePassword
+            };
+        }
+    }, {
+        key: "clearFile",
+        value: function clearFile() {
+            var fileInput = document.querySelector('#avatarFile');
+            fileInput.value = '';
+            this.editAvatar = false;
+        }
+    }, {
+        key: "resetDefault",
+        value: function resetDefault() {
+            var _this2 = this;
+
+            if (confirm(this.tr('Do you want to reset your profile image to default?'))) {
+                axios.post("/ecommerce/api/resetAvatar/" + this.session.fields.Code, { reset: true }).then(function (response) {
+                    _this2.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image changed", type: 'info' });
+                    _this2.clearFile();
+                }).catch(function (error) {
+                    _this2.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image was't changed", type: 'error' });
+                    _this2.clearFile();
+                    // eslint-disable-next-line no-console
+                    console.log('FAILURE!!', error);
+                });
+            }
+        }
+    }, {
+        key: "submitFile",
+        value: function submitFile() {
+            var self = this;
+            var formData = new FormData();
+            var imagefile = document.querySelector('#avatarFile');
+            if (imagefile.files.length > 0) {
+                self.loadingImage = true;
+                formData.append("image", imagefile.files[0]);
+                axios.post("/ecommerce/api/changeAvatar/" + this.session.fields.Code, formData, { headers: { 'Content-Type': 'multipart/form-data' } }).then(function (response) {
+                    self.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image changed", type: 'info' });
+                    self.clearFile();
+                    self.$store.dispatch('updateAvatar', response.data.newURL);
+                    self.loadingImage = false;
+                }).catch(function (error) {
+                    self.$store.dispatch('showNotificacion', { title: "Information", message: "Profile Image was't changed", type: 'error' });
+                    self.clearFile();
+                    self.loadingImage = false;
+                });
+            } else {
+                this.$store.dispatch('showNotificacion', { title: "Information", message: "Please select an Image", type: 'info' });
+            }
+        }
+    }, {
+        key: "clearAvatar",
+        value: function clearAvatar(e, key) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.avatarData = null;
+        }
+    }, {
+        key: "changeView",
+        value: function changeView(newactiveView) {
+            this.activeView = newactiveView;
+        }
+    }, {
+        key: "activeReport",
+        value: function activeReport(reportName) {
+            var _this3 = this;
+
+            this.showReportSubMenu = false;
+            this.activeView = "Reports";
+            this.reportName = reportName;
+            setTimeout(function () {
+                return _this3.emitEvent('changeReportView', reportName);
+            }, 500);
+        }
+    }, {
+        key: "logout",
+        value: function logout() {
+            var self = this;
+            this.$store.dispatch("logout").then(function () {
+                document.cookie = "connect.ecommerce.sid" + "=;expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+                self.$router.push("/home");
+            });
+        }
+    }, {
+        key: "loadCustomerPersons",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function loadCustomerPersons() {
+                return _ref.apply(this, arguments);
+            }
+
+            return loadCustomerPersons;
+        }()
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues() {
+            this.session.fields.ProvinceCode = this.$store.getters.getSelectLinkToValue('Session_Province');
+            this.session.fields.ZipCode = this.$store.getters.getSelectLinkToValue('Session_ZipCode');
+            this.session.fields.Country = this.$store.getters.getSelectLinkToValue('Session_Country');
+            this.session.fields.DefaultCenterCost = this.$store.getters.getSelectLinkToValue('Session_CenterCost');
+        }
+    }, {
+        key: "loadSelects",
+        value: function loadSelects() {
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_Province', value: this.session.fields.ProvinceCode });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_Country', value: this.session.fields.Country });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_ZipCode', value: this.session.fields.ZipCode });
+            this.$store.dispatch('updateSelectLinkto', { table: 'Session_CenterCost', value: this.session.fields.DefaultCenterCost });
+        }
+    }, {
+        key: "EditProfileSession",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var _this4 = this;
+
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.errorAlertDataSession = null;
+
+                                if (!this.session.fields.Name) this.errorAlertDataSession = 'Please fill the field Name';else if (!this.session.fields.LastName) this.errorAlertDataSession = 'Please fill the field Last Name';
+
+                                if (this.errorAlertDataSession) {
+                                    _context2.next = 6;
+                                    break;
+                                }
+
+                                _context2.next = 5;
+                                return axios.post('/ecommerce/api/updatePerson', this.session).then(function (response) {
+                                    _this4.response = response;
+                                }).catch(function (error) {
+                                    // eslint-disable-next-line no-console
+                                    console.log('Error response in Register Person', error);
+                                });
+
+                            case 5:
+
+                                if (this.response.data.success) {
+                                    this.$store.dispatch('showNotificacion', { title: 'Guardar', message: 'Datos Personales guardados', type: 'success' });
+                                }
+
+                            case 6:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function EditProfileSession() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return EditProfileSession;
+        }()
+    }, {
+        key: "changePassword",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var _this5 = this;
+
+                var data;
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                this.errorAlert = null;
+                                if (!this.oldPassword) this.errorAlert = 'Please type your actual password';else if (!this.newPassword) this.errorAlert = 'Please type a new password';else if (!this.confirmPassword) this.errorAlert = 'Please confirm the new password';else if (this.newPassword !== this.confirmPassword) this.errorAlert = "The Passwords does'nt match";
+
+                                if (this.errorAlert) {
+                                    _context3.next = 7;
+                                    break;
+                                }
+
+                                data = {
+                                    oldPassword: this.oldPassword,
+                                    newPassword: this.newPassword
+                                };
+                                _context3.next = 6;
+                                return axios.post('/ecommerce/api/changePassword', data).then(function (response) {
+                                    _this5.response = response;
+                                });
+
+                            case 6:
+
+                                if (!this.response.data.success) {
+                                    this.errorAlert = this.response.data.errors;
+                                    this.oldPassword = null;
+                                    this.newPassword = null;
+                                    this.confirmPassword = null;
+                                } else {
+                                    this.oldPassword = null;
+                                    this.newPassword = null;
+                                    this.confirmPassword = null;
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: 'Cambio de Password',
+                                        message: 'Password cambiado satisfactoriamente',
+                                        type: 'success'
+                                    });
+                                }
+
+                            case 7:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function changePassword() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return changePassword;
+        }()
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"profile-view\">\n                    <headerSectionComponent headerTitle=\"Actualizaci\xF3n de Datos\" :renderMenu=\"false\" :renderSearch=\"false\"></headerSectionComponent>\n                    <div class=\"section white\" :class=\"classContainer\">\n                        <template v-if=\"!isLoading\">\n                            <div style=\"min-height: 36.5rem;\">\n                                <section class=\"padding-small\">\n                                    <div class=\"container-fluid p-1 p-sm-2\">\n                                        <div class=\"row\">\n                                            <div class=\"customer-sidebar col-xl-2 col-lg-3 mb-md-5 text-sm-left\">\n                                                <div class=\"col-12\">\n                                                    <a class=\"navbar-brand col-12\" href=\"#\"><h5 class=\"title\">{{tr('Your profile')}}</h5></a>\n                                                    <div class=\"list-group\" id=\"navbarText\">\n                                                        <a class=\"list-group-item list-group-item-action\" data-toggle=\"list\" href=\"#/profile\" @click=\"logout\">\n                                                            <span><i class=\"icon fas fa-sign-out-alt\"></i> {{tr('Log Out')}}</span>\n                                                        </a>\n                                                        <template v-if=\"$store.getters.getIndicators.length>0\">\n                                                            <router-link class=\"nav-item nav-link\" :class='{active: activeView==\"Indicators\"}' :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'Indicators'}}\" data-toggle=\"list\" >{{tr(\"Indicators\")}}</router-link>\n                                                        </template>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Orders\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'Orders'}}\" >{{tr(\"Orders\")}}</router-link>\n                                                        <router-link v-if=\"showInvoiceListInProfile\" class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Invoices\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'Invoices'}}\" >{{tr(\"Invoices\")}}</router-link>\n                                                        <template v-if=\"isAdmin\">\n                                                            <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Addresses\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile',params:{activeView:'Addresses'}}\" >{{tr('Addresses')}}</router-link>\n                                                            <span class=\"list-group-item list-group-item-action dropdown-toggle\" data-toggle=\"list\" :class='{active: activeView==\"Reports\"}' role=\"button\"  aria-haspopup=\"true\" aria-expanded=\"false\" @click.stop=\"showReportSubMenu=!showReportSubMenu\">{{tr(\"Reports\")}}</span>\n                                                            <div class=\"custom-dropdown-menu\" v-if=\"showReportSubMenu\">\n                                                                <template v-for=\"(report, index) in $store.getters.getReports\">\n                                                                    <a href=\"#/profile\" @click=activeReport(report.fields.ReportName) :class='{active: activeView==report.fields.ReportName}' class=\"list-group-item list-group-item-action dropdown-toggle\">\n                                                                        {{' >'+tr(report.fields.ReportTitle)}}\n                                                                    </a>\n                                                                </template>\n                                                            </div>\n            \n                                                            <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Persons\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'Persons'}}\" >{{tr('Persons')}}</router-link>\n                                                            <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"CenterCost\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile',params:{activeView:'CenterCost'}}\" >{{tr('Cost Center')}}</router-link>\n                                                        </template>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"Profile\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'Profile'}}\"  >{{tr('Profile')}}</router-link>\n                                                        <router-link class=\"list-group-item list-group-item-action\" :class='{active: activeView==\"ChangePassword\"}' data-toggle=\"list\" :to=\"{name:'ProfileLinkAlias',path:'profile' , params:{activeView:'ChangePassword'}}\" >{{tr('Change Password')}}</router-link>\n                                                        <router-link to=\"/complaint\" class=\"list-group-item list-group-item-action\" v-if=\"enableComplainForm\">{{tr(\"Help Desk\")}}</router-link>\n                                                    </div>\n                                                    <div class=\"col-12 row justify-content-center m-0 p-0 pr-1\">\n                                                        <template v-if=\"loadingImage\">\n                                                            <div class=\"avatar-container py-5\">\n                                                                <i class=\"fas fa-spinner fa-spin fa-2x\"></i>\n                                                            </div>\n                                                        </template>\n                                                        <template v-else>\n                                                            <div class=\"avatar-container\">\n                                                                <img :src=\"avatarUrl\" alt=\"Avatar Profile\" class=\"rounded rounded-circle d-block custom-avatar\" />\n                                                                <span v-if=\"!editAvatar\" class=\"edit-button\" @click=\"editAvatar=true\" :title=\"tr('Edit')\" ><i class=\"fa fa-edit\"></i></span>\n                                                            </div>\n                                                        </template>\n                                                        <div class=\"change-avatar col-12 mt-1 p-2\" v-if=\"editAvatar\">\n                                                            <div class=\"form-group mb-2\">\n                                                                <span class=\"close-button\" :title=\"tr('Cancel')\" @click=\"clearFile\"><i class=\"fas fa-times\"></i></span>\n                                                                <div class=\"custom-file\">\n                                                                    <input type=\"file\" id=\"avatarFile\" class=\"file-input\" hidden @change=\"submitFile\">\n                                                                    <label for=\"avatarFile\" class=\"custom-file-label\" :data-browse=\"tr('Change Avatar')\">{{tr(\"Change Avatar\")}}</label>\n                                                                </div>\n                                                            </div>\n                                                            <!--<div class=\"form-group text-center mb-0\">\n                                                                <button class=\"btn btn-secondary\" :title=\"tr('Reset Image')\" @click=\"resetDefault\"><i class=\"icon fa fa-redo\"></i></button>\n                                                            </div>-->\n                                                        </div>\n                                                    </div>\n                                                    <div class=\"col-12 p-0 text-center text-lg-left\">\n                                                        <p class=\"name\">{{session.fields.Name}} {{session.fields.LastName}}</p>\n                                                        <p class=\"customer\">{{tr('Customer')}}: <span>{{customer.Name}}</span></p>\n                                                        <p class=\"text-muted text-small\" v-if=\"salesman\">\n                                                            {{tr(\"Your account executive is\")}}:<br>\n                                                            {{salesman.Name}} {{salesman.LastName}} <br>\n                                                            {{salesman.Phone}}<br>\n                                                            {{salesman.Email}}\n                                                        </p>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                            <div class=\"col-xl-10 col-lg-9 pl-lg-3 mt-3\">\n                                                <div class=\"tab-content p-3\">\n                                                    <div v-if=\"activeView=='Addresses'\" id=\"AddressesView\" >\n                                                        <addressesManagerComponent> </addressesManagerComponent>\n                                                    </div>\n                                                    <div v-if=\"activeView=='Orders'\" id=\"OrderView\" >\n                                                        <orderViewComponent orderId=\"orderSerNr\"> </orderViewComponent>\n                                                    </div>\n                                                    <div v-if=\"activeView=='Invoices'\" id=\"InvoiceView\" >\n                                                        <invoice-list />\n                                                    </div>\n                                                    <div v-if=\"isAdmin && activeView=='Reports'\" id=\"ReportView\" >\n                                                        <genericReportPage :key=\"'reportView'+reportName\"></genericReportPage>\n                                                    </div>\n                                                    <div  v-if=\"isAdmin && activeView=='Indicators'\" id=\"OrderAuthView\" >\n                                                        <genericIndicatorPage> </genericIndicatorPage>\n                                                    </div>\n            \n                                                    <div  v-if=\"isAdmin && activeView=='Persons'\" id=\"AdminPerson\" >\n                                                        <PersonManagerComponent></PersonManagerComponent>\n                                                    </div>\n                                                    <div v-if=\"isAdmin && activeView=='CenterCost'\" id=\"AdminCenterCosts\" >\n                                                        <centerCostManagerComponent></centerCostManagerComponent>\n                                                    </div>\n                                                    <div v-if=\"activeView=='ChangePassword'\" id=\"ChangePassword\" >\n                                                        <div class=\"col-sm-12\">\n                                                            <div ref='errorChangePassword' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"errorAlert\">\n                                                                <strong>{{tr('Error')}}: {{tr(errorAlert)}}!</strong>\n                                                                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"errorAlert = ''\">\n                                                                    <span aria-hidden=\"true\">&times;</span>\n                                                                </button>\n                                                            </div>\n                                                        </div>\n                                                        <div class=\"content-block\">\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_old\" class=\"form-label\">{{tr('Old Password')}}</label>\n                                                                        <input id=\"password_old\" type=\"password\" class=\"form-control\" v-model=\"oldPassword\">\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_1\" class=\"form-label\">{{tr('New Password')}}</label>\n                                                                        <input id=\"password_1\" type=\"password\" class=\"form-control\" v-model=\"newPassword\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"password_2\" class=\"form-label\">{{tr('Retype New Password')}}</label>\n                                                                        <input id=\"password_2\" type=\"password\" class=\"form-control\" v-model=\"confirmPassword\">\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <!-- /.row-->\n                                                            <div class=\"text-right\">\n                                                                <button class=\"btn btn-custom change-password\" @click.prevent=\"changePassword\"><span class=\"icon\"><i class=\"fa-icon fa fa-save\"></i></span> {{tr('Change Password')}}</button>\n                                                            </div>\n                                                        </div>\n                                                    </div>\n                                                    <div  v-if=\"activeView=='Profile'\" id=\"Profile\" >\n                                                        <h5 class=\"my-4\">{{tr('Personal Details')}}</h5>\n                                                        <div class=\"content-block\">\n                                                            <div ref='errorEditProfile' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" v-if=\"errorAlertDataSession\">\n                                                                <strong>{{tr('Error')}}: {{tr(errorAlertDataSession)}}!</strong>\n                                                                <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"errorAlertDataSession = ''\">\n                                                                    <span aria-hidden=\"true\">&times;</span>\n                                                                </button>\n                                                            </div>\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n            \n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"firstname\" class=\"form-label\">{{tr('Name')}}</label>\n                                                                        <input id=\"firstname\" type=\"text\" class=\"form-control\" v-model=\"session.fields.Name\" >\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"lastname\" class=\"form-label\">{{tr('Last Name')}}</label>\n                                                                        <input id=\"lastname\" type=\"text\" class=\"form-control\" v-model=\"session.fields.LastName\" >\n                                                                    </div>\n                                                                </div>\n                                                            </div>\n                                                            <!-- /.row-->\n                                                            <div class=\"row\">\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"WorkAddress\" class=\"form-label\">{{tr('Address')}}</label>\n                                                                        <input id=\"WorkAddress\" type=\"text\" class=\"form-control\" v-model=\"session.fields.WorkAddress\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"Province\" class=\"form-label\">{{tr('Province')}}</label>\n                                                                        <selectLinkToComponent  recordKey=\"Session\" table=\"Province\" paste=\"Code\" showField=\"Name\" :selected=\"session.fields.ProvinceCode\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"zip\" class=\"form-label\">{{tr('ZIP')}}</label>\n                                                                        <selectLinkToComponent recordKey=\"Session\" table=\"ZipCode\" paste=\"Code\" showField=\"Code\" :selected=\"session.fields.ZipCode\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"company\" class=\"form-label\">{{tr('Country')}}</label>\n                                                                        <selectLinkToComponent recordKey=\"Session\" table=\"Country\" paste=\"Code\" showField=\"Name\" :selected=\"$store.getters.getSelectLinkToValue('Country')\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                    </div>\n                                                                </div>\n            \n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"phone\" class=\"form-label\">{{tr('Personal Phone')}}</label>\n                                                                        <input id=\"phone\" type=\"text\" class=\"form-control\"  v-model=\"session.fields.Phone\">\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"email\" class=\"form-label\">{{tr('Email')}}</label>\n                                                                        <input id=\"email\" type=\"text\" class=\"form-control\" v-model=\"session.fields.Email\">\n                                                                    </div>\n                                                                </div>\n            \n                                                                <div class=\"col-sm-6\">\n                                                                    <div class=\"form-group\">\n                                                                        <label for=\"company\" class=\"form-label\">{{tr('Cost Center')}}</label>\n                                                                        <template v-if=\"isAdmin\">\n                                                                            <selectLinkToComponent recordKey=\"Session\" table=\"CenterCost\" paste=\"Code\" showField=\"Name\" :selected=\"session.fields.DefaultCenterCost\" v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                                                                        </template>\n                                                                        <template v-else>\n                                                                            <input type=\"text\" readonly class=\"form-control-plaintext\" id=\"staticEmail\" :placeholder=\"tr('Cost Center')\" :value=\"session.fields.DefaultCenterCost\">\n                                                                        </template>\n                                                                    </div>\n                                                                </div>\n                                                                <div class=\"col-sm-12 text-right\">\n                                                                    <button class=\"btn btn-custom save-changes\" @click=\"EditProfileSession\"><span class=\"icon\"><i class=\"fa-icon fa fa-save mr-1\"></i></span>  {{tr('Save Changes')}}</button>\n                                                                </div>\n                                                            </div>\n                                                        </div>\n                                                    </div>\n                                                </div>\n                                            </div>\n                                        </div>\n                                    </div>\n                                </section>\n                            </div>\n                        </template>\n                        <template v-else>\n                            <div class=\"row\">\n                                <div class=\"loading\" style=\"min-height: 36.5rem;\">\n                                    <i class=\"fas fa-spinner fa-spin fa-3x\"></i>\n                                </div>\n                            </div>\n                        </template>\n                    </div>\n                    <footerSectionComponent></footerSectionComponent>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "profilePage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "profilePage";
+        }
+    }]);
+
+    return profilePage;
+}(Component);
+
+profilePage.registerComponent();
+//# sourceMappingURL=profilePage.js.map

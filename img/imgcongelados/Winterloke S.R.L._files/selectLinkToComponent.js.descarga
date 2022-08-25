@@ -1,0 +1,380 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios, _ */
+var selectLinkToComponent = function (_Component) {
+    _inherits(selectLinkToComponent, _Component);
+
+    function selectLinkToComponent() {
+        _classCallCheck(this, selectLinkToComponent);
+
+        return _possibleConstructorReturn(this, (selectLinkToComponent.__proto__ || Object.getPrototypeOf(selectLinkToComponent)).apply(this, arguments));
+    }
+
+    _createClass(selectLinkToComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                disabled: {
+                    type: Boolean,
+                    required: false,
+                    default: false
+                },
+                editable: {
+                    type: Boolean,
+                    required: false,
+                    default: false
+                },
+                table: {
+                    type: String,
+                    required: true
+                },
+                paste: {
+                    type: String,
+                    required: true
+                },
+                showField: {
+                    type: String,
+                    required: true
+                },
+                selected: {
+                    type: String
+                    //required: true,
+                },
+                delayLoad: {
+                    type: Boolean,
+                    default: false
+                },
+                filters: {
+                    type: Object
+                },
+                callback: {
+                    type: Function
+                },
+                recordKey: {
+                    type: String,
+                    default: ''
+                },
+                rowField: {
+                    type: String,
+                    default: ''
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                linkToData: {},
+                mustUpdate: false,
+                suggestionsList: [],
+                selectedValueData: null,
+                searchValue: null
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (!this.delayLoad) {
+                                    this.loadLinkToData();
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.selectedValueData = this.selected;
+                                this.updateSelectLinkto = this.updateSelectLinkto.bind(this);
+                                this.loadLinkToData = this.loadLinkToData.bind(this);
+                                this.getOptionLabel = this.getOptionLabel.bind(this);
+
+                            case 4:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "selected": function selected(newValue, oldValue) {
+                    this.selectedValueData = newValue;
+                },
+                'filters': function filters() {
+                    if (this.filters != null && Object.keys(this.filters).length >= 0) {
+                        this.loadLinkToData();
+                    }
+                },
+                "searchValue": function searchValue() {
+                    if (this.searchValue.length > 3) this.findSuggestions();
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                showEditableInput: function showEditableInput() {
+                    return this.editable && Object.keys(this.linkToData).length == 0;
+                },
+
+                OurSettingsCountry: function OurSettingsCountry() {
+                    return this.$store.getters.getOurSettingsCountry;
+                },
+                selectedValue: function selectedValue() {
+                    if (this.selected == null) {
+                        if (this.selectedValueData) return this.selectedValueData;
+                        var storeSelected = this.$store.getters.getSelectLinkToValue(this.recordKey + '_' + this.table);
+                        this.mustUpdate = false;
+                        if (this.table === 'Country' && storeSelected === "") {
+
+                            return this.OurSettingsCountry;
+                        } else if (storeSelected) return storeSelected;
+                    }
+                    return this.selected;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadLinkToData: function loadLinkToData() {
+                    var _this2 = this;
+
+                    axios.post('/ecommerce/api/getLinkToData', {
+                        table: this.table,
+                        paste: this.paste,
+                        showField: this.showField,
+                        filters: this.filters
+                    }).then(function (response) {
+                        var linkToData = response.data.result;
+                        linkToData = _.map(linkToData, function (x) {
+                            return Object.assign(x.fields, x.virtualFields);
+                        });
+                        _this2.linkToData = Object.seal(linkToData);
+                    });
+                },
+                getOptionLabel: function getOptionLabel(option) {
+                    var label = "";
+                    if (Array.isArray(this.showField)) {
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = this.showField[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var recField = _step.value;
+
+                                label = label + " " + option[recField];
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    } else label = option[this.showField];
+                    //console.log("Select Label",label);
+                    return label;
+                },
+
+                updateSelectLinkto: function updateSelectLinkto(event) {
+                    var _this3 = this;
+
+                    var data = {
+                        recordKey: this.recordKey,
+                        table: this.recordKey ? this.recordKey + '_' + this.table : this.table,
+                        linkToData: this.linkToData.filter(function (x) {
+                            return x[_this3.paste] == event.target.value;
+                        }),
+                        value: event.target.value
+                    };
+                    this.selectedValueData = event.target.value;
+                    this.$store.dispatch('updateSelectLinkto', data);
+                    this.$emit('update-value', event.target.value);
+                    this.$emit('update-value-full', data);
+                    this.$emit('input', event.target.value);
+                    this.mustUpdate = true;
+                },
+                selectSuggestion: function selectSuggestion() {
+                    if (this.searchValue.length > 3) {
+                        var _iteratorNormalCompletion2 = true;
+                        var _didIteratorError2 = false;
+                        var _iteratorError2 = undefined;
+
+                        try {
+                            for (var _iterator2 = this.linkToData[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                var linkObj = _step2.value;
+
+                                var label = "";
+                                if (Array.isArray(this.showField)) {
+                                    var _iteratorNormalCompletion3 = true;
+                                    var _didIteratorError3 = false;
+                                    var _iteratorError3 = undefined;
+
+                                    try {
+                                        for (var _iterator3 = this.showField[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                            var recField = _step3.value;
+
+                                            label = label + " " + linkObj[recField];
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError3 = true;
+                                        _iteratorError3 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                                _iterator3.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError3) {
+                                                throw _iteratorError3;
+                                            }
+                                        }
+                                    }
+                                } else label = linkObj[this.showField];
+                                if (label == this.searchValue) {
+                                    this.selectedValueData = linkObj[this.paste];
+                                    this.updateSelectLinkto({ target: { value: linkObj[this.paste] } });
+                                    return;
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError2 = true;
+                            _iteratorError2 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+                            } finally {
+                                if (_didIteratorError2) {
+                                    throw _iteratorError2;
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                },
+                findSuggestions: function findSuggestions() {
+                    if (this.selectSuggestion()) return;
+                    var newSuggestions = [];
+                    if (this.searchValue.length > 3) {
+                        var searchExp = new RegExp(this.searchValue, 'i');
+                        var _iteratorNormalCompletion4 = true;
+                        var _didIteratorError4 = false;
+                        var _iteratorError4 = undefined;
+
+                        try {
+                            for (var _iterator4 = this.linkToData[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                                var linkObj = _step4.value;
+
+                                var label = "";
+                                if (Array.isArray(this.showField)) {
+                                    var _iteratorNormalCompletion5 = true;
+                                    var _didIteratorError5 = false;
+                                    var _iteratorError5 = undefined;
+
+                                    try {
+                                        for (var _iterator5 = this.showField[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                                            var recField = _step5.value;
+
+                                            label = label + " " + linkObj[recField];
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError5 = true;
+                                        _iteratorError5 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                                _iterator5.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError5) {
+                                                throw _iteratorError5;
+                                            }
+                                        }
+                                    }
+                                } else label = linkObj[this.showField];
+                                if (label.search(searchExp) != -1) newSuggestions.push(linkObj);
+                            }
+                        } catch (err) {
+                            _didIteratorError4 = true;
+                            _iteratorError4 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                    _iterator4.return();
+                                }
+                            } finally {
+                                if (_didIteratorError4) {
+                                    throw _iteratorError4;
+                                }
+                            }
+                        }
+
+                        this.suggestionsList = newSuggestions;
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                    <template v-if='showEditableInput'>\n                        <input :key=\"recordKey+'_'+table\" :id=\"recordKey+'_'+rowField+'_'+table\" class=\"form-control\" v-model=\"selectedValueData\" @change=\"updateSelectLinkto\" :disabled=\"disabled ? 'disabled' : null\">\n                    </template>\n                    <template v-else>\n                        <select :key=\"recordKey+'_'+table\" :id=\"recordKey+'_'+rowField+'_'+table\" class=\"form-control\" v-model=\"selectedValueData\" @change=\"updateSelectLinkto\" :disabled=\"disabled ? 'disabled' : null\">\n                            <option value=\"\" disabled>{{tr(\"Select One\")}}</option>\n                            <template v-for=\"(val,idx) in linkToData\">\n                                <option :value=\"val[paste]\":selected=\"selectedValueData==val[paste]\">{{getOptionLabel(val)}}</option >\n                            </template>\n                        </select>\n                    </template>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "selectLinkToComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "selectLinkToComponent";
+        }
+    }]);
+
+    return selectLinkToComponent;
+}(Component);
+
+selectLinkToComponent.registerComponent();
+//# sourceMappingURL=selectLinkToComponent.js.map

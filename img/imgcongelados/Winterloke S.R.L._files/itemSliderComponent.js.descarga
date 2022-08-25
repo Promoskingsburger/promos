@@ -1,0 +1,222 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var itemSliderComponent = function (_Component) {
+    _inherits(itemSliderComponent, _Component);
+
+    function itemSliderComponent() {
+        _classCallCheck(this, itemSliderComponent);
+
+        return _possibleConstructorReturn(this, (itemSliderComponent.__proto__ || Object.getPrototypeOf(itemSliderComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemSliderComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            /*
+                showCarusel:        muestra las miniaturas abajo de la imagen principal si hay mas de una
+                caruselOnLeftSide:  muestra las miniaturas a la izquierda de la imagen principal si hay mas de una
+                slideBigImage:      muestra las flechas a los costados de la imagen principal si hay mas de una
+            */
+            return ['item', 'useZoom', 'container', "stockFlag", "showCarusel", "slideBigImage", "itemInSlider", "imgNumber", "carouselOnLeftSide"];
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "item.Code": function itemCode() {
+                    this.slidesItem = [];
+                    this.selected = 0;
+                    this.minIndex = 0;
+                    this.getItemImage();
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                slidesItem: [],
+                selected: 0,
+                minIndex: 0
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.getItemImage();
+                this.selected = this.imgNumber || 0;
+                if (this.selected > this.slidesItem.length - 1) this.selected = 0;
+                if (!this.container) {
+                    var index = 0;
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = this.slidesItem[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var item = _step.value;
+
+                            if (item && !item.is360) {
+                                this.selected = index;
+                                break;
+                            }
+                            index++;
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                itemCode: function itemCode() {
+                    return this.item.Code;
+                },
+                noStock: function noStock() {
+                    if (this.item.Qty <= 0 && this.stockFlag) return true;
+                    return false;
+                },
+                maxIndex: function maxIndex() {
+                    if (this.itemInSlider) this.itemInSlider;
+                    return this.slidesItem.length;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                clickEvent: this.clickEvent,
+                selectImage: this.selectImage,
+                getItemImage: this.getItemImage,
+                shouldRenderImg: this.shouldRenderImg,
+                moveLeft: this.moveLeft,
+                moveRight: this.moveRight
+            };
+        }
+    }, {
+        key: "selectImage",
+        value: function selectImage(index) {
+            this.selected = index;
+        }
+    }, {
+        key: "getItemImage",
+        value: function getItemImage() {
+            if (this.item && this.item.slideIds) {
+                var imagesList = [];
+                var slideValue = this.item.slideIds;
+                if (!Array.isArray(slideValue) && typeof slideValue === 'string') {
+                    imagesList = this.item.slideIds.split(",");
+                } else {
+                    imagesList = this.item.slideIds;
+                }
+                var slidesItem = [];
+                var iter = 0;
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
+
+                try {
+                    for (var _iterator2 = imagesList[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var imgId = _step2.value;
+
+                        var dataDesTruct = imgId.split("--");
+                        var is360 = false;
+                        if (dataDesTruct.length > 1) is360 = dataDesTruct[1] === "360";
+                        slidesItem.push({ src: this.item.images[iter], is360: is360 });
+                        iter += 1;
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+
+                this.slidesItem = slidesItem;
+                return slidesItem[0];
+            }
+            return [];
+        }
+    }, {
+        key: "shouldRenderImg",
+        value: function shouldRenderImg(index) {
+            return index >= this.minIndex && index < this.minIndex + this.maxIndex;
+        }
+    }, {
+        key: "moveLeft",
+        value: function moveLeft() {
+            if (this.minIndex > 0) {
+                this.minIndex = this.minIndex - 1;
+                this.selected = this.minIndex;
+            }
+        }
+    }, {
+        key: "moveRight",
+        value: function moveRight() {
+            if (this.minIndex + 1 < this.slidesItem.length) {
+                this.minIndex = this.minIndex + 1;
+            } else {
+                this.minIndex = 0;
+            }
+            this.selected = this.minIndex;
+        }
+    }, {
+        key: "clickEvent",
+        value: function clickEvent() {
+            return this.emitEvent('modalItemCick');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row m-0 item-slider-component\" :key=\"itemCode\">\n                   <div @click=\"clickEvent\" class=\"p-0 item-slider-component-image\" :class=\"{'order-2 col-9 col-xl-10': carouselOnLeftSide, 'col-12': !carouselOnLeftSide}\">\n                         <template v-if=\"noStock==true\">\n                            <div class=\"no-stock-image\"><span>{{tr(\"Sold out\")}}</span></div>\n                         </template>\n                         <template v-if=\"slidesItem.length > 0\">\n                            <template v-if=\"container\">\n                                <span class=\"slider-item-control-left big-image-control\" v-if=\"slideBigImage && slidesItem.length > 1\" @click=\"moveLeft()\"><i class=\"icon fas fa-chevron-left fa-2x\"></i></span>\n                                    <imgProxyComponent :useZoom=\"useZoom\" :is360=\"slidesItem[selected].is360\" myclass=\"item-image img-fluid\" :isthumbnails=\"false\" :src=\"slidesItem[selected].src\" mystyle=\"min-height:190px;\"/>\n                                <span class=\"slider-item-control-right big-image-control\" v-if=\"slideBigImage && slidesItem.length > 1\" @click=\"moveRight()\"><i class=\"icon fas fa-chevron-right fa-2x\"></i></span>\n                            </template>\n                            <template v-else>\n                                <imgProxyComponent :useZoom=\"useZoom\" :is360=\"!!slidesItem[selected].is360\"  myclass=\"item-image img-fluid\" :isthumbnails=\"false\" :src=\"slidesItem[selected].src\" />\n                            </template>\n                         </template>\n                         <template v-else> \n                            <imgProxyComponent :useZoom=\"false\" :is360=\"false\"  />\n                         </template>\n                  </div>\n                  <template v-if=\"showCarusel && slidesItem.length > 1\">\n                        <div class=\"p-0\" :class=\"{'order-1 mt-0 col-3 col-xl-2': carouselOnLeftSide, 'col-12 mt-2': !carouselOnLeftSide}\">\n                            <div class=\"row justify-content-center\">\n                                <span class=\"slider-item-control-left\" v-if=\"slidesItem.length>4 && !carouselOnLeftSide\" @click=\"moveMinicarouselLeft()\"><i class=\"fas fa-chevron-left fa-2x\"></i></span>\n                                <div class=\"row slider-item-minicarousel\">\n                                    <template v-for=\"(image,index) of slidesItem\">\n                                        <div class=\"thumbnail\" :class=\"{'selected':index==selected, 'w-100': carouselOnLeftSide}\" v-if=\"shouldRenderImg(index)\">\n                                            <imgProxyComponent :useZoom=\"useZoom\" :is360=\"image.is360\" :key=\"index\" myclass=\"item-image img-fluid\" :isthumbnails=\"true\" :src=\"image.src\" alt=\"Product Image\" @click.native=\"selectImage(index)\" :imgIndex=\"index\" />\n                                        </div>\n                                    </template>\n                                </div>\n                                <span class=\"slider-item-control-right\" v-if=\"slidesItem.length>4 && !carouselOnLeftSide\" @click=\"moveMinicarouselRight()\"><i class=\"fas fa-chevron-right fa-2x\"></i></span>\n                            </div>\n                        </div>\n                 </template>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemSliderComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemSliderComponent";
+        }
+    }]);
+
+    return itemSliderComponent;
+}(Component);
+
+itemSliderComponent.registerComponent();
+//# sourceMappingURL=itemSliderComponent.js.map

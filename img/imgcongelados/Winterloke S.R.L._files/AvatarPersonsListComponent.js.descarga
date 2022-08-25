@@ -1,0 +1,88 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var AvatarPersonsListComponent = function (_Component) {
+    _inherits(AvatarPersonsListComponent, _Component);
+
+    function AvatarPersonsListComponent() {
+        _classCallCheck(this, AvatarPersonsListComponent);
+
+        return _possibleConstructorReturn(this, (AvatarPersonsListComponent.__proto__ || Object.getPrototypeOf(AvatarPersonsListComponent)).apply(this, arguments));
+    }
+
+    _createClass(AvatarPersonsListComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['data', 'index', 'column'];
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                url: function url() {
+                    if (this.data.Avatar) return this.data.Avatar;else return "../static/ecommerce/img/user.png";
+                }
+            };
+        }
+        //Comento pues cambie forma(sin hacer tantas consultas a la API) de traer los avatar de la tabla de las personas asociadas al cliente
+        /*mounted() {
+            return async function () {
+                if(this.data)
+                    this.loadAvatarProfile(this.data.Code);
+            };
+        }
+         loadAvatarProfile(Code) {
+            let self = this;
+            axios.get("/ecommerce/api/avatar/" + Code)
+                .then((response) => {
+                    if (response.data.ok)
+                        self.url = `..${response.data.url}`;
+                    else
+                        self.url = response.data.url;
+                })
+                .catch((error) => {
+                    console.log('FAILURE!!', error);
+                });
+        }
+         getMethods(){
+            let supermethods= super.getMethods();
+            supermethods['loadAvatarProfile']=this.loadAvatarProfile;
+            return supermethods;
+        }
+         getData() {
+            let superdata = super.getData();
+            return function () {
+                superdata['url']='';
+                return superdata;
+            }
+        }*/
+
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<img key='avatar ' :src=\"url\" alt=\"\" width=\"45\" height=\"45\" class=\"avatar img-fluid rounded-circle customer-image responsive-img\" style=\"background: #6a6a6a\">";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "AvatarPersonsListComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "AvatarPersonsListComponent";
+        }
+    }]);
+
+    return AvatarPersonsListComponent;
+}(Component);
+
+AvatarPersonsListComponent.registerComponent();
+//# sourceMappingURL=AvatarPersonsListComponent.js.map

@@ -1,0 +1,7 @@
+'use strict';
+
+//Empty file for Custom Store action
+function runCustomSettings() {
+    console.log('default Settings');
+}
+//# sourceMappingURL=appCustomStore.js.map

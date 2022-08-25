@@ -1,0 +1,167 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component,uuidv4 */
+var valueFilterComponent = function (_Component) {
+    _inherits(valueFilterComponent, _Component);
+
+    function valueFilterComponent() {
+        _classCallCheck(this, valueFilterComponent);
+
+        return _possibleConstructorReturn(this, (valueFilterComponent.__proto__ || Object.getPrototypeOf(valueFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(valueFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.display = !this.isMobile;
+                                $(window).resize(function () {
+                                    self.isMobile = $(window).width() <= 560;
+                                    self.display = !self.isMobile;
+                                });
+
+                            case 3:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                collections: function collections() {
+                    var collection = new Map();
+                    var items = this.$store.getters.getItems;
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var item = _step.value;
+
+                            var value = item[this.filterField.ItemField];
+                            if (value) {
+                                if (!collection.has(value)) {
+                                    var filter = [];
+                                    var _iteratorNormalCompletion2 = true;
+                                    var _didIteratorError2 = false;
+                                    var _iteratorError2 = undefined;
+
+                                    try {
+                                        for (var _iterator2 = value.toString().split(',')[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                            var valueSplit = _step2.value;
+
+                                            var objectFilter = {};
+                                            objectFilter.name = 'valueFilter' + uuidv4();
+                                            objectFilter.condition = "x." + this.filterField.ItemField + ".indexOf('" + valueSplit + "')!=1";
+                                            objectFilter.result = true;
+                                            objectFilter.active = false;
+                                            filter.push(objectFilter);
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError2 = true;
+                                        _iteratorError2 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                                _iterator2.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError2) {
+                                                throw _iteratorError2;
+                                            }
+                                        }
+                                    }
+
+                                    collection.set(value, [value, filter]);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return Array.from(collection.values());
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                launchFilter: this.launchFilter
+            };
+        }
+    }, {
+        key: "launchFilter",
+        value: function launchFilter(filters) {
+            filters.active = true & filters.active;
+            this.$store.dispatch('addFilter', [filters.name, filters]);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter\" v-if=\"collections.length>0\">\n                    <div>\n                        <p class=\"filter-title\" @click=\"display = !display\">\n                            {{tr(filterField.ItemField)}}\n                            <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                            <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                        </p>\n                    </div>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul class=\"unstyled\">\n                          <template v-for=\"value of collections\">\n                            <li :key=\"'li-value-'+value.name\" v-if=\"value.itemCount>0\">\n                                <div class=\"custom-control custom-checkbox\">\n                                    <input :key=\"'input'+value.name\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"value.active\" :id=\"value.label\" @click=\"launchFilter(value)\" />\n                                    <label :for=\"value.label\" class=\"custom-control-label\">{{value.label}} ({{value.itemCount}})</label>\n                                </div>\n                            </li>\n                          </template>\n                        </ul>\n                    </section>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "valueFilterComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "valueFilterComponent";
+        }
+    }]);
+
+    return valueFilterComponent;
+}(Component);
+
+valueFilterComponent.registerComponent();
+//# sourceMappingURL=valueFilterComponent.js.map

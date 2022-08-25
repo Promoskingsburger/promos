@@ -1,0 +1,721 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var maps_loading = null;
+
+var GoogleMapComponent = function (_Component) {
+    _inherits(GoogleMapComponent, _Component);
+
+    function GoogleMapComponent() {
+        _classCallCheck(this, GoogleMapComponent);
+
+        return _possibleConstructorReturn(this, (GoogleMapComponent.__proto__ || Object.getPrototypeOf(GoogleMapComponent)).apply(this, arguments));
+    }
+
+    _createClass(GoogleMapComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                'latitude': {
+                    type: Number,
+                    default: null
+                },
+                'longitude': {
+                    type: Number,
+                    default: null
+                },
+                'markers': {
+                    type: Array
+                },
+                'paths': {
+                    type: Object,
+                    default: null
+                },
+                'record': {
+                    type: Object,
+                    default: null
+                },
+                "prefix": {
+                    type: String,
+                    default: ''
+                },
+                "editMode": {
+                    type: Boolean,
+                    default: false
+                },
+                "customZoom": {
+                    type: Number,
+                    default: 17
+                },
+                "runNormalize": {
+                    type: String,
+                    default: null
+                },
+                saveChangeCallback: {
+                    type: Function
+                }
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                latitude: function latitude() {
+                    this.lat = this.latitude;
+                    this.map.setCenter({ lat: this.lat, lng: this.lng });
+                },
+                longitude: function longitude() {
+                    this.lng = this.longitude;
+                    this.map.setCenter({ lat: this.lat, lng: this.lng });
+                },
+                record: function record() {
+                    this.rec = this.record;
+                    this.initMap();
+                },
+
+                markers: {
+                    handler: function handler(val, oldval) {
+                        this.marks = this.markers ? this.markers : [];
+                        this.updateMarkers();
+                    },
+                    deep: true
+                },
+                paths: {
+                    handler: function handler(val, oldval) {
+                        console.log("AAAAA", val);
+                        this.map_paths = this.paths || {};
+                        this.updatePaths();
+                    },
+                    deep: true
+                }
+            };
+        }
+    }, {
+        key: "getData",
+        value: function getData() {
+            return this.data;
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                lat: this.latitude,
+                lng: this.longitude,
+                marks: this.markers || [],
+                selectedMarket: null,
+                map_paths: this.paths || {}
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                window.$map = this;
+
+                                if (!(!maps_loading && (!window.google || !window.google.maps || !window.google.maps.Map))) {
+                                    _context.next = 8;
+                                    break;
+                                }
+
+                                maps_loading = Promise.pending();
+                                _context.next = 5;
+                                return $.getScript('https://maps.googleapis.com/maps/api/js?key=AIzaSyBWDkCk3f7KvH4r_z3UtyOkF_pi_BiOLig&libraries=geometry');
+
+                            case 5:
+                                _context.next = 7;
+                                return $.getScript('https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js');
+
+                            case 7:
+                                maps_loading.resolve();
+
+                            case 8:
+                                if (!maps_loading) {
+                                    _context.next = 11;
+                                    break;
+                                }
+
+                                _context.next = 11;
+                                return maps_loading.promise;
+
+                            case 11:
+                                this.map = null;
+                                this.gmarkers = null;
+                                this.initMap();
+
+                            case 14:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                style: function style() {
+                    return {
+                        width: '100%',
+                        height: '500px'
+                    };
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                normalizeAddress: this.normalizeAddress,
+                clientNormalize: this.clientNormalize,
+                handleEvent: this.handleEvent,
+                initMap: this.initMap,
+                updateMapBounds: this.updateMapBounds,
+                createMarker: this.createMarker,
+                updateMarkers: this.updateMarkers,
+                updatePaths: this.updatePaths
+            };
+        }
+    }, {
+        key: "normalizeAddress",
+        value: function normalizeAddress() {
+            var comma = '';
+            var postfix = '';
+            var fprefix = this.prefix;
+            var record = this.record;
+            if (record[fprefix + 'Street']) {
+                postfix += "calle " + record[fprefix + 'Street'];
+            }
+            if (record[fprefix + 'StreetNumber']) {
+                postfix += " " + record[fprefix + 'StreetNumber'];
+            }
+            if (record[fprefix + 'Locality']) {
+                if (record[fprefix + 'City'] && record[fprefix + 'City'].toLowerCase().search(/buenos aires/) < 0 && record[fprefix + 'City'].toLowerCase().search(/caba/) < 0) {
+                    // si la ciudad es buenos aires (o caba), google no toma bien que le manden como localidad "comuna 1" por ejemplo
+                    comma = ', ';
+                    postfix += comma + record[fprefix + 'Locality'];
+                }
+            }
+            if (record[fprefix + 'City'] !== record[fprefix + 'Locality']) {
+                comma = ', ';
+                postfix += comma + record[fprefix + 'City'];
+            }
+            if (record[fprefix + 'Province'] && record[fprefix + 'Province'] !== record[fprefix + 'Locality'] && record[fprefix + 'Province'] !== record[fprefix + 'City']) {
+                comma = ', ';
+                postfix += comma + record[fprefix + 'Province'];
+            }
+            if (record[fprefix + 'Country']) {
+                comma = ', ';
+                if (record[fprefix + 'CountryName']) postfix += comma + record[fprefix + 'CountryName'];else postfix += comma + record[fprefix + 'Country'];
+            }
+            record.normalizeAddress = postfix;
+            console.log("client Address", record.normalizeAddress);
+            return record.normalizeAddress;
+        }
+    }, {
+        key: "clientNormalize",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                self = this;
+
+                                self.normalizeAddress();
+
+                                if (!this.record[this.prefix + "normalizeAddress"]) {
+                                    _context2.next = 4;
+                                    break;
+                                }
+
+                                return _context2.abrupt("return", new Promise(function (resolve, reject) {
+                                    var geocoder = new google.maps.Geocoder();
+                                    geocoder.geocode({
+                                        'address': self.record[self.prefix + "normalizeAddress"]
+                                    }, function (results, status) {
+                                        if (status == google.maps.GeocoderStatus.OK) {
+                                            console.log(results, status);
+                                            self.lat = results[0].geometry.location.lat();
+                                            self.lng = results[0].geometry.location.lng();
+                                            self.record[self.prefix + "Latitude"] = self.lat;
+                                            self.record[self.prefix + "Longitude"] = self.lng;
+                                            self.record.normalize = false;
+                                            resolve(status);
+                                        } else {
+                                            resolve(status);
+                                        }
+                                    });
+                                }));
+
+                            case 4:
+                                return _context2.abrupt("return", null);
+
+                            case 5:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function clientNormalize() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return clientNormalize;
+        }()
+    }, {
+        key: "handleEvent",
+        value: function handleEvent(event) {
+            this.lat = event.latLng.lat();
+            this.lng = event.latLng.lng();
+            if (this.record && this.editMode) {
+                this.record[this.prefix + "Latitude"] = this.lat;
+                this.record[this.prefix + "Longitude"] = this.lng;;
+            }
+            if (this.saveChangeCallback) this.saveChangeCallback(this.lat, this.lng);
+        }
+    }, {
+        key: "initMap",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var _this2 = this;
+
+                var lat, lng, opts, calculate_bounds, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _loop, _iterator, _step, infowindow, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, pathkey, path, poly;
+
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                if (!(this.runNormalize || this.record.normalize)) {
+                                    _context3.next = 3;
+                                    break;
+                                }
+
+                                _context3.next = 3;
+                                return this.clientNormalize();
+
+                            case 3:
+                                lat = this.lat !== null ? this.lat : this.record[this.prefix + "Latitude"];
+                                lng = this.lng !== null ? this.lng : this.record[this.prefix + "Longitude"];
+                                opts = { zoom: Number(this.customZoom) };
+                                calculate_bounds = false;
+
+
+                                if (isNaN(lat) || isNaN(lng) || lat === null || lng === null) {
+                                    calculate_bounds = true;
+                                    lat = lat || 0;
+                                    lng = lng || 0;
+                                    console.log(this.record[this.prefix + "normalizeAddress"] && (!lat || !lng), this.record[this.prefix + "Address"], lat, lng);
+                                }
+
+                                console.log("MAP INIT", lat, lng, this.record[this.prefix + "Longitude"], "PREDIX*" + this.prefix + "*", this.record[this.prefix + "Longitude"]);
+                                opts.center = { lat: lat, lng: lng };
+                                if (this.customZoom) opts.zoom = Number(this.customZoom);
+                                //console.log("OPTS", opts)
+                                this.infowindow = new google.maps.InfoWindow({});
+
+                                this.map = new google.maps.Map(this.$refs.map, opts);
+                                this.gmarkers = {};
+                                this.marks = this.markers ? this.markers : [];
+                                this.gpolys = {};
+
+                                if (this.record && typeof this.record[this.prefix + "Latitude"] != 'undefined' && typeof this.record[this.prefix + "Longitude"] != 'undefined') {
+                                    this.marks.push({ latitude: this.record[this.prefix + "Latitude"], longitude: this.record[this.prefix + "Longitude"], label: '', title: '' });
+                                }
+
+                                _iteratorNormalCompletion = true;
+                                _didIteratorError = false;
+                                _iteratorError = undefined;
+                                _context3.prev = 20;
+
+                                _loop = function _loop() {
+                                    var m = _step.value;
+
+                                    var marker = _this2.createMarker({ lat: m.latitude, lng: m.longitude }, _this2.map, m.label, m.title, m.info, _this2.editMode);
+
+                                    if (_this2.editMode) {
+                                        marker.addListener('drag', _this2.handleEvent);
+                                        marker.addListener('dragend', _this2.handleEvent);
+                                    }
+
+                                    var self = _this2;
+                                    infowindow = new google.maps.InfoWindow();
+
+                                    google.maps.event.addListener(marker, 'mouseover', function (marker) {
+                                        return function () {
+                                            var content = self.record.Address + ", " + self.record.City;
+                                            infowindow.setContent(content);
+                                            infowindow.open(self.map, marker);
+                                        };
+                                    }(marker));
+
+                                    if (m.id) {
+                                        _this2.gmarkers[m.id] = marker;
+                                    }
+                                };
+
+                                for (_iterator = this.marks[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                    _loop();
+                                }
+
+                                _context3.next = 29;
+                                break;
+
+                            case 25:
+                                _context3.prev = 25;
+                                _context3.t0 = _context3["catch"](20);
+                                _didIteratorError = true;
+                                _iteratorError = _context3.t0;
+
+                            case 29:
+                                _context3.prev = 29;
+                                _context3.prev = 30;
+
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+
+                            case 32:
+                                _context3.prev = 32;
+
+                                if (!_didIteratorError) {
+                                    _context3.next = 35;
+                                    break;
+                                }
+
+                                throw _iteratorError;
+
+                            case 35:
+                                return _context3.finish(32);
+
+                            case 36:
+                                return _context3.finish(29);
+
+                            case 37:
+                                _iteratorNormalCompletion2 = true;
+                                _didIteratorError2 = false;
+                                _iteratorError2 = undefined;
+                                _context3.prev = 40;
+                                for (_iterator2 = Object.keys(this.map_paths)[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                    pathkey = _step2.value;
+                                    path = this.map_paths[pathkey];
+                                    poly = new google.maps.Polyline({
+                                        strokeColor: '#CC0099',
+                                        strokeOpacity: 1.0,
+                                        strokeWeight: 3,
+                                        geodesic: true,
+                                        map: this.map
+                                    });
+
+                                    poly.setPath(path.map(function (p) {
+                                        return { lat: p.latitude, lng: p.longitude };
+                                    }));
+                                    this.gpolys[pathkey] = poly;
+                                }
+
+                                // Add a marker clusterer to manage the markers.
+                                _context3.next = 48;
+                                break;
+
+                            case 44:
+                                _context3.prev = 44;
+                                _context3.t1 = _context3["catch"](40);
+                                _didIteratorError2 = true;
+                                _iteratorError2 = _context3.t1;
+
+                            case 48:
+                                _context3.prev = 48;
+                                _context3.prev = 49;
+
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+
+                            case 51:
+                                _context3.prev = 51;
+
+                                if (!_didIteratorError2) {
+                                    _context3.next = 54;
+                                    break;
+                                }
+
+                                throw _iteratorError2;
+
+                            case 54:
+                                return _context3.finish(51);
+
+                            case 55:
+                                return _context3.finish(48);
+
+                            case 56:
+                                this.markerCluster = new MarkerClusterer(this.map, Object.values(this.gmarkers), { maxZoom: 17, imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
+                                if (calculate_bounds) this.updateMapBounds();
+
+                            case 58:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this, [[20, 25, 29, 37], [30,, 32, 36], [40, 44, 48, 56], [49,, 51, 55]]);
+            }));
+
+            function initMap() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return initMap;
+        }()
+    }, {
+        key: "updateMapBounds",
+        value: function updateMapBounds() {
+            var bounds = new google.maps.LatLngBounds();
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = Object.values(this.gmarkers)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var _marker = _step3.value;
+
+                    bounds.extend(_marker.position);
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+
+            this.map.fitBounds(bounds);
+        }
+    }, {
+        key: "createMarker",
+        value: function createMarker(position, map, label, title, info) {
+            var draggable = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+
+            var self = this;
+            var marker = new google.maps.Marker({ position: position, map: map, label: label, title: title, draggable: draggable });
+            if (info) {
+                marker.addListener('click', function () {
+                    self.infowindow.setContent(info);
+                    self.infowindow.open(map, marker);
+                });
+            }
+            return marker;
+        }
+    }, {
+        key: "updateMarkers",
+        value: function updateMarkers() {
+            var _this3 = this;
+
+            var round = cm.GlobalTools.round;
+            var mark_ids = {};
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                var _loop2 = function _loop2() {
+                    var m = _step4.value;
+
+                    var marker = _this3.gmarkers[m.id];
+                    if (marker) {
+                        //console.log(m.id, marker.getPosition().lat() != m.latitude, marker.getPosition().lng(), m.longitude, marker.getPosition().lng() != m.longitude, marker.getLabel() != m.label, marker.getTitle() != m.title)
+                        if (round(marker.getPosition().lat(), 4) != round(m.latitude, 4) || round(marker.getPosition().lng(), 4) != round(m.longitude, 4) || marker.getLabel() != m.label || marker.getTitle() != m.title) {
+                            _this3.markerCluster.removeMarker(marker);
+                            marker.setPosition({ lat: m.latitude, lng: m.longitude });
+                            marker.setLabel(m.label);
+                            marker.setTitle(m.title);
+                            marker.setAnimation(google.maps.Animation.BOUNCE);
+                            _this3.markerCluster.addMarker(marker);
+                            setTimeout(function () {
+                                marker.setAnimation(null);
+                            }, 2000);
+                        }
+                    } else {
+                        marker = _this3.createMarker({ lat: m.latitude, lng: m.longitude }, _this3.map, m.label, m.title, m.info);
+                        //new google.maps.Marker({position: {lat: m.latitude, lng: m.longitude}, map: this.map, label: m.label, title: m.title});
+                        if (m.id) _this3.gmarkers[m.id] = marker;
+                        marker.setAnimation(google.maps.Animation.BOUNCE);
+                        _this3.markerCluster.addMarker(marker);
+                        setTimeout(function () {
+                            marker.setAnimation(null);
+                        }, 2000);
+                    }
+                    mark_ids[m.id] = 1;
+                };
+
+                for (var _iterator4 = this.marks[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    _loop2();
+                }
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
+                    }
+                }
+            }
+
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
+
+            try {
+                for (var _iterator5 = Object.keys(this.gmarkers)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var id = _step5.value;
+
+
+                    if (!mark_ids[id]) {
+                        console.log("deleting marker", id);
+                        this.gmarkers[id].setMap(null);
+                        this.markerCluster.removeMarker(this.gmarkers[id]);
+                        delete this.gmarkers[id];
+                    }
+                }
+            } catch (err) {
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
+                    }
+                } finally {
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
+                    }
+                }
+            }
+
+            this.updateMapBounds();
+        }
+    }, {
+        key: "updatePaths",
+        value: function updatePaths() {
+            var path_ids = {};
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
+
+            try {
+                for (var _iterator6 = Object.keys(this.map_paths)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var pathkey = _step6.value;
+
+                    path_ids[pathkey] = 1;
+                    var path = this.map_paths[pathkey];
+                    if (this.gpolys[pathkey]) {
+                        this.gpolys[pathkey].setPath(path.map(function (p) {
+                            return { lat: p.latitude, lng: p.longitude };
+                        }));
+                    } else {
+                        var poly = new google.maps.Polyline({
+                            strokeColor: '#CC0099',
+                            strokeOpacity: 1.0,
+                            strokeWeight: 3,
+                            geodesic: true,
+                            map: this.map
+                        });
+                        poly.setPath(path.map(function (p) {
+                            return { lat: p.latitude, lng: p.longitude };
+                        }));
+                        this.gpolys[pathkey] = poly;
+                    }
+                }
+            } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
+                    }
+                } finally {
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
+                    }
+                }
+            }
+
+            var _iteratorNormalCompletion7 = true;
+            var _didIteratorError7 = false;
+            var _iteratorError7 = undefined;
+
+            try {
+                for (var _iterator7 = Object.keys(this.gpolys)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    var id = _step7.value;
+
+                    if (!path_ids[id]) {
+                        this.gpolys[id].setMap(null);
+                        delete this.gpolys[id];
+                    }
+                }
+            } catch (err) {
+                _didIteratorError7 = true;
+                _iteratorError7 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                        _iterator7.return();
+                    }
+                } finally {
+                    if (_didIteratorError7) {
+                        throw _iteratorError7;
+                    }
+                }
+            }
+
+            this.updateMapBounds();
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                 <div ref=\"map\" :style=\"style\">\n                 </div>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "googleMapComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "googleMapComponent";
+        }
+    }]);
+
+    return GoogleMapComponent;
+}(Component);
+
+GoogleMapComponent.registerComponent();
+//# sourceMappingURL=googleMapComponent.js.map

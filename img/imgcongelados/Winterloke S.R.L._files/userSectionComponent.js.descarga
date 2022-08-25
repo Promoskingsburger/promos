@@ -1,0 +1,127 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+//TODO REVISAR este y sus componentes hijos
+var userSectionComponent = function (_Component) {
+    _inherits(userSectionComponent, _Component);
+
+    function userSectionComponent() {
+        _classCallCheck(this, userSectionComponent);
+
+        return _possibleConstructorReturn(this, (userSectionComponent.__proto__ || Object.getPrototypeOf(userSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(userSectionComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                baget_in_car: 0,
+                show_modal: true
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                $('.dropdown-button').dropdown({});
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                session: function session() {
+                    return this.$store.getters.getSession;
+                },
+                salesman: function salesman() {
+                    return this.$store.getters.getSalesMan;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                logout: this.logout,
+                openModalLogin: this.openModalLogin,
+                openModalRegister: this.openModalRegister,
+                openModalChangePassword: this.openModalChangePassword,
+                openModalCustomer: this.openModalCustomer
+            };
+        }
+    }, {
+        key: "logout",
+        value: function logout() {
+            this.$store.dispatch('logout');
+            document.cookie = 'connect.ecommerceMarken.sid' + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            this.$router.push('/home');
+        }
+    }, {
+        key: "openModalLogin",
+        value: function openModalLogin() {
+            $('#loginModal').modal();
+            $('#loginModal').modal('open');
+        }
+    }, {
+        key: "openModalRegister",
+        value: function openModalRegister() {
+            //registerModalComponent
+            $('#registerModal').modal();
+            $('#loginModal').modal('close');
+            $('#registerModal').modal('open');
+        }
+    }, {
+        key: "openModalChangePassword",
+        value: function openModalChangePassword() {
+            //changePasswordModalComponent
+            $('#changePasswordModal').modal();
+            $('#changePasswordModal').modal('open');
+        }
+    }, {
+        key: "openModalCustomer",
+        value: function openModalCustomer() {
+            $('#registerCustomerModal').modal();
+            $('#registerCustomerModal').modal('open');
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row\">\n                <div class=\"card blue-grey\">\n                    <template v-if=\"session==null\">\n                            <div class=\"row\">\n                                <button class=\"modal-trigger waves-light btn col s12\" href=\"#loginModal\" @click=\"openModalLogin\">\n                                    {{tr('Login')}}\n                                </button>\n                                <button class=\"modal-trigger waves-light btn col s12\" href=\"#registerModal\" @click=\"openModalRegister\">\n                                    {{tr('Register')}}       \n                                </button>\n                            </div>\n                    </template>\n                    <template v-else>\n                        <div class=\"row\">\n                            <div class=\"col 12 m3 s12\">\n                                <img src=\"../static/ecommerce/assets/img/user.jpg\" width=\"40\" alt=\"\">\n                            </div>\n                            <div class=\"col 12 m8 s12 account-info\">\n                                <h5 class=\"white-text\">{{tr('My Account')}}</h5>\n                                <!-- Dropdown Trigger -->\n                                <a class='dropdown-button' href='#' data-activates='dropdown1'><i class=\"fas fa-angle-down\"></i></a>\n    \n                                <!-- Dropdown Structure \n                                <ul id=\"dropdown1\" class=\"dropdown-content\">-->\n                                    \n                                    <!--<li><a href=\"#!\">two</a></li>\n                                    <li class=\"divider\"></li>\n                                    <li><a href=\"#!\">three</a></li>\n                                    <li><a href=\"#!\"><i class=\"fas fa-cart-arrow-down\"></i> four</a></li>\n                                    <li><a href=\"#!\"><i class=\"fas fa-user\"></i> five</a></li>\n                                </ul>-->\n                                <!-- Dropdown Structure -->\n                            </div>\n                        </div>\n                        <div class=\"row\">\n                            <div class=\"col 12 m12 s12\" vi-f=\"session.fields\">\n                                <h5 class=\"white-text\">{{session.fields.Name}} {{session.fields.LastName}}</h5>\n                                <img :src=\"'../oo/api/get_person_profile_image?person='+session.fields.Code\" alt=\"\" width=\"147\" height=\"98\" class=\"responsive-img\">\n                                <p v-if= \"salesman\" style=\"color: #FFFFFF !important; font-size: 12px !important\">{{tr(\"Your account executive is\")}}:<br>\n                                    {{salesman.Name}} {{salesman.LastName}} <br>\n                                    {{salesman.Phone}}<br>\n                                    {{salesman.Email}}\n                                </p>\n                            </div>\n                                <a class=\"btn checkout-btn col m12 s12\" @click=\"logout\">{{tr('Log Out')}}</a>\n                        </div>\n                    </template>\n                </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "userSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "userSectionComponent";
+        }
+    }]);
+
+    return userSectionComponent;
+}(Component);
+
+userSectionComponent.registerComponent();
+//# sourceMappingURL=userSectionComponent.js.map

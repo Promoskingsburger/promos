@@ -1,0 +1,184 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var favoritiesListComponent = function (_Component) {
+    _inherits(favoritiesListComponent, _Component);
+
+    function favoritiesListComponent() {
+        _classCallCheck(this, favoritiesListComponent);
+
+        return _possibleConstructorReturn(this, (favoritiesListComponent.__proto__ || Object.getPrototypeOf(favoritiesListComponent)).apply(this, arguments));
+    }
+
+    _createClass(favoritiesListComponent, [{
+        key: 'data',
+        value: function data() {
+            return {
+                viewmode: 'module-small',
+                itemsFlag: false,
+                orderSelected: "",
+                favoritiesList: []
+            };
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {
+                '$store.state.appState': 'fetchData',
+                '$store.state.itemTimeFlag': 'fetchData',
+                '$store.state.favorites.length': 'fetchData',
+                '$store.state.orderBy': 'fetchData',
+                '$store.state.orderDirection': 'fetchData'
+            };
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {
+                initItem: function initItem() {
+                    return this.$store.getters.getItemPerPage * this.$store.getters.getOffset;
+                },
+                lastItem: function lastItem() {
+                    return this.$store.getters.getItemPerPage * this.$store.getters.getOffset + this.$store.getters.getItemPerPage;
+                },
+                moduleObject: function moduleObject() {
+                    return {
+                        'green-text': this.viewmode == 'module'
+                    };
+                },
+                listObject: function listObject() {
+                    return {
+                        'green-text': this.viewmode == 'list'
+                    };
+                },
+                itemClassObject: function itemClassObject() {
+                    return {
+                        'oo-item-container-list': this.viewmode == 'list',
+                        'oo-item-container': this.viewmode == 'module' || this.viewmode == 'module-small',
+                        'oo-item-container-small': this.viewmode == 'module-small',
+                        'oo-item-container-normal': this.viewmode == 'module',
+                        'col-12': this.viewmode == 'list',
+                        'col-6 col-sm-6 col-lg-3 px-1 px-lg-2': this.viewmode == 'module',
+                        'col-6 col-sm-4 col-lg-2 px-1 px-lg-2': this.viewmode == 'module-small'
+                    };
+                }
+            };
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {
+                fetchData: this.fetchData,
+                getItemByCode: this.getItemByCode,
+                openItemView: this.openItemView,
+                reorderItems: this.reorderItems
+            };
+        }
+    }, {
+        key: 'fetchData',
+        value: function fetchData() {
+            var _this2 = this;
+
+            var self = this;
+            var newfavoritiesList = [];
+            var itemWithOutPrices = [];
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this.$store.getters.getFavoritesItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var itemCode = _step.value;
+
+                    var itemLoad = this.$store.getters.getItemByCode(itemCode);
+                    if (itemLoad) {
+                        if (itemLoad && !itemLoad.isCalculate || itemLoad.Price == 0) {
+                            itemWithOutPrices.push(itemLoad);
+                        }
+                        newfavoritiesList.push(itemLoad);
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            if (itemWithOutPrices.length > 0) this.$store.dispatch('updatePrices', itemWithOutPrices).then(function () {
+                self.favoritiesList = __lodash__.orderBy(newfavoritiesList, self.$store.getters.getOrderBy, _this2.$store.getters.getOrderDirection);
+            });else this.favoritiesList = __lodash__.orderBy(newfavoritiesList, this.$store.getters.getOrderBy, this.$store.getters.getOrderDirection);
+        }
+    }, {
+        key: 'getItemByCode',
+        value: function getItemByCode(itemCode) {
+            return this.$store.getters.getItemByCode(itemCode);
+        }
+    }, {
+        key: 'openItemView',
+        value: function openItemView(item) {
+            if (item) this.$router.push('/view/' + item.Code);
+        }
+    }, {
+        key: 'reorderItems',
+        value: function reorderItems() {
+            this.$store.dispatch('reorderItems', this.orderSelected);
+            this.favoritiesList = __lodash__.orderBy(this.favoritiesList, this.$store.getters.getOrderBy, this.$store.getters.getOrderDirection);
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.fetchData();
+
+                            case 1:
+                            case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            return '<div class="row">\n                   <div class="col-12">\n                        <h5 class="title">{{tr(\'Favorite List\')}} ({{favoritiesList.length}})</h5>\n                    </div>\n                    <div class="col-12 mb-4">\n                        <div class="row justify-content-between align-items-center">\n                            <div class="col-6 col-sm-7 mb-2 mb-sm-0">\n                               <div class="form-inline">\n                                    <label class="mr-1">{{tr(\'Order by\')}}:</label>\n                                    <select id="soflow" v-model="orderSelected" class="form-control custom-select" @change="reorderItems">\n                                        <option disabled value="">{{tr(\'Select One\')}}</option>\n                                        <template v-for="orderField of $store.getters.getSetting.ItemOrdered">\n                                            <option :value="orderField.fields.internalId" :selected="orderField==orderSelected">{{tr(orderField.fields.ItemField)}}({{orderField.fields.OrderDirection}})</option>\n                                        </template>\n                                    </select>\n                                </div>\n                            </div>\n                            <div class="col-6 col-sm-5 ">\n                                <div class="row justify-content-end view-mode pr-2">\n                                    <div class="mr-2 d-none d-sm-block">\n                                        <span @click="viewmode=\'module-small\'" :class="{\'active\':viewmode==\'module-small\'}">\n                                            <i class="fas fa-th fa-2x"></i>\n                                        </span>\n                                    </div>\n                                    <div class="mr-2">\n                                        <span @click="viewmode=\'module\'" :class="{\'active\':viewmode==\'module\'}">\n                                            <i class="fas fa-th-large fa-2x"></i>\n                                        </span>\n                                    </div>\n\n                                    <div class="mr-2">\n                                        <span @click="viewmode=\'list\'" :class="{\'active\':viewmode==\'list\'}">\n                                            <i class="fas fa-th-list fa-2x"></i>\n                                        </span>\n                                    </div>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                    <div class="col-12">\n                        <div class="row" >\n                            <template v-for="item in favoritiesList">\n                                <div  :class="itemClassObject" >\n                                  <template v-if="viewmode==\'list\'">\n                                      <itemViewListComponent :key="item.Code" :item="item" @click="openItemView(item)"></itemViewListComponent>\n                                  </template>\n                                  <template v-else>\n                                      <itemViewModuleComponent :key="item.Code" :item="item" @click="openItemView(item)"></itemViewModuleComponent>\n                                  </template>\n                                </div>\n                            </template>\n                        </div>\n                    </div>\n                    <div class="col-12" v-if="favoritiesList.length>0">\n                        <div class="row justify-content-center">\n                            <paginationComponent currentView="favorites" :items="favoritiesList"></paginationComponent>\n                        </div>\n                    </div>\n                </div>';
+        }
+    }], [{
+        key: 'name',
+        value: function name() {
+            return "favoritiesListComponent";
+        }
+    }, {
+        key: 'componentName',
+        value: function componentName() {
+            return 'favoritiesListComponent';
+        }
+    }]);
+
+    return favoritiesListComponent;
+}(Component);
+
+favoritiesListComponent.registerComponent();
+//# sourceMappingURL=favoritiesListComponent.js.map

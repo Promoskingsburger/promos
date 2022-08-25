@@ -1,0 +1,116 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var dateInput = function (_Component) {
+    _inherits(dateInput, _Component);
+
+    function dateInput() {
+        _classCallCheck(this, dateInput);
+
+        return _possibleConstructorReturn(this, (dateInput.__proto__ || Object.getPrototypeOf(dateInput)).apply(this, arguments));
+    }
+
+    _createClass(dateInput, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['value', 'label'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                fp: null,
+                id: this.getIdo.ui.genId(),
+                internalValue: this.value ? moment(this.value).format("DD/MM/YYYY") : ''
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self, cnf;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+                                cnf = {
+                                    //onChange: function (selectedDates, dateStr, instance) { /*fp.triggerOnChange(selectedDates, dateStr, instance)*/ },
+                                    disableMobile: true, allowInput: true, dateFormat: 'd/m/Y', clickOpens: false
+
+                                    /*this.fp = flatpickr(`#${this.id}`, cnf);
+                                    $(this.$refs.input).mask('00/00/0000')
+                                    this.$refs.input.addEventListener("keyup", function (ev) {
+                                        //console.log("KEYUP", ev.key)
+                                        if (ev.key === 'ArrowDown') {
+                                            self.fp.open();
+                                        }
+                                    })*/
+                                };
+                                _context.next = 4;
+                                return Vue.nextTick();
+
+                            case 4:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                value: function value(val) {
+                    //console.log("VAL", val)
+                    this.internalValue = val ? moment(val).format("DD/MM/YYYY") : '';
+                    this.fp.setDate(this.internalValue);
+                    //$(this.$refs.input).val(moment(val).format("DD/MM/YYYY"))
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                onInput: function onInput(e) {
+                    this.internalValue = e.target.value;
+                    this.$emit("input", e.target.value ? e.target.value : null);
+                },
+                openCalendar: function openCalendar() {
+                    this.fp.open();
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"input-field oo-date-field \">\n                    <input :id=\"id\" ref=\"input\" type=\"text\" :value=\"internalValue\" @change=\"onInput\">\n                    <span @click=\"openCalendar\" class=\"input-icon\"></span>\n                    <label :for=\"id\" ><span v-if=\"label\">{{tr(label)}}</span></label>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "date-input";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "date-input";
+        }
+    }]);
+
+    return dateInput;
+}(Component);
+
+dateInput.registerComponent();
+//# sourceMappingURL=date-input.js.map

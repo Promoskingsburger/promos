@@ -1,0 +1,125 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var sliderSmallSectionComponent = function (_Component) {
+    _inherits(sliderSmallSectionComponent, _Component);
+
+    function sliderSmallSectionComponent() {
+        _classCallCheck(this, sliderSmallSectionComponent);
+
+        return _possibleConstructorReturn(this, (sliderSmallSectionComponent.__proto__ || Object.getPrototypeOf(sliderSmallSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(sliderSmallSectionComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['items', 'config'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                itemsPerPage: 3,
+                initPage: 0,
+                animate: true,
+                interval: 8000,
+                animateEvent: null
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.animateCallback.bind(this);
+                this.$nextTick(function () {
+                    if (this.animate) this.animateCallback();
+                });
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                maxPages: function maxPages() {
+                    if (Array.isArray(this.items)) return this.items.length;
+                    return 0;
+                },
+                controlActivate: function controlActivate() {
+                    return this.maxPages > this.itemsPerPage;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                itemCarouselMoveLeft: this.itemCarouselMoveLeft,
+                itemCarouselMoveRight: this.itemCarouselMoveRight,
+                animateCallback: this.animateCallback,
+                animateStop: this.animateStop,
+                isAppRouter: this.isAppRouter
+            };
+        }
+    }, {
+        key: "itemCarouselMoveLeft",
+        value: function itemCarouselMoveLeft() {
+            if (this.initPage - 1 >= 0) this.initPage -= 1;
+        }
+    }, {
+        key: "itemCarouselMoveRight",
+        value: function itemCarouselMoveRight() {
+            if (this.initPage + 1 + this.itemsPerPage > this.maxPages) this.initPage = 0;else this.initPage += 1;
+        }
+    }, {
+        key: "animateCallback",
+        value: function animateCallback() {
+            if (this.controlActivate) {
+                console.log("Restart Animation");
+                this.itemCarouselMoveRight();
+                this.animateEvent = setTimeout(this.animateCallback, this.interval);
+            }
+        }
+    }, {
+        key: "animateStop",
+        value: function animateStop() {
+            console.log("Stop Animation", this.animateEvent);
+            clearTimeout(this.animateEvent);
+        }
+    }, {
+        key: "isAppRouter",
+        value: function isAppRouter(item) {
+            if (item.fields.ItemLink && item.fields.ItemLink.length > 0 && (item.fields.ItemLink[0] === '#' || item.fields.ItemLink[0] === '.' || item.fields.ItemLink[0] === '/')) {
+                console.log('APP LINK ', item.fields.ItemLink);
+                return true;
+            }
+            return false;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"row col-12 justify-content-center\">\n                   <template v-for=\"(item,index) in items.slice(initPage,initPage+itemsPerPage)\">\n                       <template v-if=\"item.fields.ItemPhotoUri\">\n                            <div class=\"col-3\">\n                               <template v-if=\"item.fields.ItemLink\">\n                                   <template v-if=\"isAppRouter(item)\">\n                                       <router-link :to=\"item.fields.ItemLink.replace('#','')\">\n                                            <img :src=\"item.fields.ItemPhotoUri\" alt=\"Sider\" class=\"d-block w-100\">\n                                       </router-link>\n                                   </template>\n                                   <template v-else>\n                                        <a target=\"_blank\" :href=\"item.fields.ItemLink\" >\n                                            <img :src=\"item.fields.ItemPhotoUri\" alt=\"Sider\" class=\"d-block w-100\" >\n                                        </a>\n                                   </template>\n                               </template>\n                               <template v-else>\n                                    <img :src=\"item.fields.ItemPhotoUri\" alt=\"Sider\" class=\"d-block w-100\">\n                               </template>\n                            </div>\n                       </template>\n                   </template>\n                    <div class=\"row justify-content-center itemcard-control-container\" v-if=\"controlActivate\">\n                          <a class=\"itemcard-control itemcard-control-prev\" href=\"javascript:void(0)\" :title=\"tr('Previous')\" @click=\"itemCarouselMoveLeft\" style=\"wi\">\n                              <icon  name=\"chevron-left\"></icon>\n                          </a>\n                          <a class=\"itemcard-control itemcard-control-next\" href=\"javascript:void(0)\" :title=\"tr('Next')\" @click=\"itemCarouselMoveRight\">\n                            <icon name=\"chevron-right\"></icon>\n                          </a>\n                      </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "sliderSmallSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "sliderSmallSectionComponent";
+        }
+    }]);
+
+    return sliderSmallSectionComponent;
+}(Component);
+
+sliderSmallSectionComponent.registerComponent();
+//# sourceMappingURL=sliderSmallSectionComponent.js.map

@@ -1,0 +1,175 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var homeItemSectionComponent = function (_Component) {
+    _inherits(homeItemSectionComponent, _Component);
+
+    function homeItemSectionComponent() {
+        _classCallCheck(this, homeItemSectionComponent);
+
+        return _possibleConstructorReturn(this, (homeItemSectionComponent.__proto__ || Object.getPrototypeOf(homeItemSectionComponent)).apply(this, arguments));
+    }
+
+    _createClass(homeItemSectionComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ["section"];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                items: []
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.forceUpdate();
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$route': 'forceUpdate',
+                '$store.state.itemTimeFlag': 'forceUpdate',
+                '$store.state.itemUpdate': 'forceUpdate'
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                forceUpdate: this.forceUpdate
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                itemsWithPirceNotZero: function itemsWithPirceNotZero() {
+                    var self = this;
+                    var itemFiltered = [];
+                    var _iteratorNormalCompletion = true;
+                    var _didIteratorError = false;
+                    var _iteratorError = undefined;
+
+                    try {
+                        for (var _iterator = this.items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            var item = _step.value;
+
+                            var storeItem = self.$store.getters.getItemByCode(item.fields.ItemCode);
+                            if (storeItem && self.$store.getters.showItemPrice(storeItem) > 0) itemFiltered.push(item);
+                        }
+                        //itemFiltered = this.items.filter(item=>self.$store.getters.showItemPrice(self.$store.getters.getItemByCode(item.fields.ItemCode)) > 0);
+                        //console.log(this.section.Title,itemFiltered);
+                    } catch (err) {
+                        _didIteratorError = true;
+                        _iteratorError = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion && _iterator.return) {
+                                _iterator.return();
+                            }
+                        } finally {
+                            if (_didIteratorError) {
+                                throw _iteratorError;
+                            }
+                        }
+                    }
+
+                    return itemFiltered;
+                }
+            };
+        }
+    }, {
+        key: "forceUpdate",
+        value: function forceUpdate() {
+            this.items = [];
+            var itemsSelected = [];
+            //console.log( "Home Item Section 1 ",this.$store.getters.getHomeItems );
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = this.$store.getters.getHomeItems[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var item = _step2.value;
+
+                    if (item.fields.PageSectionSection == this.section.Code) switch (this.section.SectionType) {
+                        case 'htmlSection':
+                            itemsSelected.push(item);
+                            break;
+                        case 'itemCard':
+                            {
+                                var store_item = this.$store.getters.getItemByCode(item.fields.ItemCode);
+                                if (store_item) {
+                                    itemsSelected.push(store_item);
+                                } else {
+                                    // eslint-disable-next-line no-console
+                                    console.log("ITem not found", this.section, item.fields.ItemCode, item, store_item);
+                                }
+                                break;
+                            }
+                        case 'itemList':
+                        case 'slidersmall':
+                        case 'categoryList':
+                        case 'officesList':
+                        case 'imageColumns':
+                        case 'slider':
+                            if (item.fields.PageSectionSection === this.section.Code) itemsSelected.push(item);
+                            break;
+                        default:
+                            // eslint-disable-next-line no-console
+                            console.log('Section with out type', this.section);
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            this.items = itemsSelected;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div :id=\"'section-'+section.Code.replace(' ','-')\" :key=\"'section-home-'+section.Code\" class=\"row mx-0\" if=\"isReady\">\n                  <template v-if=\"section.SectionType=='itemList'\" >\n                    <template v-if=\"$store.getters.getSetting.ShowZeroPrice==false\">\n                        <h5 class=\"col-sm-12 section-title\" v-if=\"!section.HideTitle\">{{section.Title}} <small>({{items.length}})</small></h5>  \n                        <div class=\"row col justify-content-center\">\n                          <template v-for=\"item of items\">\n                                <homeItemComponent :itemCode=\"item.fields.ItemCode\"></homeItemComponent>\n                          </template>\n                        </div> \n                    </template>\n                    <template v-else>\n                        <template v-if=\"itemsWithPirceNotZero.length > 0\">\n                              <h5 class=\"col-sm-12 section-title\" v-if=\"!section.HideTitle\">{{section.Title}} <small>({{itemsWithPirceNotZero.length}})</small></h5>\n                              <div class=\"row col justify-content-center\">\n                                  <template v-for=\"item of itemsWithPirceNotZero\">\n                                    <homeItemComponent :itemCode=\"item.fields.ItemCode\"></homeItemComponent>\n                                  </template>\n                              </div>\n                        </template>\n                    </template>\n                  </template>\n                  <template v-else-if=\"section.SectionType=='slider'\">\n                      <sliderSectionComponent :items=\"items\" :config=\"section\"/>\n                  </template>\n                  <template v-if=\"section.SectionType=='itemCard'\">\n                     <homeItemCardComponent :items=\"items\" :title=\"section.Title || ''\" :hideTitle=\"section.HideTitle==1\" :section=\"section\"/>\n                  </template>\n                  <template v-if=\"section.SectionType=='categoryList'\">\n                     <imageCollectionSectionComponent :section=\"section\" :items=\"items\"></imageCollectionSectionComponent>\n                  </template>\n                  <template v-if=\"section.SectionType=='officesList'\">\n                     <imageCollectionSectionComponent :section=\"section\" :items=\"items\"></imageCollectionSectionComponent>\n                  </template>\n                  <template v-else-if=\"section.SectionType=='slidersmall'\">\n                      <sliderSmallSectionComponent :items=\"items\" :config=\"section\"/>\n                  </template>\n                  <template v-else-if=\"section.SectionType=='imageColumns'\">\n                      <columnsSectionComponent :items=\"items\" :config=\"section\"/>\n                  </template>\n                  <template v-else-if=\"section.SectionType=='htmlSection'\">\n                      <htmlSectionComponent :items=\"items\" :config=\"section\"></htmlSectionComponent>\n                  </template>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "homeItemSectionComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "homeItemSectionComponent";
+        }
+    }]);
+
+    return homeItemSectionComponent;
+}(Component);
+
+homeItemSectionComponent.registerComponent();
+//# sourceMappingURL=homeItemSectionComponent.js.map

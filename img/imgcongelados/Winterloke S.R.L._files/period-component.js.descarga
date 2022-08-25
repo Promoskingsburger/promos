@@ -1,0 +1,137 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var periodComponent = function (_Component) {
+    _inherits(periodComponent, _Component);
+
+    function periodComponent() {
+        _classCallCheck(this, periodComponent);
+
+        return _possibleConstructorReturn(this, (periodComponent.__proto__ || Object.getPrototypeOf(periodComponent)).apply(this, arguments));
+    }
+
+    _createClass(periodComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                'param': {
+                    type: Object,
+                    default: {}
+                },
+                'field': String,
+                'value': String,
+                "description": Object,
+                'callback': Function
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                date: moment(),
+                from_id: this.getUI(),
+                to_id: this.getUI(),
+                lastx_id: this.getUI()
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                field: function field() {
+                    return this.description.field;
+                },
+                last_x: function last_x() {
+                    return this.field + "_lastXcount_";
+                },
+                selector: function selector() {
+                    return this.field + "_selector_";
+                },
+                from: function from() {
+                    return this.field + "_from_";
+                },
+                to: function to() {
+                    return this.field + "_to_";
+                },
+                label: function label() {
+                    return this.description.label ? this.description.label : this.description.field;
+                },
+                last_x_label: function last_x_label() {
+                    return this.tr("X Value") + " - " + this.tr(this.label);
+                },
+                from_label: function from_label() {
+                    return this.tr("From") + " - " + this.tr(this.label);
+                },
+                to_label: function to_label() {
+                    return this.tr("To") + " - " + this.tr(this.label);
+                },
+                customClass: function customClass() {
+                    var classes = "oo-select-field ";
+                    if (this.hide_days && this.hide_lastX) {
+                        classes += " col-12";
+                    } else if (this.hide_days && !this.hide_lastX) {
+                        classes += " col-8";
+                    } else if (!this.hide_days && this.hide_lastX) {
+                        classes += " col-4";
+                    } else {
+                        classes += " col-4";
+                    }
+                    return classes;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                setDaySelector: function setDaySelector() {
+                    var _this2 = this;
+
+                    if ((this.record[this.from] || this.record[this.to]) && !this.record[this.selector]) {
+
+                        this.$nextTick(function () {
+                            _this2.record[_this2.selector] = "9999";
+                        });
+                    }
+                },
+                change_selector: function change_selector(value) {
+                    var _this3 = this;
+
+                    if (value && value.startsWith("LASTX")) {
+                        this.$nextTick(function () {
+                            _this3.$refs.input_last.focus();
+                            Materialize.updateTextFields();
+                        });
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div> \n                 <>                  \n                 <input @input=\"setDaySelector()\" type=\"date\" class=\"col s4\" :label=\"from_label\" v-model=\"param[from]\"></input>\n                 <input @input=\"setDaySelector()\" type=\"date\" class=\"col s4\" :label=\"to_label\" v-model=\"param[to]\"></input>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "period-component";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "period-component";
+        }
+    }]);
+
+    return periodComponent;
+}(Component);
+
+periodComponent.registerComponent();
+//# sourceMappingURL=period-component.js.map

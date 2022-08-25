@@ -1,0 +1,449 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component*/
+var classificationFilterComponent = function (_Component) {
+    _inherits(classificationFilterComponent, _Component);
+
+    function classificationFilterComponent() {
+        _classCallCheck(this, classificationFilterComponent);
+
+        return _possibleConstructorReturn(this, (classificationFilterComponent.__proto__ || Object.getPrototypeOf(classificationFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(classificationFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                renderView: false,
+                collections: []
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$route': 'generateFilter',
+                '$store.state.itemTimeFlag': 'generateFilter',
+                '$store.state.itemUpdate': 'calculateResults'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.fetchData = this.fetchData.bind(this);
+                                this.subscribeEvent("category-select", this.fetchData);
+                                this.display = !this.isMobile;
+                                $(window).resize(function () {
+                                    self.isMobile = $(window).width() <= 560;
+                                    self.display = !self.isMobile;
+                                });
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadCategory: this.loadCategory,
+                generateFilter: this.generateFilter,
+                resetCountFilters: this.resetCountFilters,
+                calculateResults: this.calculateResults,
+                launchFilter: this.launchFilter,
+                getItemValue: this.getItemValue,
+                getCategoryName: this.getCategoryName,
+                fetchData: this.fetchData
+            };
+        }
+    }, {
+        key: "loadCategory",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(categoryCode) {
+                var url, resp;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                url = "/ecommerce/api/getCategoryFilter?categoryCode=" + categoryCode;
+                                _context2.next = 3;
+                                return fetch(url);
+
+                            case 3:
+                                resp = _context2.sent;
+                                _context2.next = 6;
+                                return resp.json();
+
+                            case 6:
+                                return _context2.abrupt("return", _context2.sent);
+
+                            case 7:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function loadCategory(_x) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return loadCategory;
+        }()
+    }, {
+        key: "generateFilter",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var collection, items, globalCategory, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, item, itemsClassification, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, itemClass, valueSplit, objectFilter;
+
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                collection = new Map();
+                                items = this.$store.state.items_store.values();
+                                //let classificationApply = this.filterField.FilterCollection;
+                                //let ClassificationList = await this.loadCategory(classificationApply)
+                                //console.log('Classification Tree',ClassificationList.categoryList)
+
+                                globalCategory = this.$store.getters.getGlobalCategories;
+                                _iteratorNormalCompletion = true;
+                                _didIteratorError = false;
+                                _iteratorError = undefined;
+                                _context3.prev = 6;
+                                _iterator = items[Symbol.iterator]();
+
+                            case 8:
+                                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                                    _context3.next = 44;
+                                    break;
+                                }
+
+                                item = _step.value;
+                                itemsClassification = item.Classification;
+
+                                if (itemsClassification) {
+                                    _context3.next = 13;
+                                    break;
+                                }
+
+                                return _context3.abrupt("continue", 41);
+
+                            case 13:
+                                _iteratorNormalCompletion2 = true;
+                                _didIteratorError2 = false;
+                                _iteratorError2 = undefined;
+                                _context3.prev = 16;
+                                _iterator2 = itemsClassification.split(',')[Symbol.iterator]();
+
+                            case 18:
+                                if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+                                    _context3.next = 27;
+                                    break;
+                                }
+
+                                itemClass = _step2.value;
+                                valueSplit = this.$store.getters.getCategoryDataByCode(itemClass);
+
+                                if (!(!valueSplit || globalCategory.indexOf(valueSplit.code) != -1)) {
+                                    _context3.next = 23;
+                                    break;
+                                }
+
+                                return _context3.abrupt("continue", 24);
+
+                            case 23:
+                                //console.log('ClassObj',valueSplit);
+                                if (valueSplit.level > 0 && valueSplit.level < 4 && !collection.has(valueSplit.name)) {
+                                    objectFilter = {};
+
+                                    objectFilter.name = "classification-filter-" + valueSplit.name + "-" + valueSplit.code;
+                                    objectFilter.type = 'classificationFilter';
+                                    objectFilter.label = valueSplit.name;
+                                    objectFilter.value = valueSplit.name;
+                                    objectFilter.code = valueSplit.code;
+                                    objectFilter.filterField = "Classification";
+                                    objectFilter.itemCount = 1;
+                                    objectFilter.hiddens = new Map();
+                                    objectFilter.condition = "x.ClassificationPath['" + valueSplit.code + "']!=undefined";
+                                    //objectFilter.condition = `x.Classification.split(',').indexOf(\`${valueSplit.code}\`)!=-1`;
+                                    objectFilter.result = true;
+                                    objectFilter.active = false;
+                                    collection.set(valueSplit.name, objectFilter);
+                                }
+
+                            case 24:
+                                _iteratorNormalCompletion2 = true;
+                                _context3.next = 18;
+                                break;
+
+                            case 27:
+                                _context3.next = 33;
+                                break;
+
+                            case 29:
+                                _context3.prev = 29;
+                                _context3.t0 = _context3["catch"](16);
+                                _didIteratorError2 = true;
+                                _iteratorError2 = _context3.t0;
+
+                            case 33:
+                                _context3.prev = 33;
+                                _context3.prev = 34;
+
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+
+                            case 36:
+                                _context3.prev = 36;
+
+                                if (!_didIteratorError2) {
+                                    _context3.next = 39;
+                                    break;
+                                }
+
+                                throw _iteratorError2;
+
+                            case 39:
+                                return _context3.finish(36);
+
+                            case 40:
+                                return _context3.finish(33);
+
+                            case 41:
+                                _iteratorNormalCompletion = true;
+                                _context3.next = 8;
+                                break;
+
+                            case 44:
+                                _context3.next = 50;
+                                break;
+
+                            case 46:
+                                _context3.prev = 46;
+                                _context3.t1 = _context3["catch"](6);
+                                _didIteratorError = true;
+                                _iteratorError = _context3.t1;
+
+                            case 50:
+                                _context3.prev = 50;
+                                _context3.prev = 51;
+
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+
+                            case 53:
+                                _context3.prev = 53;
+
+                                if (!_didIteratorError) {
+                                    _context3.next = 56;
+                                    break;
+                                }
+
+                                throw _iteratorError;
+
+                            case 56:
+                                return _context3.finish(53);
+
+                            case 57:
+                                return _context3.finish(50);
+
+                            case 58:
+                                this.collections = Array.from(collection.values());
+                                //console.log('Class in Item', this.collections);
+                                this.calculateResults();
+
+                            case 60:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this, [[6, 46, 50, 58], [16, 29, 33, 41], [34,, 36, 40], [51,, 53, 57]]);
+            }));
+
+            function generateFilter() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return generateFilter;
+        }()
+    }, {
+        key: "resetCountFilters",
+        value: function resetCountFilters() {
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = this.collections[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var filter = _step3.value;
+
+                    filter.itemCount = 0;
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "calculateResults",
+        value: function calculateResults() {
+            var items = this.$store.getters.getItemsVisibles; //this.$store.getters.getItems
+            this.resetCountFilters();
+            var global = 0;
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                for (var _iterator4 = items.filter(function (e) {
+                    return e.visible;
+                })[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var x = _step4.value;
+                    var _iteratorNormalCompletion5 = true;
+                    var _didIteratorError5 = false;
+                    var _iteratorError5 = undefined;
+
+                    try {
+                        for (var _iterator5 = this.collections[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                            var interval = _step5.value;
+
+                            var isPresent = RegExp(interval.code, 'gi');
+                            var isVisible = isPresent.test(x[interval.filterField]);
+                            if (isVisible) {
+                                interval.itemCount = interval.itemCount + 1;
+                                interval.active = this.$store.state.filters.indexOf(interval.name) !== -1;
+                                global = global + 1;
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError5 = true;
+                        _iteratorError5 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                _iterator5.return();
+                            }
+                        } finally {
+                            if (_didIteratorError5) {
+                                throw _iteratorError5;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
+                    }
+                }
+            }
+
+            this.display = this.collections.filter(function (e) {
+                return e.itemCount > 0;
+            }).length > 0;
+        }
+    }, {
+        key: "launchFilter",
+        value: function launchFilter(filters) {
+            filters.active = true & filters.active;
+            this.$store.dispatch('addFilter', filters);
+        }
+    }, {
+        key: "getItemValue",
+        value: function getItemValue(item, fieldName) {
+            if (item.fields) item = item.fields;
+            return item[fieldName];
+        }
+    }, {
+        key: "getCategoryName",
+        value: function getCategoryName(categoryCode) {
+            try {
+                var catTree = this.$store.getters.getCategoryDataByCode(categoryCode);
+                if (catTree) {
+                    //console.log(catTree)
+                    return catTree.name;
+                }
+                return null;
+            } catch (err) {
+                //console.log('Error in categoryFilters',categoryCode,catTree,err);
+                return categoryCode;
+            }
+        }
+    }, {
+        key: "fetchData",
+        value: function fetchData() {
+            this.renderView = !this.renderView;
+            this.calculateResults();
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter classificationFilter\" >\n                   <div>\n                        <p class=\"filter-title\" @click=\"display = !display\">\n                            {{tr(filterField.ItemField)}}\n                            <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                            <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                        </p>\n                    </div>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul>\n                          <template v-for=\"filterClass of collections\">\n                                <li :key=\"'li'+filterClass.name\" v-if=\"filterClass.itemCount>0\">\n                                    <div class=\"custom-control custom-checkbox\">\n                                      <input :key=\"'input'+filterClass.name\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"filterClass.active\" :id=\"filterClass.name\" :name=\"filterClass.name\"  @click=\"launchFilter(filterClass)\"/>\n                                      <label :for=\"filterClass.name\" class=\"custom-control-label\" >{{filterClass.label}} ({{filterClass.itemCount}})</label>\n                                    </div>\n                                </li>\n                          </template>\n                        </ul>\n                    </section>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "classificationFilterComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "classificationFilterComponent";
+        }
+    }]);
+
+    return classificationFilterComponent;
+}(Component);
+
+classificationFilterComponent.registerComponent();
+//# sourceMappingURL=classificationFilterComponent.js.map

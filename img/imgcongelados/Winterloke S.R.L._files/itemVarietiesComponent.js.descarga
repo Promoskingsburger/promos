@@ -1,0 +1,514 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global  itemProxyComponent */
+var itemVarietiesComponent = function (_itemProxyComponent) {
+    _inherits(itemVarietiesComponent, _itemProxyComponent);
+
+    function itemVarietiesComponent() {
+        _classCallCheck(this, itemVarietiesComponent);
+
+        return _possibleConstructorReturn(this, (itemVarietiesComponent.__proto__ || Object.getPrototypeOf(itemVarietiesComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemVarietiesComponent, [{
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.loadVarities();
+                this.getItemVariationImage();
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "item": function item() {
+                    this.favorite = this.$store.getters.getFavorites.indexOf(this.item.Code) != -1;
+                    this.loadVarities();
+                },
+                "Qty": function Qty() {
+                    if (this.controlStock) if (Number.isInteger(this.item.Qty) && this.item.Qty <= this.Qty) {
+                        this.Qty = this.item.Qty;
+                        this.alertShowMessage("Maximum item quantity reached");
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getData",
+        value: function getData() {
+            var superData = _get(itemVarietiesComponent.prototype.__proto__ || Object.getPrototypeOf(itemVarietiesComponent.prototype), "getData", this).call(this);
+            return function () {
+                return Object.assign(superData(), {
+                    selectByFirtVariationByDefault: false,
+                    imageByVariation: {},
+                    itemVarieties: [],
+                    options: {},
+                    selectedColor: null,
+                    selecteds: [],
+                    selected: null
+                });
+            };
+        }
+    }, {
+        key: "loadVarietiesPrices",
+        value: function loadVarietiesPrices() {
+            var _this2 = this;
+
+            var storeItem = this.$store.getters.getItemByCode(this.item.Code);
+            if (storeItem) {
+                if (storeItem.Classification) this.$store.dispatch("updateCategory", this.$store.getters.getCategoryDataByCode(storeItem.Classification.split(',')[0]));
+
+                if (this.$store.getters.getSetting.ShowPriceByDefault || this.$store.getters.getIsLogin) {
+
+                    var itemWithOutPrice = [];
+                    if (!storeItem.isCalculate) {
+                        itemWithOutPrice.push(storeItem);
+                    }
+
+                    if (this.item.RelatedItems) {
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = this.item.RelatedItems.split(',')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var relatedCode = _step.value;
+
+                                var relatedItem = this.$store.getters.getItemByCode(relatedCode);
+                                if (relatedItem && !relatedItem.isCalculate) {
+                                    itemWithOutPrice.push(relatedItem);
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+                    }
+
+                    var _iteratorNormalCompletion2 = true;
+                    var _didIteratorError2 = false;
+                    var _iteratorError2 = undefined;
+
+                    try {
+                        for (var _iterator2 = this.itemVarieties[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            var itemVariant = _step2.value;
+
+                            var itemVariantStore = this.$store.getters.getItemByCode(itemVariant.Code);
+                            if (itemVariantStore && itemVariantStore.isCalculate === false) {
+                                itemWithOutPrice.push(itemVariantStore);
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError2 = true;
+                        _iteratorError2 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                _iterator2.return();
+                            }
+                        } finally {
+                            if (_didIteratorError2) {
+                                throw _iteratorError2;
+                            }
+                        }
+                    }
+
+                    if (itemWithOutPrice.length > 0) {
+                        this.loadingPrice = true;
+                        this.$store.dispatch("updatePrices", itemWithOutPrice).then(function (response) {
+                            _this2.loadingPrice = false;
+                        });
+                    }
+                }
+            }
+            if (this.selectByFirtVariationByDefault) this.loadFirstOptions();
+        }
+    }, {
+        key: "selectVariation",
+        value: function selectVariation(event, option) {
+            var _this3 = this;
+
+            if (event.target.value) this.selecteds[option] = event.target.value;else {
+                this.selecteds[option] = event.target.id;
+                this.selectedColor = event.target.id;
+            }
+            var filteredProducts = this.itemVarieties.filter(function (item) {
+                var filter = [];
+                var _iteratorNormalCompletion3 = true;
+                var _didIteratorError3 = false;
+                var _iteratorError3 = undefined;
+
+                try {
+                    var _loop = function _loop() {
+                        var concept = _step3.value;
+
+                        filter.push(item.Variants.filter(function (x) {
+                            return x.Concept == concept && x.Code == _this3.selecteds[concept];
+                        }).length > 0);
+                    };
+
+                    for (var _iterator3 = Object.keys(_this3.selecteds)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                        _loop();
+                    }
+                } catch (err) {
+                    _didIteratorError3 = true;
+                    _iteratorError3 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                            _iterator3.return();
+                        }
+                    } finally {
+                        if (_didIteratorError3) {
+                            throw _iteratorError3;
+                        }
+                    }
+                }
+
+                return filter.reduce(function (acumulator, x) {
+                    return x && acumulator;
+                });
+            });
+            if (filteredProducts.length === 1) this.selected = this.$store.getters.getItemByCode(filteredProducts[0].Code);else this.selected = null;
+        }
+    }, {
+        key: "itemQtyIncrement",
+        value: function itemQtyIncrement() {
+            var maxQty = this.getMaxStockByCode(this.selected.Code);
+            if (Number.isInteger(this.Qty) && this.Qty + 1 <= maxQty) this.Qty += 1;else this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+        }
+    }, {
+        key: "addItemToCar",
+        value: function addItemToCar() {
+            if (this.selected) {
+                var itemSelected = this.$store.getters.getItemByCode(this.selected.Code);
+                if (isNaN(this.Qty) || this.Qty == 0) {
+                    this.Qty = 0;
+                    return;
+                }
+                var formaterQty = Math.round((parseFloat(this.Qty) + Number.EPSILON) * 100) / 100;
+                if (this.item.OnlyIntegerValues === 1) {
+                    formaterQty = parseInt(this.Qty);
+                }
+                if (this.controlStock) {
+                    var maxQty = this.getMaxStockByCode(this.selected.Code);
+                    if (formaterQty > maxQty) {
+                        this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                        this.Qty = maxQty;
+                        return;
+                    } else {
+                        if (maxQty <= 0) {
+                            var item = this.$store.getters.getItemByCode(this.selected.Code);
+                            this.alertShowMessage(["This item {{$1}} is not longer available", item.Name]);
+                            return;
+                        }
+                    }
+                }
+                itemSelected.carQty = formaterQty;
+                this.$store.dispatch('addVarietyToCar', Object.assign({}, itemSelected));
+            } else this.alertShowMessage("Please the items variations");
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            var superComputed = _get(itemVarietiesComponent.prototype.__proto__ || Object.getPrototypeOf(itemVarietiesComponent.prototype), "getComputed", this).call(this);
+            return superComputed;
+        }
+    }, {
+        key: "loadVarities",
+        value: function loadVarities() {
+            var _this4 = this;
+
+            var processVarietiesInfo = function processVarietiesInfo(varieties) {
+                var tempOptions = {};
+                var avaibleOptions = [];
+                varieties.forEach(function (x) {
+                    return avaibleOptions = avaibleOptions.concat(x.Variants);
+                });
+
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = _this4.item.Concepts.split(",")[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var _concept = _step4.value;
+
+                        if (!tempOptions[_concept]) {
+                            tempOptions[_concept] = {};
+                        }
+                        var _iteratorNormalCompletion5 = true;
+                        var _didIteratorError5 = false;
+                        var _iteratorError5 = undefined;
+
+                        try {
+                            for (var _iterator5 = avaibleOptions[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                                var varietie = _step5.value;
+
+                                if (_concept == varietie.Concept && !tempOptions[_concept][varietie.Code]) tempOptions[_concept][varietie.Code] = varietie.Comment;
+                            }
+                        } catch (err) {
+                            _didIteratorError5 = true;
+                            _iteratorError5 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                    _iterator5.return();
+                                }
+                            } finally {
+                                if (_didIteratorError5) {
+                                    throw _iteratorError5;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+
+                _this4.options = tempOptions;
+                _this4.itemVarieties = varieties;
+            };
+            if (this.item) {
+                var varietiesInfoCache = this.item.VariantionData || this.$store.getters.getVairetiesFromCache(this.item.Code);
+                if (varietiesInfoCache) {
+                    processVarietiesInfo(varietiesInfoCache);
+                    this.loadVarietiesPrices();
+                } else {
+                    this.$store.dispatch("loadVarieties", this.item.Code).then(function (varietiesInfo) {
+                        processVarietiesInfo(varietiesInfo);
+                        _this4.getItemVariationImage();
+                        _this4.loadVarietiesPrices();
+                    });
+                }
+            }
+        }
+    }, {
+        key: "loadFirstOptions",
+        value: function loadFirstOptions() {
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
+
+            try {
+                for (var _iterator6 = Object.keys(this.options)[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var _concept2 = _step6.value;
+                    var _iteratorNormalCompletion7 = true;
+                    var _didIteratorError7 = false;
+                    var _iteratorError7 = undefined;
+
+                    try {
+                        for (var _iterator7 = Object.keys(this.options[_concept2])[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                            var varietieCode = _step7.value;
+
+                            if (_concept2 !== "COLOR") this.selectVariation({ target: { value: varietieCode } }, _concept2);
+                            /*else
+                                this.selectVariation({target :{id: varietieCode}}, concept);*/
+                            break;
+                        }
+                    } catch (err) {
+                        _didIteratorError7 = true;
+                        _iteratorError7 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                                _iterator7.return();
+                            }
+                        } finally {
+                            if (_didIteratorError7) {
+                                throw _iteratorError7;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
+                    }
+                } finally {
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "getItemVariationImage",
+        value: function getItemVariationImage() {
+            var _this5 = this;
+
+            var _iteratorNormalCompletion8 = true;
+            var _didIteratorError8 = false;
+            var _iteratorError8 = undefined;
+
+            try {
+                var _loop2 = function _loop2() {
+                    var option = _step8.value;
+
+                    if (option == 'COLOR') {
+                        var _iteratorNormalCompletion9 = true;
+                        var _didIteratorError9 = false;
+                        var _iteratorError9 = undefined;
+
+                        try {
+                            var _loop3 = function _loop3() {
+                                var optionKey = _step9.value;
+
+                                if (!_this5.imageByVariation[option + "-" + optionKey]) {
+                                    var _iteratorNormalCompletion10 = true;
+                                    var _didIteratorError10 = false;
+                                    var _iteratorError10 = undefined;
+
+                                    try {
+                                        for (var _iterator10 = _this5.itemVarieties[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                                            var itemVariation = _step10.value;
+
+                                            if (itemVariation.Images.length > 0 && itemVariation.Variants.filter(function (x) {
+                                                return x.Code === optionKey && x.Concept === option;
+                                            }).length > 0) {
+                                                _this5.imageByVariation[option + "-" + optionKey] = itemVariation.Images[0];
+                                            }
+                                        }
+                                    } catch (err) {
+                                        _didIteratorError10 = true;
+                                        _iteratorError10 = err;
+                                    } finally {
+                                        try {
+                                            if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                                                _iterator10.return();
+                                            }
+                                        } finally {
+                                            if (_didIteratorError10) {
+                                                throw _iteratorError10;
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+
+                            for (var _iterator9 = Object.keys(_this5.options[option]).sort()[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                                _loop3();
+                            }
+                        } catch (err) {
+                            _didIteratorError9 = true;
+                            _iteratorError9 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                                    _iterator9.return();
+                                }
+                            } finally {
+                                if (_didIteratorError9) {
+                                    throw _iteratorError9;
+                                }
+                            }
+                        }
+                    }
+                };
+
+                for (var _iterator8 = Object.keys(this.options).sort()[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                    _loop2();
+                }
+            } catch (err) {
+                _didIteratorError8 = true;
+                _iteratorError8 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                        _iterator8.return();
+                    }
+                } finally {
+                    if (_didIteratorError8) {
+                        throw _iteratorError8;
+                    }
+                }
+            }
+
+            return false;
+        }
+    }, {
+        key: "onChangeQty",
+        value: function onChangeQty(event) {
+            if (!isNaN(event.target.value)) {
+                var newValue = Number.parseInt(event.target.value, 10);
+                var maxQty = this.getMaxStockByCode(this.selected.Code);
+                if (newValue <= maxQty) this.Qty = newValue;else {
+                    this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                    this.Qty = maxQty;
+                }
+            } else {
+                this.alertShowMessage(["FORMATVALUEERR", 'Qty']);
+                this.Qty = 1;
+            }
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            var superMethods = _get(itemVarietiesComponent.prototype.__proto__ || Object.getPrototypeOf(itemVarietiesComponent.prototype), "getMethods", this).call(this);
+            superMethods['loadFirstOptions'] = this.loadFirstOptions;
+            superMethods['selectVariation'] = this.selectVariation;
+            superMethods['addItemToCar'] = this.addItemToCar;
+            superMethods['loadVarities'] = this.loadVarities;
+            superMethods['loadVarietiesPrices'] = this.loadVarietiesPrices;
+            superMethods['getItemVariationImage'] = this.getItemVariationImage;
+            superMethods['itemQtyIncrement'] = this.itemQtyIncrement;
+            return superMethods;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"item-detail\" @change.once=\"loadVarities\">\n                <div class=\"col-12\">\n                   <div class=\"container-fluid\">\n                    <div class=\"row\" v-if=\"item\">\n                        <div class=\"col-md-4 col-sm-12\" >\n                            <template v-if=\"!selected\">\n                                 <itemSliderComponent :useZoom=\"imgUseZoom\" :slideBigImage=\"imgSlideBigImage\" :item=\"item\" :stockFlag=\"showStock\" :container=\"true\" :showCarusel=\"imgShowCarusel\"></itemSliderComponent>\n                            </template>\n                            <template v-else>\n                                <itemSliderComponent :useZoom=\"imgUseZoom\" :slideBigImage=\"imgSlideBigImage\" :item=\"selected\" :stockFlag=\"showStock\" :container=\"true\" :showCarusel=\"imgShowCarusel\"></itemSliderComponent>\n                            </template>                        \n                        </div>\n                        <div class=\"col-md-8 col-sm-12\">\n                            <p class=\"product-title\">{{item.Name}}</p>\n                            <div class=\"product-description\">\n                                <p class=\"subtitle\">{{tr(\"Description\")}}</p>\n                                <p class=\"product-comment\" v-if=\"item.Comment\">{{item.Comment}}</p>\n                                <p v-else>{{tr(\"Article without description.\")}}</p>\n                            </div>\n                            <div class=\"product-details\">\n                                <p class=\"product-code\">{{tr(\"ECOMITEMCODE\")}} {{codeToShow}}</p>\n                                <p class=\"product-code\" v-if=\"$store.getters.showStock\">\n                                    <template v-if=\"!selected\">\n                                         Stock {{item.Qty}}\n                                    </template>\n                                    <template v-else>\n                                        Stock {{selected.Qty}}\n                                    </template>  \n                                </p>\n                                <template v-if=\"$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin\">\n                                    <p class=\"item-price\" v-if=\"!loadingPrice\">\n                                         <template v-if=\"!selected\">\n                                            <template v-if=\"item.Qty - item.Reserved > 0\">\n                                                Stock {{getMaxStockByCode(item.Code)}}\n                                            </template>\n                                            <template v-else>\n                                                Stock <span class=\"badge-dark px-1\">Agotado</span>\n                                            </template>\n                                         </template>\n                                         <template v-else>\n                                            <template v-if=\"getMaxStockByCode(selected.Code) > 0\">\n                                               Stock {{selected.Qty - selected.Reserved}}\n                                            </template>\n                                            <template v-else>\n                                                Stock <span class=\"badge-dark px-1\">Agotado</span>\n                                            </template>\n                                         </template>  \n                                    </p>\n                                </template>\n                                <template v-if=\"showClassification\">\n                                    <p class=\"subtitle\">{{tr('Classifications')}}</p>\n                                    <ol class=\"flex-column\">\n                                         <template v-for=\"cat in classificationList\">\n                                            <li :key=\"'item-cat-'+cat.name\" @click=\"filterByCategory(cat)\">\n                                                <router-link :to=\"'/items?category=' + encodeURI(cat.code+'__'+cat.name)\">\n                                                    {{capitalize(cat.name)}}\n                                                </router-link>\n                                            </li>\n                                        </template>\n                                    </ol>\n                                </template>\n                            </div>\n                            <template v-if=\"itemVarieties.length==0\">\n                                <div class=\"loading\" >\n                                    <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                                </div>\n                            </template>\n                            <template v-else>\n                                <div class=\"row items-varieties\" >\n                                    <div class=\"col-12\">\n                                        <template v-for=\"option in Object.keys(options).sort()\">\n                                            <template v-if=\"option=='COLOR'\">\n                                                <div class=\"form-group justify-content-center row\">\n                                                    <label class=\"col-12 text-center\" :for=\"'optionSelect'+option\" >{{capitalize(option)}}</label>\n                                                    <div class=\"row col-10 col-md-5 col-lg-4 item-color-options\" >\n                                                        <template v-for=\"optionKey in Object.keys(options[option]).sort()\" >\n                                                            <div class=\"col px-1\" >\n                                                                <template v-if=\"imageByVariation[option+'-'+optionKey]\">\n                                                                     <template v-if=\"selected && selected.Variants && selected.Variants.split(',').indexOf(optionKey)!==-1 && selected.images && selected.images.length > 0\">\n                                                                        <img :title=\"options[option][optionKey]\" :key=\"optionKey\"  :id=\"optionKey\" :src=\"selected.images[0]\" :alt=\"options[option][optionKey]\" class=\"rounded rounded-circle\"  v-bind:class=\"{ 'color-active': selectedColor==optionKey }\"  width=\"40\" height=\"40\" @click=\"(event)=>selectVariation(event,option)\">\n                                                                    </template>\n                                                                    <template v-else>\n                                                                        <img :title=\"options[option][optionKey]\" :key=\"optionKey\"  :id=\"optionKey\" :src=\"imageByVariation[option+'-'+optionKey]\" :alt=\"options[option][optionKey]\" class=\"rounded rounded-circle\"  v-bind:class=\"{ 'color-active': selectedColor==optionKey }\"  width=\"40\" height=\"40\" @click=\"(event)=>selectVariation(event,option)\">\n                                                                    </template>\n                                                                </template>\n                                                                <template v-else>\n                                                                    <img :title=\"options[option][optionKey]\" :key=\"optionKey\"  :id=\"optionKey\" :src=\"'../assets/'+optionKey+'_'+options[option][optionKey].replace(' ','')\" :alt=\"options[option][optionKey]\" class=\"rounded rounded-circle\"  v-bind:class=\"{ 'color-active': selectedColor==optionKey }\"  width=\"40\" height=\"40\" @click=\"(event)=>selectVariation(event,option)\">  \n                                                                </template>\n                                                            </div>\n                                                         </template>\n                                                    </div>\n                                                </div>\n                                            </template>\n                                            <template v-else>\n                                                <div class=\"form-group row\">\n                                                <label class=\"col-auto col-form-label\"  :for=\"'optionSelect'+option\">{{capitalize(option)}}</label>\n                                                <div class=\"col-sm-8 col-md-auto\">\n                                                    <select :id=\"'optionSelect'+option\" class=\"form-control\"  v-on:change=\"(event)=>selectVariation(event,option)\">\n                                                        <option :value=\"null\" selected disabled ></option>\n                                                        <template v-for=\"optionKey in Object.keys(options[option]).sort()\">\n                                                            <option :value=\"optionKey\" >{{options[option][optionKey]}}</option>\n                                                        </template>\n                                                    </select>\n                                                </div>\n                                             </div>\n                                             </template>\n                                        </template>\n                                        <template v-if=\"selected\">\n                                            <p> Cod.Variante : {{selected.Code}}</p>\n                                            <div class=\"row product-shops\">\n                                                    <template v-if=\"alertMsg\">\n                                                        <div class=\"col-12 alert alert-danger\" role=\"alert\">{{tr(alertMsg)}}</div>\n                                                    </template>\n                                                    <div class=\"input-group qty-input col-4 col-sm-6 col-xl-3 col-md-5 pr-0 pr-xl-4\">\n                                                        <template v-if=\"controlStock\">\n                                                            <template v-if=\"getMaxStockByCode(selected.Code)\">\n                                                                <div class=\"input-group-prepend d-none d-sm-flex\" >\n                                                                    <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyDecrement\"><i class=\"icon fas fa-minus\"></i></button>\n                                                                </div>\n                                                                <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='1' :max=\"getMaxStockByCode(selected.Code)\" class=\"form-control inputch\" type=\"text\" v-on:change.stop=\"onChangeQty\">\n                                                                <div class=\"input-group-append d-none d-sm-flex\">\n                                                                    <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyIncrement\"><i class=\"icon fas fa-plus\"></i></button>\n                                                                </div>\n                                                            </template>\n                                                            <template v-else>\n                                                                <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='0' :max=\"0\" class=\"form-control inputch\" type=\"text\" disabled>\n                                                                <small id=\"withOutStockHelpBlock\" class=\"form-text text-muted\">\n                                                                    {{tr(\"Without Stock\")}}\n                                                                </small>\n                                                            </template>\n                                                        </template>\n                                                        <template v-else>\n                                                            <div class=\"input-group-prepend d-none d-sm-flex\" >\n                                                                <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyDecrement\"><i class=\"icon fas fa-minus\"></i></button>\n                                                            </div>\n                                                            <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='1' :max=\"getMaxStockByCode(selected.Code)\" class=\"form-control inputch\" type=\"text\" v-on:change.stop=\"onChangeQty\">\n                                                            <div class=\"input-group-append d-none d-sm-flex\">\n                                                                <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyIncrement\"><i class=\"icon fas fa-plus\"></i></button>\n                                                            </div>\n                                                        </template>\n                                                    </div>\n                                                    <span class=\"cart-button col-8 col-sm-6 col-xl-12 col-md-4 pl-sm-0 pl-sm-3 text-left mt-0 mt-xl-2\">\n                                                        <button class=\"btn secondary-btn px-1 px-sm-3 px-xl-5\" :disabled=\"getMaxStockByCode(selected.Code)\" type=\"button\" @click.stop=\"canShopItem ? addItemToCar() : null\"><span class=\"icon\"><i class=\"fa-icon fas fa-cart-plus\"></i></span> {{tr(\"Load to Cart\")}}</button>\n                                                    </span>\n                                                </div>\n                                        </template>\n                                        <div class=\"social-buttons col-12 text-center text-md-left mt-4 p-0 pl-md-3\">\n                                            <a v-if=\"enableFB\" class=\"social-button mr-1\" title=\"Facebook\"  target=\"_blank\" rel=\"nofollow\"  :href=\"'https://www.facebook.com/sharer.php?u='+getItemUrl()\" >\n                                                <i class=\"icon fab fa-facebook-square\"></i>\n                                            </a>\n                                            <a v-if=\"enableTW\" class=\"social-button\" title=\"Twitter\" target=\"_blank\" rel=\"nofollow\" :href=\"'https://twitter.com/intent/tweet?url='+getItemUrl()\">\n                                                <i class=\"icon fab fa-twitter-square\"></i>\n                                            </a>\n                                            <a v-if=\"enableIG\" class=\"social-button\" title=\"Instagram\" target=\"_blank\" rel=\"nofollow\" :href=\"linkIG\" >\n                                                <i class=\"icon fab fa-instagram-square\"></i>\n                                            </a>\n                                             <a v-if=\"enableLK\" class=\"social-button\" title=\"LinkedIn\" target=\"_blank\" rel=\"nofollow\" :href=\"linkLK\" >\n                                                <i class=\"icon fab fa-linkedin\"></i>\n                                            </a>\n                                        </div>\n                                    </div>\n                                </div>\n                            </template>\n                        </div>\n                        <div class=\"w-100 px-3\">\n                            <div class=\"mt-3\" v-if=\"relatedItems.length>0\">\n                                <homeItemCardComponent :section=\"{internalId:item.Code}\" :items=\"relatedItems\" :title=\"tr('Related Items')\" :titleCenter=\"true\" :fullScreen=\"true\"/>\n                            </div>\n                        </div>\n                    </div>\n                  </div>\n                </div>\n\t\t\t</div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemVarietiesComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemVarietiesComponent";
+        }
+    }]);
+
+    return itemVarietiesComponent;
+}(itemProxyComponent);
+
+itemVarietiesComponent.registerComponent();
+//# sourceMappingURL=itemVarietiesComponent.js.map

@@ -1,0 +1,387 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component*/
+var VariantsFilterComponent = function (_Component) {
+    _inherits(VariantsFilterComponent, _Component);
+
+    function VariantsFilterComponent() {
+        _classCallCheck(this, VariantsFilterComponent);
+
+        return _possibleConstructorReturn(this, (VariantsFilterComponent.__proto__ || Object.getPrototypeOf(VariantsFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(VariantsFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                renderView: false,
+                collections: []
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$route': 'generateFilter',
+                '$store.state.itemTimeFlag': 'generateFilter',
+                '$store.state.itemUpdate': 'calculateResults'
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.fetchData = this.fetchData.bind(this);
+                                this.subscribeEvent("variants-select", this.fetchData);
+                                this.display = !this.isMobile;
+                                $(window).resize(function () {
+                                    self.isMobile = $(window).width() <= 560;
+                                    self.display = !self.isMobile;
+                                });
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadVariantData: this.loadVariantData,
+                generateFilter: this.generateFilter,
+                resetCountFilters: this.resetCountFilters,
+                calculateResults: this.calculateResults,
+                launchFilter: this.launchFilter,
+                fetchData: this.fetchData
+            };
+        }
+    }, {
+        key: "loadVariantData",
+        value: function loadVariantData() {
+            var variantsData = {};
+            if (!this.filterField.FilterCollection) return variantsData;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this.$store.state.items_store.values()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var item = _step.value;
+
+                    if (item.VariantionData) {
+                        var _iteratorNormalCompletion2 = true;
+                        var _didIteratorError2 = false;
+                        var _iteratorError2 = undefined;
+
+                        try {
+                            for (var _iterator2 = item.VariantionData[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                var variant = _step2.value;
+                                var _iteratorNormalCompletion3 = true;
+                                var _didIteratorError3 = false;
+                                var _iteratorError3 = undefined;
+
+                                try {
+                                    for (var _iterator3 = variant.Variants[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                        var concept = _step3.value;
+
+                                        if (concept && concept.Concept === this.filterField.FilterCollection) variantsData[concept.Code] = concept.Comment;
+                                    }
+                                } catch (err) {
+                                    _didIteratorError3 = true;
+                                    _iteratorError3 = err;
+                                } finally {
+                                    try {
+                                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                            _iterator3.return();
+                                        }
+                                    } finally {
+                                        if (_didIteratorError3) {
+                                            throw _iteratorError3;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError2 = true;
+                            _iteratorError2 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+                            } finally {
+                                if (_didIteratorError2) {
+                                    throw _iteratorError2;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            return variantsData;
+        }
+    }, {
+        key: "generateFilter",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                var collection, variantsData, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, variantCode, objectFilter;
+
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                collection = new Map();
+                                variantsData = this.loadVariantData();
+                                _iteratorNormalCompletion4 = true;
+                                _didIteratorError4 = false;
+                                _iteratorError4 = undefined;
+                                _context2.prev = 5;
+
+                                for (_iterator4 = Object.keys(variantsData)[Symbol.iterator](); !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                                    variantCode = _step4.value;
+
+                                    if (!collection.has(variantCode)) {
+                                        objectFilter = {};
+
+                                        objectFilter.name = 'valueFilter' + variantCode;
+                                        objectFilter.type = 'valueFilter';
+                                        objectFilter.label = variantsData[variantCode];
+                                        objectFilter.value = variantsData[variantCode];
+                                        objectFilter.code = variantCode;
+                                        objectFilter.filterField = "varieties_children";
+                                        objectFilter.itemCount = 1;
+                                        objectFilter.hiddens = new Map();
+                                        objectFilter.condition = "x.VariantionData.filter(y=>y.Variants.filter(v=>v && v.Code === \"" + variantCode + "\").length>0).length>0";
+                                        objectFilter.result = true;
+                                        objectFilter.active = false;
+                                        collection.set(variantCode, objectFilter);
+                                    }
+                                }
+                                _context2.next = 13;
+                                break;
+
+                            case 9:
+                                _context2.prev = 9;
+                                _context2.t0 = _context2["catch"](5);
+                                _didIteratorError4 = true;
+                                _iteratorError4 = _context2.t0;
+
+                            case 13:
+                                _context2.prev = 13;
+                                _context2.prev = 14;
+
+                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                    _iterator4.return();
+                                }
+
+                            case 16:
+                                _context2.prev = 16;
+
+                                if (!_didIteratorError4) {
+                                    _context2.next = 19;
+                                    break;
+                                }
+
+                                throw _iteratorError4;
+
+                            case 19:
+                                return _context2.finish(16);
+
+                            case 20:
+                                return _context2.finish(13);
+
+                            case 21:
+                                this.collections = Array.from(collection.values());
+                                this.calculateResults();
+
+                            case 23:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this, [[5, 9, 13, 21], [14,, 16, 20]]);
+            }));
+
+            function generateFilter() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return generateFilter;
+        }()
+    }, {
+        key: "resetCountFilters",
+        value: function resetCountFilters() {
+            var _iteratorNormalCompletion5 = true;
+            var _didIteratorError5 = false;
+            var _iteratorError5 = undefined;
+
+            try {
+                for (var _iterator5 = this.collections[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                    var filter = _step5.value;
+
+                    filter.itemCount = 0;
+                }
+            } catch (err) {
+                _didIteratorError5 = true;
+                _iteratorError5 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                        _iterator5.return();
+                    }
+                } finally {
+                    if (_didIteratorError5) {
+                        throw _iteratorError5;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "calculateResults",
+        value: function calculateResults() {
+            var items = this.$store.getters.getItemsVisibles; //this.$store.getters.getItems
+            this.resetCountFilters();
+            var global = 0;
+            var tempCollections = Array.from(this.collections);
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
+
+            try {
+                for (var _iterator6 = items.filter(function (e) {
+                    return e.visible;
+                })[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var x = _step6.value;
+
+                    if (x.VariantionData) {
+                        var _iteratorNormalCompletion7 = true;
+                        var _didIteratorError7 = false;
+                        var _iteratorError7 = undefined;
+
+                        try {
+                            for (var _iterator7 = tempCollections[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                                var _filter = _step7.value;
+
+                                try {
+                                    var isVisible = eval(_filter.condition);
+                                    if (isVisible) {
+                                        _filter.itemCount = _filter.itemCount + 1;
+                                        _filter.active = this.$store.state.filters.indexOf(_filter.name) !== -1;
+                                        global = global + 1;
+                                    }
+                                } catch (err) {
+                                    continue;
+                                }
+                            }
+                        } catch (err) {
+                            _didIteratorError7 = true;
+                            _iteratorError7 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                                    _iterator7.return();
+                                }
+                            } finally {
+                                if (_didIteratorError7) {
+                                    throw _iteratorError7;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
+                    }
+                } finally {
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
+                    }
+                }
+            }
+
+            this.collections = Array.from(tempCollections);
+            this.display = this.collections.filter(function (e) {
+                return e.itemCount > 0;
+            }).length > 0;
+        }
+    }, {
+        key: "launchFilter",
+        value: function launchFilter(filters) {
+            filters.active = true & filters.active;
+            this.$store.dispatch('addFilter', filters);
+        }
+    }, {
+        key: "fetchData",
+        value: function fetchData() {
+            this.renderView = !this.renderView;
+            this.calculateResults();
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filtervariantFilter\" >\n                   <div>\n                        <p class=\"filter-title\" @click=\"display = !display\">\n                            {{capitalize(tr(filterField.FilterCollection))}}\n                            <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                            <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                        </p>\n                    </div>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul>\n                          <template v-for=\"filterClass of collections\">\n                                <li :key=\"'li'+filterClass.name\" v-if=\"filterClass.itemCount>0\">\n                                    <div class=\"custom-control custom-checkbox\">\n                                      <input :key=\"'input'+filterClass.name\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"filterClass.active\" :id=\"filterClass.name\" :name=\"filterClass.name\"  @click=\"launchFilter(filterClass)\"/>\n                                      <label :for=\"filterClass.name\" class=\"custom-control-label\" >{{filterClass.label}} ({{filterClass.itemCount}})</label>\n                                    </div>\n                                </li>\n                          </template>\n                        </ul>\n                    </section>\n               </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "variantsFilter";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "variantsFilter";
+        }
+    }]);
+
+    return VariantsFilterComponent;
+}(Component);
+
+VariantsFilterComponent.registerComponent();
+//# sourceMappingURL=variantsFilterComponent.js.map

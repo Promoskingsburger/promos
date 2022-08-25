@@ -1,0 +1,274 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var itemViewModuleComponent = function (_Component) {
+    _inherits(itemViewModuleComponent, _Component);
+
+    function itemViewModuleComponent() {
+        _classCallCheck(this, itemViewModuleComponent);
+
+        return _possibleConstructorReturn(this, (itemViewModuleComponent.__proto__ || Object.getPrototypeOf(itemViewModuleComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemViewModuleComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['item'];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                slidesItem: [],
+                itemInCar: 0,
+                Qty: 1,
+                showCarusel: false,
+                alertMsg: null,
+                stockQty: null,
+                discount: false
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "Qty": function Qty(newValue, oldValue) {
+                    if (newValue && this.maxItemInCar > 0) {
+                        this.Qty = newValue; //this.positiveIntegerformat(newValue,1,this.maxItemInCar);
+                        if (newValue && this.controlStock) {
+                            if (Number.isInteger(this.item.Qty) && this.item.Qty <= this.Qty) {
+                                this.Qty = this.item.Qty;
+                                this.alertShowMessage("Maximum item quantity reached");
+                            }
+                        }
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                maxItemInCar: function maxItemInCar() {
+                    return this.getMaxStockByCode(this.item.Code);
+                },
+                showStock: function showStock() {
+                    if (!this.$store.getters.getIsLogin) return false;
+                    return this.$store.getters.showStock;
+                },
+                controlStock: function controlStock() {
+                    return this.$store.getters.getControlStock;
+                },
+                canShopItem: function canShopItem() {
+                    return this.controlStock ? this.item.Qty > 0 : true;
+                },
+
+                noStock: function noStock() {
+                    if (this.item.Qty <= 0) return true;
+                    return false;
+                },
+                currentItemPrice: function currentItemPrice() {
+                    // eslint-disable-next-line no-unused-vars
+                    var test = this.$store.state.itemTimeFlag;
+                    // eslint-disable-next-line no-unused-vars
+                    var test2 = this.$store.state.itemUpdate;
+                    var currentPrice = this.$store.getters.showItemPrice(this.item);
+                    return currentPrice;
+                },
+                mainImage: function mainImage() {
+                    if (this.item.slideIds) {
+                        var imagesList = this.item.slideIds.split(",");
+                        this.item.Images = [];
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = imagesList[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var item = _step.value;
+
+                                this.slidesItem.push("/oo/api/get_attached_file?OriginRecordName=Item&OriginId=" + this.item.Code + "&id=" + item);
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+
+                        return this.slidesItem[0];
+                    }
+                    return null;
+                },
+                renderStock: function renderStock() {
+                    if (this.stockFlag == undefined || this.stockFlag) return true;
+                    return false;
+                },
+                itemMustBeShow: function itemMustBeShow() {
+                    if (this.item.isCalculate) {
+                        if (this.currentItemPrice == 0) {
+                            return this.$store.ge;
+                        }
+                    }
+                    return true;
+                },
+
+                Currency: function Currency() {
+                    return this.$store.getters.getCurrency;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                updateStockQty: this.updateStockQty,
+                alertShowMessage: this.alertShowMessage,
+                openItemView: this.openItemView,
+                ItemComponentAddToCar: this.ItemComponentAddToCar,
+                itemQtyIncrement: this.itemQtyIncrement,
+                itemQtyDecrement: this.itemQtyDecrement,
+                showItemPrice: this.showItemPrice,
+                toggleFavorite: this.toggleFavorite,
+                goToDetail: this.goToDetail,
+                getDetailUrl: this.getDetailUrl,
+                getMaxStockByCode: this.getMaxStockByCode
+            };
+        }
+    }, {
+        key: "updateStockQty",
+        value: function updateStockQty() {
+            var itemStore = this.$store.getters.getItemByCode(this.item.Code);
+            this.stockQty = itemStore.Qty;
+        }
+    }, {
+        key: "alertShowMessage",
+        value: function alertShowMessage(alertMsg) {
+            var _this2 = this;
+
+            this.alertMsg = alertMsg;
+            setTimeout(function () {
+                return _this2.alertMsg = null;
+            }, 4500);
+        }
+    }, {
+        key: "openItemView",
+        value: function openItemView(item) {
+            if (item) this.$router.push('/view/' + this.encodeToURL(item.Code));
+        }
+    }, {
+        key: "getMaxStockByCode",
+        value: function getMaxStockByCode(itemCode) {
+            var giftCardItem = this.$store.getters.getGiftCardItem;
+            if (this.$store.getters.getSetting.ControlStockForSales && !(giftCardItem && giftCardItem.fields.Code == itemCode)) {
+                var itemInStore = this.$store.getters.getItemByCode(itemCode);
+                var qtyInCar = this.$store.getters.getItemAmountInCar(itemCode);
+                if (itemInStore.Reserved) return itemInStore.Qty - itemInStore.Reserved - qtyInCar;
+                return itemInStore.Qty - qtyInCar;
+            }
+            return this.$store.getters.getMaxQtyItem - this.$store.getters.getItemQtyCar(this.item.Code);
+        }
+    }, {
+        key: "ItemComponentAddToCar",
+        value: function ItemComponentAddToCar() {
+            var _this3 = this;
+
+            if (isNaN(this.Qty) || parseInt(this.Qty) == 0) {
+                this.alertShowMessage("Incorrent Qty Value");
+                return;
+            }
+            if (this.controlStock) {
+                var itemInCar = this.$store.getters.getItemCar.filter(function (x) {
+                    return x.id == _this3.item.Code;
+                })[0];
+                var maxQty = this.getMaxStockByCode(this.item.Code);
+                if (itemInCar) {
+                    if (parseInt(itemInCar.cant) + parseInt(this.Qty) > maxQty) {
+                        this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                        return;
+                    }
+                } else {
+                    if (parseInt(this.Qty) > maxQty) {
+                        this.alertShowMessage(["The article qty can't be bigger than {{$1}}", maxQty]);
+                        return;
+                    }
+                }
+            }
+            this.item.carQty = this.Qty;
+            this.$store.dispatch('ItemComponentAddToCar', this.item).then(function () {
+                _this3.Qty = 1;
+            });
+        }
+    }, {
+        key: "itemQtyIncrement",
+        value: function itemQtyIncrement() {
+            if (Number.isInteger(this.Qty)) this.Qty += 1;else this.Qty = 1;
+        }
+    }, {
+        key: "itemQtyDecrement",
+        value: function itemQtyDecrement() {
+            if (this.Qty) this.Qty -= 1;else this.Qty = 0;
+        }
+    }, {
+        key: "showItemPrice",
+        value: function showItemPrice(item) {
+            var price = item.Price;
+            if (this.$store.getters.getPriceToShow) price = item.RowTotal;else {
+                if (item.RowNet) price = item.RowNet;
+            }
+            return parseFloat(Math.round(price * 100) / 100).toFixed(2);
+        }
+    }, {
+        key: "toggleFavorite",
+        value: function toggleFavorite(itemCode) {
+            this.$store.dispatch('toggleFavourite', itemCode);
+            this.favorite = !this.favorite;
+        }
+    }, {
+        key: "goToDetail",
+        value: function goToDetail() {
+            this.$router.push('/view/' + this.encodeToURL(this.item.Code));
+        }
+    }, {
+        key: "getDetailUrl",
+        value: function getDetailUrl() {
+            return '/view/' + this.encodeToURL(this.item.Code);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"card\">\n                  <div class=\"discount\" v-if=\"discount && item.CrossedOutPrice\" >\n                    <discountComponent :item=\"item\" :currentItemPrice=\"currentItemPrice\"/>\n                  </div>\n                  <div class=\"favorite-icon\" v-if=\"$store.getters.getSession!=null\" >\n                      <favoriteBtnComponent :itemCode=\"item.Code\"/>\n                  </div>\n                  <template v-if=\"$store.getters.getSetting && $store.getters.getSetting.DemoPhotos\">\n                      <router-link :to=\"getDetailUrl()\">\n                        <div class=\"card-image item-detail-modal\" >\n                            <itemSliderComponent :key=\"'slide'+item.Code\" :item=\"item\" :stockFlag=\"$store.getters.showStock\" :container=\"false\"></itemSliderComponent>\n                        </div>\n                      </router-link>\n                  </template>\n                  <div class=\"card-body\">\n                    <h5 class=\"card-title\">\n                        <p class=\"card-text item-name\">{{item.Name}}</p>\n                        <p class=\"card-text item-name d-none\" v-if=\"showStock\">Stock {{item.stockQty}}</p>\n                    </h5>\n                    <template v-if=\"$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin\">\n                        <priceComponent :item=\"item\"></priceComponent>\n                        <p v-if=\"item.PriceByUnit\" class=\"card-text mb-3 item-price-by-unit\"><small>{{item.PriceByUnit}}</small></p>\n                    </template>\n                    <div class=\"form-row\">\n                      <template v-if=\"alertMsg\">\n                            <div class=\"alert alert-danger\" role=\"alert\">{{tr(alertMsg)}}</div>\n                      </template>\n                      <div class=\"form-group col-8\">\n                          <template v-if=\"controlStock\">\n                              <template v-if=\"item.Qty>0\">\n                                  <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"1\" :max=\"maxItemInCar\" type=\"number\">\n                              </template>\n                              <template v-else>\n                                <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"1\" :max=\"maxItemInCar\" type=\"number\" disabled aria-describedby=\"withOutStockHelpBlock\"  >\n                                <small id=\"withOutStockHelpBlock\" class=\"form-text text-muted\">\n                                      {{tr(\"Without Stock\")}}\n                                </small>\n                              </template>\n                          </template>\n                          <template v-else>\n                              <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" class=\"form-control\" min=\"1\" :max=\"maxItemInCar\"type=\"number\" :disabled=\"maxItemInCar<1\">\n                          </template>\n                      </div>\n                      <div class=\"col-4 text-center\" :disabled=\"maxItemInCar<1\">\n                          <div class=\"cart-button\" :title=\"tr('Add To Basket')\" :class=\"{'disabled': !canShopItem}\" @click.stop=\"canShopItem ? ItemComponentAddToCar(item) : null\" >\n                              <span class=\"icon\"><i class=\"fa-icon fas fa-cart-plus\"></i></span>\n                          </div>\n                      </div>\n                    </div>\n                </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemViewModuleComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemViewModuleComponent";
+        }
+    }]);
+
+    return itemViewModuleComponent;
+}(Component);
+
+itemViewModuleComponent.registerComponent();
+//# sourceMappingURL=itemViewModuleComponent.js.map

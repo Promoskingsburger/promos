@@ -1,0 +1,424 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var addressCreateComponent = function (_Component) {
+    _inherits(addressCreateComponent, _Component);
+
+    function addressCreateComponent() {
+        _classCallCheck(this, addressCreateComponent);
+
+        return _possibleConstructorReturn(this, (addressCreateComponent.__proto__ || Object.getPrototypeOf(addressCreateComponent)).apply(this, arguments));
+    }
+
+    _createClass(addressCreateComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return [];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                isloading: false,
+                customerAddresses: [],
+                selectedAddress: {
+                    Code: null,
+                    Name: '',
+                    Street: null,
+                    StreetNumber: null,
+                    Floor: null,
+                    Apartment: null,
+                    Address: '',
+                    Country: '',
+                    ProvinceCode: '',
+                    Locality: '',
+                    ZipCode: '',
+                    City: '',
+                    Latitude: null,
+                    Longitude: null,
+                    normalize: false
+                },
+                alertErrorAddress: null
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                var _this2 = this;
+
+                this.subscribeEvent("addressNeedConfirmations", this.closeMap);
+                $(this.$refs.newDeliveryModal).on('hidden.bs.modal', function (e) {
+                    _this2.$store.commit('updateSelectLinkto', { table: 'modalAddress_Province', value: null });
+                    _this2.$store.commit('updateSelectLinkto', { table: 'modalAddress_Country', value: null });
+                    _this2.$store.commit('updateSelectLinkto', { table: 'modalAddress_City', value: null });
+                    _this2.$store.commit('updateSelectLinkto', { table: 'modalAddress_ZipCode', value: null });
+                    _this2.isloading = false;
+                    _this2.customerAddresses = [];
+                    _this2.selectedAddress = {
+                        Code: null,
+                        Name: '',
+                        Street: null,
+                        StreetNumber: null,
+                        Floor: null,
+                        Apartment: null,
+                        Address: '',
+                        Country: '',
+                        ProvinceCode: '',
+                        Locality: '',
+                        ZipCode: '',
+                        City: '',
+                        Latitude: null,
+                        Longitude: null,
+                        normalize: false
+                    }, _this2.alertErrorAddress = null;
+                });
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$store.state.CustomerAddresses': function $storeStateCustomerAddresses() {
+                    this.clearForm();
+                },
+                'selectedAddress.Street': function selectedAddressStreet() {
+                    this.buildAddress();
+                },
+                'selectedAddress.StreetNumber': function selectedAddressStreetNumber() {
+                    this.buildAddress();
+                },
+                'selectedAddress.Floor': function selectedAddressFloor() {
+                    this.buildAddress();
+                },
+                'selectedAddress.Apartment': function selectedAddressApartment() {
+                    this.buildAddress();
+                }
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                getCustomerAddresses: function getCustomerAddresses() {
+                    this.customerAddresses = this.$store.getters.getCustomerAddresses;
+                    return this.customerAddresses;
+                },
+                provinceFilter: function provinceFilter() {
+                    var filter = {};
+                    if (this.selectedAddress.Country) filter['Country'] = this.selectedAddress.Country;
+                    return filter;
+                },
+                cityFilter: function cityFilter() {
+                    var filter = {};
+                    if (this.selectedAddress.ProvinceCode) filter['Province'] = this.selectedAddress.ProvinceCode;
+                    return filter;
+                },
+                zipCodeFilter: function zipCodeFilter() {
+                    var filter = {};
+                    if (this.customer.LocalityCode) filter['LocalityCode'] = this.customer.LocalityCode;
+                    return null;
+                },
+
+                Button: function Button() {
+                    return "btn btn-custom";
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                confirmAddressTrigger: this.confirmAddressTrigger,
+                closeMap: this.closeMap,
+                viewInMap: this.viewInMap,
+                triggerSaveAction: this.triggerSaveAction,
+                normalizeAddress: this.normalizeAddress,
+                buildAddress: this.buildAddress,
+                loadCustomerAddresses: this.loadCustomerAddresses,
+                updateSelectValues: this.updateSelectValues,
+                activeDeliveryAddress: this.activeDeliveryAddress,
+                registerNewAddress: this.registerNewAddress,
+                editAddress: this.editAddress,
+                disableAddress: this.disableAddress,
+                clearForm: this.clearForm
+            };
+        }
+    }, {
+        key: "confirmAddressTrigger",
+        value: function confirmAddressTrigger(address) {
+            if (address.Code == this.selectedAddress.Code) this.selectedAddress = address;
+        }
+    }, {
+        key: "closeMap",
+        value: function closeMap() {
+            $('#newDeliveryModal').modal('hide');
+            return null;
+        }
+    }, {
+        key: "viewInMap",
+        value: function viewInMap() {
+            this.confirmAddress = true;
+            this.emitEvent("addressNeedConfirmations", this.selectedAddress);
+        }
+    }, {
+        key: "triggerSaveAction",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(eventAddress) {
+                var address, openMap;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                address = this.selectedAddress;
+
+                                if (eventAddress) address = eventAddress;
+                                openMap = address.normalize;
+
+                                if (!(!address.Longitude || !address.Latitude || address.normalize)) {
+                                    _context.next = 7;
+                                    break;
+                                }
+
+                                this.selectedAddress = address;
+                                _context.next = 7;
+                                return this.normalizeAddress();
+
+                            case 7:
+                                if (openMap) {
+                                    this.viewInMap();
+                                } else {
+                                    if (this.activeDeliveryAddress(this.selectedAddress.Code)) this.editAddress();else this.registerNewAddress();
+                                }
+
+                            case 8:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function triggerSaveAction(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return triggerSaveAction;
+        }()
+    }, {
+        key: "normalizeAddress",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(eventAddress) {
+                var address, response;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                address = this.selectedAddress;
+
+                                if (eventAddress) address = eventAddress;
+                                _context2.next = 4;
+                                return axios.post('/ecommerce/api/getLocation', { record: address });
+
+                            case 4:
+                                response = _context2.sent;
+
+                                if (response.data.success) {
+                                    if (!eventAddress) {
+                                        this.selectedAddress = response.data.record;
+                                        this.selectedAddress.normalize = false;
+                                    }
+                                    eventAddress = response.data.record;
+                                    eventAddress.normalize = false;
+                                }
+                                return _context2.abrupt("return", eventAddress);
+
+                            case 7:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function normalizeAddress(_x2) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return normalizeAddress;
+        }()
+    }, {
+        key: "buildAddress",
+        value: function buildAddress() {
+            var newAddress = '';
+            if (this.selectedAddress.Street) newAddress = this.selectedAddress.Street + " ";
+            if (this.selectedAddress.StreetNumber) newAddress += this.selectedAddress.StreetNumber + " ";
+            if (this.selectedAddress.Floor) newAddress += this.selectedAddress.Floor + " ";
+            if (this.selectedAddress.Apartment) newAddress += this.selectedAddress.Apartment + " ";
+            this.selectedAddress.Address = newAddress;
+        }
+    }, {
+        key: "loadCustomerAddresses",
+        value: function loadCustomerAddresses() {
+            this.isloading = true;
+            this.$store.dispatch('loadCustomerAddresses');
+            this.isloading = false;
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues(field) {
+            if (field === 'Country') this.selectedAddress.Country = this.$store.getters.getSelectLinkToValue('modalAddress_Country');
+            if (field === 'Province') this.selectedAddress.ProvinceCode = this.$store.getters.getSelectLinkToValue('modalAddress_Province');
+            if (field === 'City') this.selectedAddress.City = this.$store.getters.getSelectLinkToValue('modalAddress_City');
+            if (field === 'ZipCode') this.selectedAddress.ZipCode = this.$store.getters.getSelectLinkToValue('modalAddress_ZipCode');
+        }
+    }, {
+        key: "activeDeliveryAddress",
+        value: function activeDeliveryAddress(addressCode) {
+            if (this.selectedAddress.Code != null) {
+                if (this.selectedAddress.Code === addressCode) return true;
+            }
+            return false;
+        }
+    }, {
+        key: "registerNewAddress",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var _this3 = this;
+
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                this.alertErrorAddress = null;
+                                this.selectedAddress.Name = this.selectedAddress.Address;
+                                if (!this.selectedAddress.Street) this.alertErrorAddress = ['Please fill the field {{$1}}', "Street"];
+                                if (!this.selectedAddress.StreetNumber) this.alertErrorAddress = ['Please fill the field {{$1}}', "StreetNumber"];else if (!this.selectedAddress.ProvinceCode) this.alertErrorAddress = ['Please fill the field {{$1}}', "Province"];else if (!this.selectedAddress.City) this.alertErrorAddress = ['Please fill the field {{$1}}', "City"];else if (!this.selectedAddress.Locality) this.alertErrorAddress = ['Please fill the field {{$1}}', "Locality"];else if (!this.selectedAddress.ZipCode) this.alertErrorAddress = ['Please fill the field {{$1}}', "ZipCode"];
+
+                                if (!this.alertErrorAddress) {
+                                    this.loading = true;
+                                    this.$store.dispatch('AddAddressCustomer', this.selectedAddress).then(function (response) {
+                                        if (response.success) {
+                                            _this3.loading = false;
+                                            $(_this3.$refs.newDeliveryModal).modal("hide");
+                                        }
+                                    });
+                                }
+
+                            case 5:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function registerNewAddress() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return registerNewAddress;
+        }()
+    }, {
+        key: "editAddress",
+        value: function () {
+            var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                    while (1) {
+                        switch (_context4.prev = _context4.next) {
+                            case 0:
+                                this.alertErrorAddress = null;
+                                this.selectedAddress.Name = this.selectedAddress.Address;
+
+                                if (!this.selectedAddress.Address) this.alertErrorAddress = ['Please fill the field {{$1}}', "Address"];else if (!this.selectedAddress.ProvinceCode) this.alertErrorAddress = ['Please fill the field {{$1}}', "Province"];else if (!this.selectedAddress.City) this.alertErrorAddress = ['Please fill the field {{$1}}', "City"];
+
+                                if (!this.alertErrorAddress) {
+                                    this.$store.dispatch('editAddressCustomer', this.selectedAddress);
+                                }
+
+                            case 4:
+                            case "end":
+                                return _context4.stop();
+                        }
+                    }
+                }, _callee4, this);
+            }));
+
+            function editAddress() {
+                return _ref4.apply(this, arguments);
+            }
+
+            return editAddress;
+        }()
+    }, {
+        key: "disableAddress",
+        value: function disableAddress() {
+            this.$store.dispatch('disableAddress', this.selectedAddress);
+        }
+    }, {
+        key: "clearForm",
+        value: function clearForm() {
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = Object.keys(this.selectedAddress)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var key = _step.value;
+
+                    this.selectedAddress[key] = null;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            this.selectedAddress.Country = this.$store.getters.getOurSettingsCountry;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "\n            <div class=\"modal\" tabindex=\"-1\" role=\"dialog\" :aria-labelledby=\"tr('Delivery Address')\" aria-hidden=\"true\" ref=\"newDeliveryModal\" id=\"newDeliveryModal\" >\n                <div class=\"modal-dialog\" role=\"document\">\n                    <div class=\"modal-content\">\n                        <div class=\"modal-header\">\n                            <h5 class=\"modal-title\">{{tr(\"Delivery Address\")}}</h5>\n                            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                                <span aria-hidden=\"true\">&times;</span>\n                            </button>\n                        </div>\n                        <div class=\"modal-body\">\n                              <addressesManagerComponent :showAddressList=\"false\" />\n                        </div>\n                    </div>\n                </div>\n            </div>";
+        }
+    }, {
+        key: "getTemplate2",
+        value: function getTemplate2() {
+            return "\n            <div class=\"modal\" tabindex=\"-1\" role=\"dialog\" ref=\"newDeliveryModal\" id=\"newDeliveryModal\" >\n                <div class=\"modal-dialog\" role=\"document\">\n                    <div class=\"modal-content\">\n                        <div class=\"modal-header\">\n                            <h5 class=\"modal-title\">{{tr(\"Delivery Address\")}}</h5>\n                            <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                                <span aria-hidden=\"true\">&times;</span>\n                            </button>\n                        </div>\n                        <div class=\"modal-body\">\n                            <div class=\"container-fluid\">\n                              <div class=\"row\">\n                                <div class=\"col-12\">\n                                    <div class=\"col-sm-12\" v-if=\"alertErrorAddress\">\n                                        <div ref='errorRegisterFrom' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" >\n                                           <strong>{{tr(alertErrorAddress)}}!</strong>\n                                           <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertErrorAddress = null\">\n                                            <span aria-hidden=\"true\">&times;</span>\n                                           </button>\n                                       </div>\n                                  </div>\n                                  <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Street')}}</label>\n                                       <input id=\"selectedAddressStreet\" v-model=\"selectedAddress.Street\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                  <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Number')}}</label>\n                                       <input id=\"selectedAddressNumber\" v-model=\"selectedAddress.StreetNumber\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                  <div class=\"row\">\n                                      <div class=\"form-group col-6\" >\n                                           <label for=\"selectedAddress\" class=\"form-label\">{{tr('Floor')}} ({{tr('Optional')}})</label>\n                                           <input id=\"selectedAddressFlat\" v-model=\"selectedAddress.Floor\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                      </div>\n                                       <div class=\"form-group col-6\" >\n                                           <label for=\"selectedAddress\" class=\"form-label\">{{tr('Apartment')}} ({{tr('Optional')}})</label>\n                                           <input id=\"selectedAddress\" v-model=\"selectedAddress.Apartment\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\" />\n                                      </div>\n                                  </div>\n                                  <div class=\"form-group d-none\">\n                                        <label for=\"customerCountry\" class=\"form-label\">{{tr('Country')}}</label>\n                                        <selectLinkToComponent ref=\"modalAddress_Country\" recordKey=\"modalAddress\"  :table=\"'Country'\" :paste=\"'Code'\" :showField=\"'Name'\" :selected=\"selectedAddress.Country\" v-on:update-value=\"updateSelectValues('Country')\"> </selectLinkToComponent>\n                                  </div>\n                                  <div class=\"form-group\">\n                                    <label class=\"form-label\">{{tr(\"Province\")}}</label>\n                                    <selectLinkToComponent ref=\"modalAddress_Province\" recordKey=\"modalAddress\" :table=\"'Province'\" :paste=\"'Code'\" :showField=\"'Name'\" :filters=\"provinceFilter\" :selected=\"selectedAddress.ProvinceCode\"  @update-value=\"updateSelectValues('Province')\"> </selectLinkToComponent>\n                                  </div>\n                                  <div class=\"form-group\">\n                                       <label class=\"form-label\">{{tr('City')}}</label>\n                                       <selectLinkToComponent ref=\"modalAddress_City\" recordKey=\"modalAddress\"  :table=\"'City'\" :paste=\"'Code'\" :showField=\"'Code'\"  :filters=\"cityFilter\" :selected=\"selectedAddress.City\" v-on:update-value=\"updateSelectValues('City')\"> </selectLinkToComponent>\n                                  </div>\n                                  <div class=\"form-group\">\n                                       <label class=\"form-label\">{{tr('Locality')}}</label>\n                                       <input id=\"selectedAddressLocality\" v-model=\"selectedAddress.Locality\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                  <div class=\"form-group\">\n                                        <label class=\"form-label\">{{tr('ZipCode')}}</label>\n                                       <input id=\"selectedZipCode\" v-model=\"selectedAddress.ZipCode\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                   </div>\n                                  <hr>\n                                </div>\n                              </div>\n                            </div>\n                        </div>\n                        <div class=\"modal-footer\" >\n                            <button type=\"submit\" class=\"btn btn-success\" :title=\"tr('Add')\" :class=\"[Button,{disabled:activeDeliveryAddress(selectedAddress.Code)}]\" @click=\"registerNewAddress()\" :disabled=\"isloading\"><i class=\"icon fas fa-save mr-2\"></i>{{tr('Save')}}</button>\n                            <button type=\"button\" class=\"btn btn-secondary\" data-dismiss=\"modal\"  :disabled=\"isloading\">{{tr('Close')}}</button>\n                        </div>\n                    </div>\n                </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "addressCreateComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "addressCreateComponent";
+        }
+    }]);
+
+    return addressCreateComponent;
+}(Component);
+
+addressCreateComponent.registerComponent();
+//# sourceMappingURL=addressCreateComponent.js.map

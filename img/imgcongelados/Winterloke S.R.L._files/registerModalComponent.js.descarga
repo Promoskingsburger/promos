@@ -1,0 +1,253 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var registerModalComponent = function (_Component) {
+    _inherits(registerModalComponent, _Component);
+
+    function registerModalComponent() {
+        _classCallCheck(this, registerModalComponent);
+
+        return _possibleConstructorReturn(this, (registerModalComponent.__proto__ || Object.getPrototypeOf(registerModalComponent)).apply(this, arguments));
+    }
+
+    _createClass(registerModalComponent, [{
+        key: "data",
+        value: function data() {
+            return {
+                personName: this.$store.getters.getSession,
+                personLastName: '',
+                personEmail: '',
+                personPhone: '',
+                customerTaxNr: '',
+                readOnly: false,
+                inSystem: false,
+                WebUser: '',
+                WebPassword: ''
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.FavouriteName = null;
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'inSystem': function inSystem() {
+                    console.log('Change ', this.inSystem);
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                registerNewUser: this.registerNewUser,
+                cuitValidator: this.cuitValidator
+            };
+        }
+    }, {
+        key: "registerNewUser",
+        value: function registerNewUser() {
+            var has_error = false;
+            if (!this.personName) {
+                has_error = true;
+            }
+            if (!this.personLastName) {
+                has_error = true;
+            }
+            if (!this.personEmail) {
+                has_error = true;
+            }
+            if (!this.personPhone) {
+                has_error = true;
+            }
+            if (!this.WebUser) {
+                has_error = true;
+                console.log('Errorr webUser');
+            }
+            if (!this.WebPassword) {
+                has_error = true;
+                console.log('Errorr webPassword');
+            }
+            if (!has_error) {
+                $.post('/ecommerce/api/newPerson', this.$data).done(function (response) {
+                    if (response.success == true) {
+                        $('#registerModal').modal('open');
+                    }
+                }).fail(function (error) {
+                    console.log('Error response in Register New User', error);
+                });
+            } else {
+                console.log('Errorr');
+                Materialize.toast('Error in forms');
+            }
+        }
+    }, {
+        key: "cuitValidator",
+        value: function cuitValidator() {
+            console.log('CUIT', this.customerTaxNr);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div id=\"registerModal\" class=\"modal cart-modal\">\n              <div class=\"modal-content\">\n                <h5 class=\"center-align\">Welcome</h5>\n                <div class=\"col s12\">\n                   <div class=\"row\">\n                        <div class=\"row no-margin\">\n                            <div class=\"col s6 input-field\">\n                              <i class=\"fa fa-user prefix\" aria-hidden=\"true\"></i>\n                              <input v-model=\"personName\" type=\"text\" class=\"validate\">\n                              <label for=\"username\">First Name</label>\n                            </div>\n                            <div class=\"col s6 input-field\">\n                              <i class=\"fa fa-user prefix\" aria-hidden=\"true\"></i>\n                              <input v-model=\"personLastName\" type=\"text\" class=\"validate\">\n                              <label for=\"username\">Last Name</label>\n                            </div>\n                        </div>\n                        <div class=\"row no-margin\">\n                              <div class=\"col s6 input-field\">\n                                  <i class=\"fa fa-envelope prefix\" aria-hidden=\"true\"></i>\n                                  <input v-model=\"personEmail\" type=\"email\" class=\"validate\">\n                                  <label for=\"username\" data-error=\"Invalid Email\">Email</label>\n                              </div>\n                              <div class=\"col s6 input-field\">\n                                  <i class=\"fa fa-phone prefix\" aria-hidden=\"true\"></i>\n                                  <input v-model=\"personPhone\" type=\"text\" class=\"validate\">\n                                  <label for=\"username\">Contact Phone</label>\n                              </div>\n                        </div>\n                        <div class=\"row no-margin\">\n                            <div class=\"input-field col s6\">\n                                <i class=\"fa fa-user prefix\" aria-hidden=\"true\"></i>\n                                <input class=\"validate\" pattern=\"[0-9]{2}\" v-model=\"customerTaxNr\" type=\"number\" min=010000000000 max=999999999999 @mouseleave=\"cuitValidator\">\n                                <label for=\"customerTaxNr\" data-error=\"Wrong CUIT/CUIL\">CUIT/CUIL</label>\n                            </div>\n                            <div class=\"switch\">\n                              <label>\n                                  Already in System\n                                  <input v-model=\"inSystem\" id=\"inSystem\" type=\"checkbox\">\n                                  <span class=\"lever\"></span>\n                                  New Client\n                              </label>\n                            </div>\n                        </div>\n                        <div class=\"row no-margin\">\n                            <div class=\"input-field col s6\">\n                                <i class=\"fa fa-user prefix\" aria-hidden=\"true\"></i>\n                                <input class=\"validate\" v-model=\"WebUser\" type=\"text\">\n                                <label for=\"username\" data-error=\"User already exits\">User</label>\n                            </div>\n                            <div class=\"input-field col s6\">\n                                <i class=\"fa fa-lock prefix\" aria-hidden=\"true\"></i>\n                                <input v-model=\"WebPassword\" class=\"validate\" type=\"password\" required>\n                                <label for=\"password\" data-error=\"Password can't be empty\">Password</label>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n              </div>\n              <div class=\"modal-footer\">\n                <button  class=\"btn waves-effect waves-light\" @click.prevent=\"registerNewUser\">Register</button>\n                <button  class=\"btn modal-action modal-close  waves-effect waves-light\" >Close</button>\n              </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "registerModalComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "registerModalComponent";
+        }
+    }]);
+
+    return registerModalComponent;
+}(Component);
+
+registerModalComponent.registerComponent();
+
+/*
+
+Vue.component('registerComponent',{
+    methods:{
+        registerNewUser:function(){
+            let has_error = false;
+            if (!this.personName) {
+                has_error = true;
+            }
+            if (!this.personLastName) {
+                has_error = true;
+            }
+            if (!this.personEmail) {
+                has_error = true;
+            }
+            if (!this.personPhone) {
+                has_error = true;
+            }
+            if (!this.WebUser) {
+                has_error = true;
+                console.log('Errorr webUser')
+            }
+            if (!this.WebPassword) {
+                has_error = true;
+                console.log('Errorr webPassword')
+            }
+            if(!has_error) {
+                $.post('/ecommerce/api/newPerson', this.$data)
+                    .done(function (response) {
+                        if(response.success==true) {
+                            $('#registerModal').modal('open');
+                        }
+                    })
+                    .fail(function (error) {
+                        console.log('Error response in Register New User', error);
+                    });
+            }
+            else{
+                console.log('Errorr')
+                Materialize.toast('Error in forms');
+            }
+        },
+        cuitValidator:function(){
+            console.log('CUIT',this.customerTaxNr);
+        }
+    },
+    data:function() {
+        return {
+            personName: this.$store.getters.getSession,
+            personLastName:'',
+            personEmail:'',
+            personPhone:'',
+            customerTaxNr:'',
+            readOnly:false,
+            inSystem:false,
+            WebUser: '',
+            WebPassword: ''
+        }
+    },
+    watch:{
+        'inSystem':function () {
+            console.log('Change ',this.inSystem);
+        }
+    },
+    template:`
+            <div id="registerModal" class="modal cart-modal">
+              <div class="modal-content">
+                <h5 class="center-align">Welcome</h5>
+                <div class="col s12">
+                   <div class="row">
+                        <div class="row no-margin">
+                            <div class="col s6 input-field">
+                              <i class="fa fa-user prefix" aria-hidden="true"></i>
+                              <input v-model="personName" type="text" class="validate">
+                              <label for="username">First Name</label>
+                            </div>
+                            <div class="col s6 input-field">
+                              <i class="fa fa-user prefix" aria-hidden="true"></i>
+                              <input v-model="personLastName" type="text" class="validate">
+                              <label for="username">Last Name</label>
+                            </div>
+                        </div>
+                        <div class="row no-margin">
+                              <div class="col s6 input-field">
+                                  <i class="fa fa-envelope prefix" aria-hidden="true"></i>
+                                  <input v-model="personEmail" type="email" class="validate">
+                                  <label for="username" data-error="Invalid Email">Email</label>
+                              </div>
+                              <div class="col s6 input-field">
+                                  <i class="fa fa-phone prefix" aria-hidden="true"></i>
+                                  <input v-model="personPhone" type="text" class="validate">
+                                  <label for="username">Contact Phone</label>
+                              </div>
+                        </div>
+                        <div class="row no-margin">
+                            <div class="input-field col s6">
+                                <i class="fa fa-user prefix" aria-hidden="true"></i>
+                                <input class="validate" pattern="[0-9]{2}" v-model="customerTaxNr" type="number" min=010000000000 max=999999999999 @mouseleave="cuitValidator">
+                                <label for="customerTaxNr" data-error="Wrong CUIT/CUIL">CUIT/CUIL</label>
+                            </div>
+                            <div class="switch">
+                              <label>
+                                  Already in System
+                                  <input v-model="inSystem" id="inSystem" type="checkbox">
+                                  <span class="lever"></span>
+                                  New Client
+                              </label>
+                            </div>
+                        </div>
+                        <div class="row no-margin">
+                            <div class="input-field col s6">
+                                <i class="fa fa-user prefix" aria-hidden="true"></i>
+                                <input class="validate" v-model="WebUser" type="text">
+                                <label for="username" data-error="User already exits">User</label>
+                            </div>
+                            <div class="input-field col s6">
+                                <i class="fa fa-lock prefix" aria-hidden="true"></i>
+                                <input v-model="WebPassword" class="validate" type="password" required>
+                                <label for="password" data-error="Password can't be empty">Password</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button  class="btn waves-effect waves-light" @click.prevent="registerNewUser">Register</button>
+                <button  class="btn modal-action modal-close  waves-effect waves-light" >Close</button>
+              </div>
+            </div>`
+});*/
+//# sourceMappingURL=registerModalComponent.js.map

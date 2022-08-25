@@ -1,0 +1,113 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var genericReportPage = function (_Component) {
+    _inherits(genericReportPage, _Component);
+
+    function genericReportPage() {
+        _classCallCheck(this, genericReportPage);
+
+        return _possibleConstructorReturn(this, (genericReportPage.__proto__ || Object.getPrototypeOf(genericReportPage)).apply(this, arguments));
+    }
+
+    _createClass(genericReportPage, [{
+        key: "data",
+        value: function data() {
+            return {
+                report: null
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                this.changeReportName = this.changeReportName.bind(this);
+                this.subscribeEvent('changeReportView', this.changeReportName);
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                changeReportName: this.changeReportName
+            };
+        }
+    }, {
+        key: "changeReportName",
+        value: function changeReportName(reportName) {
+            console.log('Change Report Name', reportName);
+            this.report = reportName;
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"reportPage\"  v-if=\"report\"> \n                  <div :class=\"classContainer\">\n                      <div class=\"row justify-content-center section main\">\n                          <template v-if=\"$store.getters.getAppState=='ready'\">\n                            <div class=\"col-11\">\n                                <div class=\"row justify-content-center\">\n                                    <div class=\"col-12 clearfix\">\n                                         <reportComponent :reportName=\"report\">\n                                            <template slot=\"parameters\" scope=\"reportScope\">\n                                                <genericReportForm :reportScope=\"reportScope\" :reportName=\"report\"></genericReportForm>\n                                            </template>\n                                         </reportComponent>\n                                    </div>\n                                </div>\n                            </div>\n                          </template>\n                          <template v-else>\n                            <div class=\"container center section white\" style=\"min-height: 60%;\" >\n                               <h3>{{tr('Page loading please wait')}}</h3>\n                             </div>\n                          </template>\n                      </div>\n                  </div>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "genericReportPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "genericReportPage";
+        }
+    }]);
+
+    return genericReportPage;
+}(Component);
+
+genericReportPage.registerComponent();
+
+/*
+
+Vue.component('genericReportPage',{
+    data:function(){
+        return {
+            report:null
+        }
+    },
+    created:function(){
+        this.changeReportName=this.changeReportName.bind(this);
+        this.subscribeEvent('changeReportView',this.changeReportName)
+    },
+    methods:{
+        changeReportName(reportName){
+            console.log('Change Report Name',reportName);
+            this.report=reportName;
+        }
+    },
+    template:`<div class="reportPage"  v-if="report"> 
+                  <div class="container-fluid">
+                      <div class="row justify-content-center section main">
+                          <template v-if="$store.getters.getAppState=='ready'">
+                            <div class="col-11">
+                                <div class="row justify-content-center">
+                                    <div class="col-12 clearfix">
+                                         <reportComponent :reportName="report">
+                                            <template slot="parameters" scope="reportScope">
+                                                <genericReportForm :reportScope="reportScope" :reportName="report"></genericReportForm>
+                                            </template>
+                                         </reportComponent>
+                                    </div>
+                                </div>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <div class="container center section white" style="min-height: 60%;" >
+                               <h3>{{tr('Page loading please wait')}}</h3>
+                             </div>
+                          </template>
+                      </div>
+                  </div>
+                </div>`
+})*/
+//# sourceMappingURL=genericReportPage.js.map

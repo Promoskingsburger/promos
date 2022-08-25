@@ -1,0 +1,692 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+window.__scripdirs__ = null;
+window.cmindex = {};
+window.cm = {};
+window.cm_registerpromises = {};
+
+window.sleep = function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(interval) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+                switch (_context.prev = _context.next) {
+                    case 0:
+                        return _context.abrupt('return', new Promise(function (resolve, reject) {
+                            setTimeout(resolve, interval);
+                        }));
+
+                    case 1:
+                    case 'end':
+                        return _context.stop();
+                }
+            }
+        }, _callee, this);
+    }));
+
+    return function (_x) {
+        return _ref.apply(this, arguments);
+    };
+}();
+
+window.cm.fetchClass = function () {
+    var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(name, sd) {
+        var _this = this;
+
+        var cidx, p;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+            while (1) {
+                switch (_context3.prev = _context3.next) {
+                    case 0:
+                        cidx = window.cmindex[sd + ":" + name];
+
+                        if (cidx) {
+                            _context3.next = 7;
+                            break;
+                        }
+
+                        // eslint-disable-next-line no-async-promise-executor
+                        p = new Promise(function () {
+                            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(resolve, reject) {
+                                var __script, ___f;
+
+                                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                                    while (1) {
+                                        switch (_context2.prev = _context2.next) {
+                                            case 0:
+                                                __script = null;
+                                                ___f = null;
+                                                _context2.prev = 2;
+                                                _context2.next = 5;
+                                                return $.get({ url: '/webstatic/' + sd + '/ecommerce/lib/js/components/' + name + '.js', dataType: 'text' });
+
+                                            case 5:
+                                                __script = _context2.sent;
+                                                _context2.next = 13;
+                                                break;
+
+                                            case 8:
+                                                _context2.prev = 8;
+                                                _context2.t0 = _context2['catch'](2);
+
+                                                window.cmindex[sd + ":" + name] = { v: null };
+                                                resolve(null);
+                                                return _context2.abrupt('return');
+
+                                            case 13:
+                                                _context2.prev = 13;
+
+                                                ___f = Function('return new Promise(async function (resolve, reject) {\n                    cm_registerpromises["' + sd + ':' + name + '"] = resolve;\n                    var __filename = "' + sd + '";\n                    ' + __script + ';\n            })');
+                                                window.f = ___f;
+                                                _context2.next = 24;
+                                                break;
+
+                                            case 18:
+                                                _context2.prev = 18;
+                                                _context2.t1 = _context2['catch'](13);
+
+                                                console.error(_context2.t1);
+                                                window.cmindex[sd + ":" + name] = { v: null };
+                                                resolve(null);
+                                                return _context2.abrupt('return');
+
+                                            case 24:
+                                                _context2.prev = 24;
+                                                _context2.next = 27;
+                                                return ___f();
+
+                                            case 27:
+                                                resolve(window.cmindex[sd + ":" + name].v);
+                                                _context2.next = 33;
+                                                break;
+
+                                            case 30:
+                                                _context2.prev = 30;
+                                                _context2.t2 = _context2['catch'](24);
+
+                                                console.error(_context2.t2);
+
+                                            case 33:
+                                            case 'end':
+                                                return _context2.stop();
+                                        }
+                                    }
+                                }, _callee2, _this, [[2, 8], [13, 18], [24, 30]]);
+                            }));
+
+                            return function (_x4, _x5) {
+                                return _ref3.apply(this, arguments);
+                            };
+                        }());
+
+                        window.cmindex[sd + ":" + name] = { p: p };
+                        return _context3.abrupt('return', p);
+
+                    case 7:
+                        if (!cidx.p) {
+                            _context3.next = 9;
+                            break;
+                        }
+
+                        return _context3.abrupt('return', cidx.p);
+
+                    case 9:
+                        return _context3.abrupt('return', cidx.v);
+
+                    case 10:
+                    case 'end':
+                        return _context3.stop();
+                }
+            }
+        }, _callee3, this);
+    }));
+
+    function fetchClass(_x2, _x3) {
+        return _ref2.apply(this, arguments);
+    }
+
+    return fetchClass;
+}();
+
+window.cm.getClass = function () {
+    var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(name) {
+        var c, i, sdname, cidx;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+            while (1) {
+                switch (_context4.prev = _context4.next) {
+                    case 0:
+                        c = window.cm[name];
+
+                        if (!c) {
+                            _context4.next = 3;
+                            break;
+                        }
+
+                        return _context4.abrupt('return', c);
+
+                    case 3:
+                        if (!(c === null)) {
+                            _context4.next = 5;
+                            break;
+                        }
+
+                        return _context4.abrupt('return', null);
+
+                    case 5:
+                        if (window.__scriptdirs__) {
+                            _context4.next = 9;
+                            break;
+                        }
+
+                        _context4.next = 8;
+                        return $.ajax({ url: '/ecommerce/scriptdirs' });
+
+                    case 8:
+                        window.__scriptdirs__ = _context4.sent.reverse();
+
+                    case 9:
+                        i = 0;
+
+                    case 10:
+                        if (!(i < window.__scriptdirs__.length)) {
+                            _context4.next = 26;
+                            break;
+                        }
+
+                        sdname = window.__scriptdirs__[i];
+                        cidx = window.cmindex[sdname + ":" + name];
+
+                        if (!(!cidx || cidx.p)) {
+                            _context4.next = 19;
+                            break;
+                        }
+
+                        _context4.next = 16;
+                        return window.cm.fetchClass(name, sdname);
+
+                    case 16:
+                        c = _context4.sent;
+                        _context4.next = 20;
+                        break;
+
+                    case 19:
+                        c = window.cmindex[sdname + ":" + name].v;
+
+                    case 20:
+                        if (!c) {
+                            _context4.next = 23;
+                            break;
+                        }
+
+                        window.cm[name] = c;
+                        return _context4.abrupt('return', c);
+
+                    case 23:
+                        i++;
+                        _context4.next = 10;
+                        break;
+
+                    case 26:
+                        return _context4.abrupt('return', null);
+
+                    case 27:
+                    case 'end':
+                        return _context4.stop();
+                }
+            }
+        }, _callee4, this);
+    }));
+
+    return function (_x6) {
+        return _ref4.apply(this, arguments);
+    };
+}();
+
+window.cm.SuperClass = function () {
+    var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(_ref6) {
+        var name = _ref6.name,
+            inherits = _ref6.inherits,
+            filename = _ref6.filename;
+
+        var sd, sdidx, c, i, sdname, cidx, _i, _sdname, _cidx;
+
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+            while (1) {
+                switch (_context5.prev = _context5.next) {
+                    case 0:
+                        sd = filename;
+
+                        if (window.__scriptdirs__) {
+                            _context5.next = 5;
+                            break;
+                        }
+
+                        _context5.next = 4;
+                        return $.ajax({ url: '/ecommerce/scriptdirs' });
+
+                    case 4:
+                        window.__scriptdirs__ = _context5.sent.reverse();
+
+                    case 5:
+                        sdidx = window.__scriptdirs__.indexOf(sd);
+                        c = null;
+                        i = sdidx + 1;
+
+                    case 8:
+                        if (!(i < window.__scriptdirs__.length)) {
+                            _context5.next = 23;
+                            break;
+                        }
+
+                        sdname = window.__scriptdirs__[i];
+                        cidx = window.cmindex[sdname + ":" + sdname];
+
+                        if (!(!cidx || cidx.p)) {
+                            _context5.next = 17;
+                            break;
+                        }
+
+                        _context5.next = 14;
+                        return window.cm.fetchClass(name, sdname);
+
+                    case 14:
+                        c = _context5.sent;
+                        _context5.next = 18;
+                        break;
+
+                    case 17:
+                        c = cidx.v;
+
+                    case 18:
+                        if (!c) {
+                            _context5.next = 20;
+                            break;
+                        }
+
+                        return _context5.abrupt('return', c);
+
+                    case 20:
+                        i++;
+                        _context5.next = 8;
+                        break;
+
+                    case 23:
+                        _i = 0;
+
+                    case 24:
+                        if (!(_i < window.__scriptdirs__.length)) {
+                            _context5.next = 39;
+                            break;
+                        }
+
+                        _sdname = window.__scriptdirs__[_i];
+                        _cidx = window.cmindex[_sdname + ":" + inherits];
+
+                        if (!(!_cidx || _cidx.p)) {
+                            _context5.next = 33;
+                            break;
+                        }
+
+                        _context5.next = 30;
+                        return window.cm.fetchClass(inherits, _sdname);
+
+                    case 30:
+                        c = _context5.sent;
+                        _context5.next = 34;
+                        break;
+
+                    case 33:
+                        c = _cidx.v;
+
+                    case 34:
+                        if (!c) {
+                            _context5.next = 36;
+                            break;
+                        }
+
+                        return _context5.abrupt('return', c);
+
+                    case 36:
+                        _i++;
+                        _context5.next = 24;
+                        break;
+
+                    case 39:
+                        return _context5.abrupt('return', null);
+
+                    case 40:
+                    case 'end':
+                        return _context5.stop();
+                }
+            }
+        }, _callee5, this);
+    }));
+
+    function SuperClass(_x7) {
+        return _ref5.apply(this, arguments);
+    }
+
+    return SuperClass;
+}();
+
+var Component = function () {
+    _createClass(Component, [{
+        key: 'type',
+        value: function type() {
+            return "component";
+        }
+    }], [{
+        key: 'name',
+        value: function name() {
+            throw "NAME NOT DEFINED";
+        }
+    }, {
+        key: 'getId',
+        value: function getId() {
+            if (!Component.id) {
+                Component.id = 0;
+            }
+            return Component.id++;
+        }
+    }, {
+        key: 'openInModal',
+        value: function openInModal(props) {
+            var level = Component.ModalLevel++;
+            var id = this.getId();
+            var self = this;
+            return new Promise(function (_resolve, reject) {
+                var fullid = 'modal-' + id;
+                var pwelement = void 0;
+
+                pwelement = $('<div style="z-index: ' + level + '" id="' + fullid + '" class="modal-mask" @click="resolve()">\n                        <div class="modal is-active">\n                           <div class="modal-background"></div>\n                              <div class="modal-card">                                \n                                <section class="modal-card-body" @click="$event.stopPropagation()">\n                                  <h5 class="">{{tr(props.header)}}</h5>  \n                                  <' + self.componentName() + ' v-bind="props" @resolve="resolve"></' + self.componentName() + '>\n                                </section>                                  \n                                </footer>                             \n                              </div>        \n                        </div>               \n                </div>');
+
+                $(document.body).append(pwelement);
+
+                new Vue({
+                    data: function data() {
+                        return {
+                            props: props,
+                            tr: window.tr
+
+                        };
+                    },
+                    el: pwelement.get(0),
+                    components: {},
+                    mounted: function mounted() {},
+                    methods: {
+                        resolve: function resolve(value) {
+                            this.$destroy();
+                            var element = document.getElementById(fullid);
+                            if (element) {
+                                element.remove();
+                            }
+                            Component.ModalLevel--;
+                            _resolve(value);
+                        }
+                    }
+
+                });
+            });
+        }
+    }, {
+        key: 'getMutatiosDict',
+        value: function getMutatiosDict() {
+            return {};
+        }
+    }, {
+        key: 'loadData',
+        value: function () {
+            var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+                return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                    while (1) {
+                        switch (_context6.prev = _context6.next) {
+                            case 0:
+                                return _context6.abrupt('return', {});
+
+                            case 1:
+                            case 'end':
+                                return _context6.stop();
+                        }
+                    }
+                }, _callee6, this);
+            }));
+
+            function loadData() {
+                return _ref7.apply(this, arguments);
+            }
+
+            return loadData;
+        }()
+    }, {
+        key: 'save',
+        value: function save(key, value) {
+            var obj = {
+                module: this.name(),
+                key: key,
+                value: value
+            };
+            window.$store.dispatch('save', obj);
+        }
+    }, {
+        key: 'get',
+        value: function get(key) {
+            var obj = {
+                module: this.name(),
+                key: key
+            };
+            return window.$store.getters.getState(obj);
+        }
+    }, {
+        key: 'componentName',
+        value: function componentName() {
+            return null;
+        }
+    }]);
+
+    function Component() {
+        //console.log(`${this.constructor.componentName()} was loaded succesfully`)
+
+        _classCallCheck(this, Component);
+    }
+
+    _createClass(Component, [{
+        key: 'getRoutes',
+        value: function getRoutes() {
+            return {};
+        }
+    }, {
+        key: 'data',
+        value: function data() {
+            return {};
+        }
+    }, {
+        key: 'getData',
+        value: function getData() {
+            var self = this;
+            return function () {
+                return self.data();
+            };
+        }
+    }, {
+        key: 'template',
+        value: function template() {
+            return "<h1>TEMPLATE IS NOT DEFINED</h1>";
+        }
+    }, {
+        key: 'title',
+        value: function title() {
+            return "";
+        }
+    }, {
+        key: 'getTemplate',
+        value: function getTemplate() {
+            if (this.title() != "") {
+                return '<div>\n                      <section class="section main-section">\n                          <h1 class="main-title">' + this.title() + '</h1>\n                          ' + this.template() + '\n                      </section>\n                  </div>';
+            } else {
+                return '<div>\n                    <section class="section main-section">\n                        ' + this.template() + '\n                    </section>\n                </div>';
+            }
+        }
+    }, {
+        key: 'mounted',
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                    while (1) {
+                        switch (_context7.prev = _context7.next) {
+                            case 0:
+                                return _context7.abrupt('return', null);
+
+                            case 1:
+                            case 'end':
+                                return _context7.stop();
+                        }
+                    }
+                }, _callee7, this);
+            }));
+        }
+    }, {
+        key: 'created',
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+                return regeneratorRuntime.wrap(function _callee8$(_context8) {
+                    while (1) {
+                        switch (_context8.prev = _context8.next) {
+                            case 0:
+                            case 'end':
+                                return _context8.stop();
+                        }
+                    }
+                }, _callee8, this);
+            }));
+        }
+    }, {
+        key: 'updated',
+        value: function updated() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+                return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                    while (1) {
+                        switch (_context9.prev = _context9.next) {
+                            case 0:
+                            case 'end':
+                                return _context9.stop();
+                        }
+                    }
+                }, _callee9, this);
+            }));
+        }
+    }, {
+        key: 'beforeDestroy',
+        value: function beforeDestroy() {
+            return function () {
+                return true;
+            };
+        }
+    }, {
+        key: 'getMethods',
+        value: function getMethods() {
+            return {};
+        }
+    }, {
+        key: 'getProps',
+        value: function getProps() {
+            return [];
+        }
+    }, {
+        key: 'useProps',
+        value: function useProps() {
+            return this.getProps().length > 0;
+        }
+    }, {
+        key: 'getComputed',
+        value: function getComputed() {
+            return {};
+        }
+    }, {
+        key: 'getInheritAttrs',
+        value: function getInheritAttrs() {
+            return true;
+        }
+    }, {
+        key: 'getComponent',
+        value: function getComponent() {
+            return {
+                inheritAttrs: this.getInheritAttrs(),
+                props: this.getProps(),
+                data: this.getData(),
+                computed: this.getComputed(),
+                methods: this.getMethods(),
+                watch: this.getWatch(),
+                created: this.created(),
+                updated: this.updated(),
+                mounted: this.mounted(),
+                components: this.getComponents(),
+                template: this.getTemplate(),
+                beforeDestroy: this.beforeDestroy()
+            };
+        }
+    }, {
+        key: 'getComponents',
+        value: function getComponents() {
+            return {};
+        }
+    }, {
+        key: 'getCards',
+        value: function getCards() {
+            return [];
+        }
+    }, {
+        key: 'getWatch',
+        value: function getWatch() {
+            return {};
+        }
+    }], [{
+        key: 'registerComponent',
+        value: function registerComponent() {
+            var customerName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+            var cmpName = customerName;
+            if (!cmpName) cmpName = this.componentName();
+            if (!cmpName) {
+                console.error('El componente no se puede registrar globalmente, no posee nombre definido');
+                throw 'El componente no se puede registrar globalmente, no posee nombre definido';
+            } else {
+                var componentClass = this;
+                Vue.component(this.componentName(), new componentClass().getComponent());
+                /*if(Vue.config.devtools)
+                    console.log(`${this.componentName()} - registered succesfully`); // eslint-disable-line no-console
+                else
+                    console.log=function(){return null};
+                */
+            }
+        }
+    }, {
+        key: 'initClass',
+        value: function initClass(description) {
+            var name = description.name,
+                filename = description.filename,
+                sd = description.sd;
+
+            this.__description__ = description;
+            this.__super__ = Reflect.getPrototypeOf(this);
+            sd = sd || filename;
+            if (!name || !sd) throw new Error('invalid description arguments: name or sd');
+            window.cmindex[sd + ':' + name] = { v: this };
+            if (window.cm_registerpromises[sd + ':' + name]) {
+                window.cm_registerpromises[sd + ':' + name]();
+                delete window.cm_registerpromises[sd + ':' + name];
+            }
+        }
+    }]);
+
+    return Component;
+}();
+
+Component.initClass({ name: 'Component', inherits: null, sd: 'ecommerce' });
+Component.id = 0;
+Component.ModalLevel = 2000;
+//# sourceMappingURL=baseComponent.js.map

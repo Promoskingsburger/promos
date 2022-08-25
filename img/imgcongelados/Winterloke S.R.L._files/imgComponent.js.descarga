@@ -1,0 +1,98 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/*global Component*/
+var imgComponent = function (_Component) {
+    _inherits(imgComponent, _Component);
+
+    function imgComponent() {
+        _classCallCheck(this, imgComponent);
+
+        return _possibleConstructorReturn(this, (imgComponent.__proto__ || Object.getPrototypeOf(imgComponent)).apply(this, arguments));
+    }
+
+    _createClass(imgComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                'src': String,
+                'myclass': String,
+                'mystyle': {
+                    'type': Object,
+                    'defautl': {}
+                },
+                "isthumbnails": Boolean,
+                "eventclick": Function,
+                "imgIndex": Number
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                classObjectMap: function classObjectMap() {
+                    //console.log("Image Mounted",this);
+                    var classObject = {};
+                    if (this.isthumbnails) classObject['img-thumbnail'] = true;
+                    return classObject;
+                },
+                styleObjectMap: function styleObjectMap() {
+                    var customsStyle = {};
+                    if (this.isthumbnails) {
+                        customsStyle['width'] = "75px";
+                        customsStyle['height'] = "75px";
+                    }
+                    //console.log('F1',customsStyle,this.mystyle);
+                    if (this.mystyle) Object.assign(customsStyle, this.mystyle);
+                    return customsStyle;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getImageUrl: this.getImageUrl,
+                onClickHandler: this.onClickHandler
+            };
+        }
+    }, {
+        key: "getImageUrl",
+        value: function getImageUrl() {
+            return this.src || "../static/ecommerce/img/nophoto_128x128.jpg";
+        }
+    }, {
+        key: "onClickHandler",
+        value: function onClickHandler() {
+            //console.log('Event Handler',this.eventclick,this.imgIndex);
+            if (this.eventclick && this.imgIndex) this.eventclick(this.imgIndex);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<img class=\"item-image img-fluid\"  :class=\"classObjectMap\" :src=\"getImageUrl()\" alt=\"Product Image\" v-bind:style=\"styleObjectMap\" v-on:click=\"onClickHandler\" />";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "imgComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "imgComponent";
+        }
+    }]);
+
+    return imgComponent;
+}(Component);
+
+imgComponent.registerComponent();
+//# sourceMappingURL=imgComponent.js.map

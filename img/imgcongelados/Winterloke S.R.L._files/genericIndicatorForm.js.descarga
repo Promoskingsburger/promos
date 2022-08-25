@@ -1,0 +1,316 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var genericIndicatorForm = function (_Component) {
+    _inherits(genericIndicatorForm, _Component);
+
+    function genericIndicatorForm() {
+        _classCallCheck(this, genericIndicatorForm);
+
+        return _possibleConstructorReturn(this, (genericIndicatorForm.__proto__ || Object.getPrototypeOf(genericIndicatorForm)).apply(this, arguments));
+    }
+
+    _createClass(genericIndicatorForm, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['reportScope', 'reportName', "loading"];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                running: false,
+                selected: null,
+                reportParams: {},
+                id: null,
+                dateFormat: 'YYYY-MM-DD'
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.createInitialParameters();
+                                this.loadReportParams();
+                                _context.next = 4;
+                                return this.runReport();
+
+                            case 4:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "update",
+        value: function update() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.loadReportParams();
+
+                            case 1:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                params: function params() {
+                    return this.loadReportParams();
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                createInitialParameters: this.createInitialParameters,
+                getEditor: this.getEditor,
+                getValue: this.getValue,
+                getDate: this.getDate,
+                getPeriodDate: this.getPeriodDate,
+                getReportName: this.getReportName,
+                loadReportParams: this.loadReportParams,
+                runReport: this.runReport,
+                runExport: this.runExport
+            };
+        }
+    }, {
+        key: "createInitialParameters",
+        value: function createInitialParameters() {
+            var reportParams = {};
+            var reportSpec = Object.values(this.$store.getters.getIndicatorParameters(this.reportName));
+
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = reportSpec[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var param = _step.value;
+
+                    if (this.getEditor(param) == 'date') {
+                        reportParams[param.field] = this.getDate(param.default);
+                    } else if (param.fieldDef.component != 'PeriodComponent') {
+                        reportParams[param.field] = this.getValue(param.default);
+                    } else {
+                        var periodConfig = this.getPeriodDate(param.default);
+                        reportParams[param.field + '_from_'] = periodConfig[0];
+                        reportParams[param.field + '_to_'] = periodConfig[1];
+                        reportParams[param.field + '_selector_'] = "9999";
+                    }
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            this.reportParams = reportParams;
+        }
+    }, {
+        key: "getEditor",
+        value: function getEditor(param) {
+            this.isSet = false;
+            //console.log(param,param.fieldDef.editor || param.fieldDef.type);
+            switch (param.fieldDef.editor || param.fieldDef.type) {
+                case 'string':
+                    return 'string';
+                case 'boolean':
+                case 'checkbox':
+                    return 'checkbox';
+                case 'combobox':
+                    return 'combobox';
+                case 'period':
+                    return 'period';
+                case 'date':
+                    return 'date';
+                case 'matrix':
+                    return 'matrix';
+                case 'datepicker':
+                    return 'date';
+                case 'set':
+                    return "string";
+                case 'vuecomponent':
+                    if (param.fieldDef.component == "PeriodComponent") return "period";
+            }
+            return 'string';
+        }
+    }, {
+        key: "getValue",
+        value: function getValue(defaultValue) {
+            switch (defaultValue) {
+                case "@Customer.Code":
+                    return this.$store.getters.getCustomer.Code || '';
+                case "@Customer.GroupCode":
+                    return this.$store.getters.getCustomer.GroupCode || '';
+                case "@Customer.Gifts":
+                    return this.$store.state.customerGifts.join(",");
+            }
+            return defaultValue;
+        }
+    }, {
+        key: "getDate",
+        value: function getDate(defaultValue) {
+            var fromPeriod = moment().format(this.dateFormat);
+            console.log('Calculate Date Default', defaultValue);
+            if (defaultValue) {
+                var extracValue = defaultValue.match(/(\d+)/);
+                switch (true) {
+                    case /@LastMonth/.test(defaultValue):
+                        fromPeriod = moment().subtract(1, 'months').format(this.dateFormat);
+                        break;
+                    case /@LastWeek/.test(defaultValue):
+                        fromPeriod = moment().subtract(1, 'weeks').format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Year$/.test(defaultValue):
+                    case /^@Last[0-9]*Years$/.test(defaultValue):
+                        var months = 1;
+                        if (extracValue) months = extracValue[0];
+                        fromPeriod = moment().subtract(months, 'years').format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Month$/.test(defaultValue):
+                    case /^@Last[0-9]*Months$/.test(defaultValue):
+                        var years = 1;
+                        if (extracValue) years = extracValue[0];
+                        fromPeriod = moment().subtract(years, 'months').format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Day$/.test(defaultValue):
+                    case /^@Last[0-9]*Days$/.test(defaultValue):
+                        var days = 1;
+                        if (extracValue) days = extracValue[0];
+                        fromPeriod = moment().subtract(days, 'days').format(this.dateFormat);
+                        break;
+                }
+            }
+            console.log('Default Date Value', fromPeriod);
+            return fromPeriod;
+        }
+    }, {
+        key: "getPeriodDate",
+        value: function getPeriodDate(defaultValue) {
+            var fromPeriod = moment().subtract(1, 'months').format(this.dateFormat);
+            var toPeriod = moment().format(this.dateFormat);
+            console.log('Calculate Date Default', defaultValue);
+            if (defaultValue) {
+                var extracValue = defaultValue.match(/(\d+)/);
+                switch (true) {
+                    case /@LastMonth/.test(defaultValue):
+                        fromPeriod = moment().subtract(1, 'months').format(this.dateFormat);
+                        toPeriod = moment().format(this.dateFormat);
+                        break;
+                    case /@LastWeek/.test(defaultValue):
+                        fromPeriod = moment().subtract(1, 'weeks').format(this.dateFormat);
+                        toPeriod = moment().format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Year$/.test(defaultValue):
+                    case /^@Last[0-9]*Years$/.test(defaultValue):
+                        var months = 1;
+                        if (extracValue) months = extracValue[0];
+                        fromPeriod = moment().subtract(months, 'years').format(this.dateFormat);
+                        toPeriod = moment().format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Month$/.test(defaultValue):
+                    case /^@Last[0-9]*Months$/.test(defaultValue):
+                        var years = 1;
+                        if (extracValue) years = extracValue[0];
+                        fromPeriod = moment().subtract(years, 'months').format(this.dateFormat);
+                        toPeriod = moment().format(this.dateFormat);
+                        break;
+                    case /^@Last[0-9]*Day$/.test(defaultValue):
+                    case /^@Last[0-9]*Days$/.test(defaultValue):
+                        var days = 1;
+                        if (extracValue) days = extracValue[0];
+                        fromPeriod = moment().subtract(days, 'days').format(this.dateFormat);
+                        toPeriod = moment().format(this.dateFormat);
+                        break;
+                }
+            }
+            return [fromPeriod, toPeriod];
+        }
+    }, {
+        key: "getReportName",
+        value: function getReportName() {
+            var splitReportName = this.reportName.split("_");
+            return splitReportName[0];
+        }
+    }, {
+        key: "loadReportParams",
+        value: function loadReportParams() {
+            //console.log('loadReportParams',this.$store.getters.getIndicatorParameters(this.reportName));
+            return this.$store.getters.getIndicatorParameters(this.reportName);
+        }
+    }, {
+        key: "runReport",
+        value: function runReport() {
+            console.log('run with params', this.reportParams);
+            var self = this;
+            this.running = true;
+            this.reportScope.runAction(this.reportParams).then(function (result) {
+                self.running = false;
+            });
+        }
+    }, {
+        key: "runExport",
+        value: function runExport() {
+            console.log('export with params', this.reportParams);
+            var self = this;
+            this.running = true;
+            this.reportScope.exportAction(this.reportParams).then(function (result) {
+                self.running = false;
+            });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div> \n                 <div class=\"row\">   \n                     <template v-for=\"param of params\">\n                        <template v-if=\"param.isEditable\">\n                            <template v-if=\"param.fieldDef.component!='PeriodComponent'\">\n                                <div class=\"col s6\" > \n                                    <label class=\"active\" v-if=\"getEditor(param) != 'period' & getEditor(param) != 'checkbox' \" :for=\"param.field+'_'+id\">{{tr(param.fieldDef.label)}}</label>        \n                                    <input  v-if=\"getEditor(param) == 'string'\"  :id=\"param.field+'_'+id\" type=\"text\"  v-model=\"reportParams[param.field]\" placeholder=\"\" :value=\"getValue(param.default)\" @input=\"$emit('input',$event)\" ref=\"input\" >\n                                    <input  v-else-if=\"getEditor(param) == 'checkbox'\" type=\"checkbox\" :id=\"param.field+'_'+id\" v-bind:checked=\"getValue(param.default)\" @change=\"$emit('input', $refs.input.checked)\" ref=\"input\">\n                                    <input  v-else-if=\"getEditor(param) == 'date'\"  type=\"date\" :id=\"param.field+'_'+id\"  v-model=\"reportParams[param.field]\" :value=\"getDate(param.default)\" ref=\"input\">\n                                    <material-select  :options=\"param.fieldDef.options\" v-else-if=\"getEditor(param) == 'combobox'\" :id=\"param.field+'_'+id\"  :value=\"getValue(param.default)\" @change=\"$emit('input', $refs.input.value)\" ref=\"input\" /> \n                                </div>\n                            </template>\n                            <template v-else>\n                                 <div class=\"col s6\" > \n                                    <label class=\"active\"  :for=\"param.field+'_from_'+id\">{{tr(\"From\")}} {{tr(param.fieldDef.label)}}</label>        \n                                    <input :id=\"param.field+'_from_'+id\" type=\"date\" v-model=\"reportParams[param.field+'_from_']\" t placeholder=\"\" :value=\"getPeriodDate(param.default)\" @input=\"$emit('input',$event)\" ref=\"input\" > \n                                </div>\n                                <div class=\"col s6\" > \n                                    <label class=\"active\"  :for=\"param.field+'_to_'+id\">{{tr(\"To\")}} {{tr(param.fieldDef.label)}}</label>        \n                                    <input :id=\"param.field+'_to_'+id\"  v-model=\"reportParams[param.field+'_to_']\" type=\"date\"  placeholder=\"\" :value=\"getPeriodDate(param.default,)\" @input=\"$emit('input',$event)\" ref=\"input\" > \n                                </div>\n                            </template>\n                        </template> \n                        <template v-else>\n                            <input-hide :def=\"param.fieldDef\" :value=\"getValue(param.default)\" />\n                        </template>\n                     </template>\n                     <div class=\"row col\" class=\"col  s12\">\n                        <div class=\"col\" v-bind:class=\"{disabled:running,s12:getReportName()!='StockList',s4:getReportName()=='StockList'}\">\n                            <label></label>\n                            <button class=\"btn col s12\" v-bind:class=\"{disabled:running}\" @click=\"runReport\">{{tr('Run')}}</button>\n                        </div>\n                     </div>\n                 </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "genericIndicatorForm";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "genericIndicatorForm";
+        }
+    }]);
+
+    return genericIndicatorForm;
+}(Component);
+
+genericIndicatorForm.registerComponent();
+//# sourceMappingURL=genericIndicatorForm.js.map

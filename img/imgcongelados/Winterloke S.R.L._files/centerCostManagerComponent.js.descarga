@@ -1,0 +1,375 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component,__lodash__,axios */
+window.centerCostTemplate = Object.freeze({
+    "__meta__": {
+        "__classname__": "CenterCost",
+        "__error_responses__": [],
+        "__ismodified__": true,
+        "__isnew__": true
+    },
+    "fields": {
+        "Closed": null,
+        "Code": null,
+        "Comment": null,
+        "CustCode": null,
+        "CustName": null,
+        "DelAddress": null,
+        "DelAddressCode": null,
+        "FromDay": null,
+        "LimitMaxSalesAmounts": null,
+        "MaxMonthlySalesAmount": null,
+        "MaxSalesAmount": null,
+        "MinSalesAmount": null,
+        "Name": null,
+        "QtyAllowedMonthly": null,
+        "RecordSource": null,
+        "ToDay": null,
+        "createTime": null,
+        "createUser": null,
+        "internalId": null,
+        "syncVersion": null,
+        "updateTime": null,
+        "updateUser": null,
+        "Contacts": [{
+            "__meta__": {
+                "__classname__": "CenterCostContactRow",
+                "__error_responses__": [],
+                "__ismodified__": true,
+                "__isnew__": true
+            },
+            "fields": {
+                "IsMainContact": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": 0
+            },
+            "oldFields": {
+                "IsMainContact": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": null
+            },
+            "removedRows": {}
+        }],
+        "Liberators": [{
+            "__meta__": {
+                "__classname__": "CenterCostLiberatorRow",
+                "__error_responses__": [],
+                "__ismodified__": true,
+                "__isnew__": true
+            },
+            "fields": {
+                "CanLiberate": true,
+                "OnlyModified": false,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": 0
+            },
+            "oldFields": {
+                "CanLiberate": null,
+                "OnlyModified": null,
+                "PersonCode": null,
+                "PersonName": null,
+                "RowViewNumber": null,
+                "internalId": null,
+                "masterId": null,
+                "rowId": null,
+                "rowNr": null
+            },
+            "removedRows": {}
+        }]
+    },
+    "oldFields": {
+        "Closed": null,
+        "Code": null,
+        "Comment": null,
+        "CustCode": null,
+        "CustName": null,
+        "DelAddress": null,
+        "DelAddressCode": null,
+        "FromDay": null,
+        "LimitMaxSalesAmounts": null,
+        "MaxMonthlySalesAmount": null,
+        "MaxSalesAmount": null,
+        "MinSalesAmount": null,
+        "Name": null,
+        "QtyAllowedMonthly": null,
+        "RecordSource": null,
+        "ToDay": null,
+        "createTime": null,
+        "createUser": null,
+        "internalId": null,
+        "syncVersion": null,
+        "updateTime": null,
+        "updateUser": null
+    },
+    "removedRows": {
+        "Contacts": [],
+        "Liberators": []
+    }
+});
+
+var centerCostManagerComponent = function (_Component) {
+    _inherits(centerCostManagerComponent, _Component);
+
+    function centerCostManagerComponent() {
+        _classCallCheck(this, centerCostManagerComponent);
+
+        return _possibleConstructorReturn(this, (centerCostManagerComponent.__proto__ || Object.getPrototypeOf(centerCostManagerComponent)).apply(this, arguments));
+    }
+
+    _createClass(centerCostManagerComponent, [{
+        key: "getData",
+        value: function getData() {
+            return function () {
+                return {
+                    isloading: false,
+                    recordList: [],
+                    currentRecord: null,
+                    columns: ['Code', 'Name', 'CustCode', 'CustName', "Actions"],
+                    css: {
+                        ascendingIcon: 'blue chevron up icon',
+                        descendingIcon: 'blue chevron down icon',
+                        table: {
+                            loadingClass: 'loading',
+                            ascendingIcon: 'blue chevron up icon',
+                            descendingIcon: 'blue chevron down icon'
+                        }
+                    },
+                    options: {
+                        preserveState: true,
+                        filterByColumn: false,
+                        filterable: ["Code", "Name", "CustName"],
+                        headings: {
+                            'Code': this.tr('Code'),
+                            'Name': this.tr('Name'),
+                            'CustCode': this.tr('Customer Code'),
+                            'CustName': this.tr('CustName'),
+                            'Actions': this.tr('Edit')
+                        },
+                        perPage: 10,
+                        pagination: {
+                            chunk: 15
+                        },
+                        templates: {
+                            'Actions': 'centerCostActionsComponent'
+                        },
+                        texts: {
+                            count: "Showing {from} to {to} of {count} " + this.tr('Cost Center') + "|{count} " + this.tr('Cost Center') + "|One " + this.tr('Cost Center'),
+                            filter: '',
+                            limit: '',
+                            filterPlaceholder: '',
+                            noResults: this.tr('No Cost Center founds'),
+                            page: this.tr('Page') + ":", // for dropdown pagination
+                            filterBy: 'Filtrado por {column}', // Placeholder for search fields when filtering by column
+                            loading: this.tr('Loading') + '...', // First request to server
+                            defaultOption: 'Select {column}' // default option for list filters,
+                        },
+                        dateFormat: "DD-MM-YYYY",
+                        uniqueKey: "Code"
+                    }
+                };
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                this.loadRecords();
+                                this.editCenterCost = this.editCenterCost.bind(this);
+                                this.deleteCenterCost = this.deleteCenterCost.bind(this);
+                                this.reloadCenterCost = this.reloadCenterCost.bind(this);
+                                this.subscribeEvent('addCenterCost', this.reloadCenterCost);
+                                this.subscribeEvent('editCenterCost', this.editCenterCost);
+                                //this.subscribeEvent('editCenterCost',this.reloadCenterCost);
+                                this.subscribeEvent('deleteCenterCost', this.deleteCenterCost);
+
+                            case 7:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                reloadCenterCost: this.reloadCenterCost,
+                editCenterCost: this.editCenterCost,
+                deleteCenterCost: this.deleteCenterCost,
+                loadRecords: this.loadRecords,
+                openCenterCostModal: this.openCenterCostModal
+            };
+        }
+    }, {
+        key: "reloadCenterCost",
+        value: function reloadCenterCost(cc) {
+            this.loadRecords();
+        }
+    }, {
+        key: "editCenterCost",
+        value: function editCenterCost(cc) {
+            this.currentRecord = cc;
+        }
+    }, {
+        key: "deleteCenterCost",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(cc) {
+                var responseDeleting;
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                //console.log("DELETING",cc);
+                                this.$store.dispatch('toogleLockScreen', 'Deleting Center Costs');
+                                _context2.next = 3;
+                                return axios.post("/ecommerce/api/saveCenterCost", { action: "delete", code: cc.Code });
+
+                            case 3:
+                                responseDeleting = _context2.sent;
+
+                                if (responseDeleting.data.success) {
+                                    this.$store.dispatch('showNotificacion', {
+                                        title: "Centro de Costo",
+                                        message: "Eliminado Centro de Costo " + cc.Code,
+                                        type: 'info'
+                                    });
+                                    this.loadRecords();
+                                }
+                                this.$store.dispatch('toogleLockScreen', null);
+
+                            case 6:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function deleteCenterCost(_x) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return deleteCenterCost;
+        }()
+    }, {
+        key: "loadRecords",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                var response;
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                this.isloading = true;
+                                this.$store.dispatch('toogleLockScreen', 'Loading Center Costs');
+                                _context3.next = 4;
+                                return axios.get('/ecommerce/api/getCenterCost', { params: { byCustomer: 1 } });
+
+                            case 4:
+                                response = _context3.sent;
+
+                                if (response.data.centerCost) {
+                                    this.recordList = response.data.centerCost;
+                                }
+                                this.isloading = false;
+                                this.$store.dispatch('toogleLockScreen', null);
+
+                            case 8:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function loadRecords() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return loadRecords;
+        }()
+    }, {
+        key: "openCenterCostModal",
+        value: function () {
+            var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+                var currentRecord;
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                    while (1) {
+                        switch (_context4.prev = _context4.next) {
+                            case 0:
+                                this.$store.dispatch('clearSelectsLinkto');
+                                currentRecord = __lodash__.cloneDeep(window.centerCostTemplate);
+
+                                currentRecord.fields.Contacts = [];
+                                currentRecord.fields.Liberators = [];
+                                currentRecord.fields.CustCode = this.$store.state.customer.Code;
+                                currentRecord.fields.CustName = this.$store.state.customer.Name;
+                                this.currentRecord = currentRecord;
+                                this.emitEvent('openModalCenterCost');
+
+                            case 8:
+                            case "end":
+                                return _context4.stop();
+                        }
+                    }
+                }, _callee4, this);
+            }));
+
+            function openCenterCostModal() {
+                return _ref4.apply(this, arguments);
+            }
+
+            return openCenterCostModal;
+        }()
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div  class=\"row\" id=\"AdminCenterCost\" >\n                <centerCostModalComponent :paramCenterCostRecord=\"currentRecord\"> </centerCostModalComponent>\n                <div class=\"view-mode float-sm-right mb-3 ml-1 mr-2 vue-table-additional-buttons\">\n                    <button type=\"submit\" class=\"btn btn-custom\" @click=\"openCenterCostModal()\"><i class=\"fas fa-user-plus fa-fw\"></i> {{tr('Add Cost Center')}}</button>\n                </div>\n                <div class=\"container center section white\" v-if=\"isloading\">\n                    <div class=\"row justify-content-center align-items-center profile-loading\">\n                       <div class=\"col-8 text-center\">\n                           <img class=\"img-fluid\" src=\"../static/ecommerce/img/lg-spinner-gif.gif\" >\n                           <p class=\"font-weight-bold\">{{tr('Loading Report Data')}}</p>\n                       </div>\n                    </div>\n                </div>\n                <v-client-table class=\"custom-vue-table\" @rowclick=\"\" :columns=\"columns\" :data=\"recordList\" :options=\"options\" :css=\"css\" v-else>\n                    <div slot=\"afterFilter\" class=\"VueTables__search-field\">\n                       <div class=\"input-group-append\">\n                            <span class=\"input-group-text\" id=\"basic-addon2\"><i class=\"icon fas fa-search\"></i></span>\n                      </div>\n                    </div>\n                </v-client-table>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "centerCostManagerComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "centerCostManagerComponent";
+        }
+    }]);
+
+    return centerCostManagerComponent;
+}(Component);
+
+centerCostManagerComponent.registerComponent();
+//# sourceMappingURL=centerCostManagerComponent.js.map

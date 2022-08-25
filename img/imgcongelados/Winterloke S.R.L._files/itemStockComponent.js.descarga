@@ -1,0 +1,59 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+// eslint-disable-next-line
+/* global Component, uuidv4 */
+// eslint-disable-next-line
+var itemStockComponent = function (_itemProxyComponent) {
+    _inherits(itemStockComponent, _itemProxyComponent);
+
+    function itemStockComponent() {
+        _classCallCheck(this, itemStockComponent);
+
+        return _possibleConstructorReturn(this, (itemStockComponent.__proto__ || Object.getPrototypeOf(itemStockComponent)).apply(this, arguments));
+    }
+
+    _createClass(itemStockComponent, [{
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "item": function item() {
+                    this.favorite = this.$store.getters.getFavorites.indexOf(this.item.Code) != -1;
+                },
+                "Qty": function Qty() {
+                    if (this.controlStock) if (Number.isInteger(this.item.Qty) && this.item.Qty <= this.Qty) {
+                        this.Qty = this.item.Qty;
+                        this.alertShowMessage("Maximum item quantity reached");
+                    }
+                }
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"item-detail\">\n                <div class=\"col-12\">\n                   <div class=\"container-fluid\">\n                    <div class=\"row\" v-if=\"item\">\n                        <div class=\"col-md-4 col-sm-12\" >\n                             <itemSliderComponent :useZoom=\"imgUseZoom\" :slideBigImage=\"imgSlideBigImage\" :item=\"item\" :stockFlag=\"showStock\" :container=\"true\" :showCarusel=\"imgShowCarusel\"></itemSliderComponent>\n                        </div>\n                        <div class=\"col-md-8 col-sm-12\">\n      \t\t\t                <p class=\"product-title\">{{item.Name}}</p>\n                            <div class=\"product-description\">\n                                <p class=\"subtitle\">{{tr(\"Description\")}}</p>\n                                <p class=\"product-comment\" v-if=\"item.Comment\">{{item.Comment}}</p>\n                                <p v-else>{{tr(\"Article without description.\")}}</p>\n                            </div>\n                            <div class=\"product-details\">\n                                <p class=\"product-code\">{{tr(\"ECOMITEMCODE\")}} {{codeToShow}}</p>\n                                <p class=\"product-code\" v-if=\"$store.getters.showStock\">Stock {{item.Qty - item.Reserved}}</p>\n                                <template v-if=\"$store.getters.getSetting.ShowPriceByDefault || $store.getters.getIsLogin\">\n                                    <p class=\"item-price\" v-if=\"!loadingPrice\">\n                                        <priceComponent :item=\"item\"></priceComponent>\n                                    </p>\n                                </template>\n                                <template v-if=\"showClassification\">\n                                    <p class=\"subtitle\">{{tr('Classifications')}}</p>\n                                    <ol class=\"flex-column\">\n                                         <template v-for=\"cat in classificationList\">\n                                            <li :key=\"'item-cat-'+cat.name\" @click=\"filterByCategory(cat)\">\n                                                <router-link :to=\"'/items?category=' + encodeURI(cat.code+'__'+cat.name)\">\n                                                    {{capitalize(cat.name)}}\n                                                </router-link>\n                                            </li>\n                                        </template>\n                                    </ol>\n                                </template>\n                            </div>\n                            <div class=\"row product-shops\">\n                                <template v-if=\"alertMsg\">\n                                    <div class=\"col-12 alert alert-danger\" role=\"alert\">{{tr(alertMsg)}}</div>\n                                </template>\n                                <div class=\"input-group qty-input col-4 col-sm-6 col-xl-3 col-md-5 pr-0 pr-xl-4\">\n                                    <template v-if=\"controlStock\">\n                                        <template v-if=\"getMaxStockByCode(item.Code)\">\n                                            <div class=\"input-group-prepend d-none d-sm-flex\" >\n                                                <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyDecrement\"><i class=\"icon fas fa-minus\"></i></button>\n                                            </div>\n                                            <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='1' :max=\"getMaxStockByCode(item.Code)\" class=\"form-control inputch\" type=\"text\" v-on:change.stop=\"onChangeQty\">\n                                            <div class=\"input-group-append d-none d-sm-flex\">\n                                                <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyIncrement\"><i class=\"icon fas fa-plus\"></i></button>\n                                            </div>\n                                        </template>\n                                        <template v-else>\n                                            <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='0' :max=\"0\" class=\"form-control inputch\" type=\"text\" disabled>\n                                            <small id=\"withOutStockHelpBlock\" class=\"form-text text-muted\">\n                                                {{tr(\"Without Stock\")}}\n                                            </small>\n                                        </template>\n                                    </template>\n                                    <template v-else>\n                                        <div class=\"input-group-prepend d-none d-sm-flex\" >\n                                            <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyDecrement\"><i class=\"icon fas fa-minus\"></i></button>\n                                        </div>\n                                        <input :ref=\"'carCant-'+item.Code\" v-model=\"Qty\" min='1' :max=\"getMaxStockByCode(item.Code)\" class=\"form-control inputch\" type=\"text\" v-on:change.stop=\"onChangeQty\">\n                                        <div class=\"input-group-append d-none d-sm-flex\">\n                                            <button class=\"btn btn-outline-secondary\" type=\"button\" @click.stop=\"itemQtyIncrement\"><i class=\"icon fas fa-plus\"></i></button>\n                                        </div>\n                                    </template>\n                                </div>\n                                <span class=\"cart-button col-8 col-sm-6 col-xl-12 col-md-4 pl-sm-0 pl-sm-3 text-left mt-0 mt-xl-2\">\n                                    <button class=\"btn secondary-btn px-1 px-sm-3 px-xl-5\" :disabled=\"getMaxStockByCode(item.Code) < 1\" type=\"button\" @click.stop=\"canShopItem ? ItemComponentAddToCar(item) : null\"><span class=\"icon\"><i class=\"fa-icon fas fa-cart-plus\"></i></span> {{tr(\"Load to Cart\")}}</button>\n                                </span>\n                                <div class=\"social-buttons col-12 text-center text-md-left mt-4 p-0 pl-md-3\">\n                                    <a v-if=\"enableFB\" class=\"social-button mr-1\" title=\"Facebook\"  target=\"_blank\" rel=\"nofollow\"  :href=\"'https://www.facebook.com/sharer.php?u='+getItemUrl()\" >\n                                        <i class=\"icon fab fa-facebook-square\"></i>\n                                    </a>\n                                    <a v-if=\"enableTW\" class=\"social-button\" title=\"Twitter\" target=\"_blank\" rel=\"nofollow\" :href=\"'https://twitter.com/intent/tweet?url='+getItemUrl()\">\n                                        <i class=\"icon fab fa-twitter-square\"></i>\n                                    </a>\n                                    <a v-if=\"enableIG\" class=\"social-button\" title=\"Instagram\" target=\"_blank\" rel=\"nofollow\" :href=\"linkIG\" >\n                                        <i class=\"icon fab fa-instagram-square\"></i>\n                                    </a>\n                                     <a v-if=\"enableLK\" class=\"social-button\" title=\"LinkedIn\" target=\"_blank\" rel=\"nofollow\" :href=\"linkLK\" >\n                                        <i class=\"icon fab fa-linkedin\"></i>\n                                    </a>\n                                </div>\n                            </div>\n                        </div>\n                        <div class=\"w-100 px-3\">\n                            <div class=\"mt-3\" v-if=\"relatedItems.length>0\">\n                                <homeItemCardComponent :section=\"{internalId:item.Code}\" :items=\"relatedItems\" :title=\"tr('Related Items')\" :titleCenter=\"true\" :fullScreen=\"true\"/>\n                            </div>\n                        </div>\n                    </div>\n                  </div>\n                </div>\n\t\t\t</div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "itemStockComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "itemStockComponent";
+        }
+    }]);
+
+    return itemStockComponent;
+}(itemProxyComponent);
+
+itemStockComponent.registerComponent();
+//# sourceMappingURL=itemStockComponent.js.map

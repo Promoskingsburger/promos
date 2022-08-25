@@ -1,0 +1,43 @@
+/* Active */
+.active:not(.tab-pane) {
+  color: #d85c81;
+}
+
+/* Botones */
+.btn-custom {
+  background-color: #d85c81;
+  color: #fff;
+}
+.secondary-btn {
+  background-color: #47acb1;
+  color: #fff;
+}
+/* Fondo iconos de acciones */
+.custom-actions a:hover {
+  background: #47acb1;
+  color: #eee !important;
+}
+
+/* Fondo header superior y footer */
+.oo-ecommerce .navbar,
+.oo-ecommerce footer {
+  background: #111;
+}
+
+/* Fondo menu categorias */
+.oo-ecommerce .category-nav {
+  background: #222;
+}
+
+/* Color:
+    - nombre de la aplicacion
+    - iconos del header
+    - texto categorias del header
+    - texto del footer
+*/
+.app-name,
+.oo-ecommerce .navbar-light .navbar-nav .nav-link,
+.oo-ecommerce .category-nav .nav-item span,
+.oo-ecommerce footer {
+  color: #aaa;
+}

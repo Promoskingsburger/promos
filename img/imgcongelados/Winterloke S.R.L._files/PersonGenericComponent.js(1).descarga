@@ -1,0 +1,654 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, axios */
+var PersonGenericComponentB2C = function (_Component) {
+    _inherits(PersonGenericComponentB2C, _Component);
+
+    function PersonGenericComponentB2C() {
+        _classCallCheck(this, PersonGenericComponentB2C);
+
+        return _possibleConstructorReturn(this, (PersonGenericComponentB2C.__proto__ || Object.getPrototypeOf(PersonGenericComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(PersonGenericComponentB2C, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                "useLastName2": {
+                    type: Boolean,
+                    default: false
+                },
+                'personObj': {
+                    type: Object,
+                    required: false
+                },
+                'confirmPassword': {
+                    type: Boolean,
+                    default: false
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                _response: null,
+                alertError: [],
+                alertErrorAddress: [],
+                alertParams: [],
+                getTaxNrLabel: 'CUIT',
+                personEnabled: false,
+                AddCompanyAddressFlag: false,
+                person: {
+                    Code: null,
+                    WebUserFlag: true,
+                    ContactType: null,
+                    Gender: null,
+                    Name: "",
+                    LastName: "",
+                    LastName2: "",
+                    Phone: "",
+                    Email: "",
+                    JobPosition: null,
+                    WebUser: "",
+                    WebPassword: "",
+                    WebPassword2: null,
+                    WebAccessGroup: "",
+                    CountryCode: null,
+                    Country: "",
+                    TaxNr: "",
+                    Customer: ""
+                },
+                customer: {
+                    Code: null,
+                    Name: "",
+                    //FantasyName: "",
+                    TaxRegNr: "",
+                    TaxRegType: "1"
+                },
+                customerAddress: {
+                    Name: '',
+                    normalizeAddress: null,
+                    Address: '',
+                    Country: '',
+                    CountryName: null,
+                    ProvinceCode: '',
+                    Province: null,
+                    Locality: '',
+                    ZipCode: '',
+                    City: '',
+                    Street: '',
+                    StreetNumber: '',
+                    Floor: '',
+                    Apartment: "",
+                    Latitude: null,
+                    Longitude: null,
+                    normalize: false,
+                    CustomLocation: false
+                },
+                readyNormalize: false
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                "addressRequired": function addressRequired(newValue, oldVal) {
+                    if (newValue) {
+                        this.AddCompanyAddressFlag = newValue;
+                    }
+                },
+                "isResponInsp": function isResponInsp(newVal, oldVal) {
+                    if (newVal) this.AddCompanyAddressFlag = true;
+                },
+                'customerAddress.Country': function customerAddressCountry() {
+                    if (this.customerAddress.Country) {
+                        this.person.Country;
+                        this.customer.Country;
+                    }
+                },
+                "person.Email": function personEmail(newValue, oldValue) {
+                    if (oldValue === this.person.WebUser) this.person.WebUser = newValue;
+                },
+                "person.Phone": function personPhone(newValue, oldValue) {
+                    if (this.$store.getters.getSetting.PhoneValidator) if (newValue && oldValue) {
+                        var newValueReplaced = newValue.replace(/ /g, "").replace(/\D/g, "");
+                        if (this.phonePattern.test('+' + newValueReplaced)) this.person.Phone = "+" + newValueReplaced;else this.person.Phone = newValueReplaced;
+                    }
+                },
+                'customerAddress.ProvinceCode': function customerAddressProvinceCode(val, oldval) {
+                    this.buildAddress();
+                    this.customerAddress.normalize = true;
+                },
+                'customerAddress.City': function customerAddressCity(val, oldval) {
+                    if (this.customer.City) this.person.City;
+                    this.buildAddress();
+                    this.customerAddress.normalize = true;
+                },
+                'customerAddress.Locality': function customerAddressLocality(val, oldval) {
+                    this.buildAddress();
+                    this.customerAddress.normalize = true;
+                },
+                'customerAddress.Street': function customerAddressStreet(val, oldval) {
+                    this.buildAddress();
+                    this.customerAddress.normalize = true;
+                },
+                'customerAddress.StreetNumber': function customerAddressStreetNumber(val, oldval) {
+                    this.buildAddress();
+                    this.customerAddress.normalize = true;
+                },
+                'customerAddress.Floor': function customerAddressFloor() {
+                    this.buildAddress();
+                },
+                'customerAddress.Apartment': function customerAddressApartment() {
+                    this.buildAddress();
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                if (this.personObj) this.person = this.personObj;
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+
+                this.subscribeEvent("address-relocation", this.triggerSaveAction);
+                this.subscribeEvent("address-relocation-cancel", this.triggerSaveAction);
+
+                this.clearForm.bind(this);
+                this.registerNewPerson.bind(this);
+                this.AddCompanyAddressFlag = this.addressRequired;
+                this.$store.dispatch('updateSelectLinkto', {
+                    table: "modalPerson_Country",
+                    value: this.$store.getters.getOurSettingsCountry
+                });
+
+                this.person.Country = this.$store.getters.getOurSettingsCountry;
+                this.customerAddress.Country = this.$store.getters.getOurSettingsCountry;
+                this.subscribeEvent('person-reset', this.clearForm);
+                this.subscribeEvent('person-save', this.triggerSaveAction);
+                this.triggerTaxNrType();
+                $('#customerTaxRegType').tooltip();
+                $('#WebPassword').tooltip();
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                addressRequired: function addressRequired() {
+                    return this.$store.getters.AddressRequiredInRegister;
+                },
+                showCountry: function showCountry() {
+                    return this.$store.getters.showCountryAddress;
+                },
+                customClass: function customClass() {
+                    return {};
+                },
+                stringPattern: function stringPattern() {
+                    return this.$store.getters.getPhoneMaskPattern;
+                },
+                phonePattern: function phonePattern() {
+                    if (this.$store.getters.getSetting.PhoneValidator) return new RegExp(this.stringPattern);
+                    return null;
+                },
+                provinceFilter: function provinceFilter() {
+                    //console.log('Reload Province Filter');
+                    var filter = {};
+                    if (this.customerAddress.Country) filter['Country'] = this.customerAddress.Country;
+                    return filter;
+                },
+                cityFilter: function cityFilter() {
+                    var filter = {};
+                    if (this.customerAddress.ProvinceCode) filter['Province'] = this.customerAddress.ProvinceCode;
+                    return filter;
+                },
+                localityFilter: function localityFilter() {
+                    var filter = {};
+                    if (this.customerAddress.ProvinceCode) filter['ProvinceCode'] = this.customerAddress.ProvinceCode;
+                    return null;
+                },
+                zipCodeFilter: function zipCodeFilter() {
+                    var filter = {};
+                    if (this.customerAddress.LocalityCode) filter['LocalityCode'] = this.customerAddress.LocalityCode;
+                    return null;
+                },
+
+                isConsFinal: function isConsFinal() {
+                    if (this.customer.TaxRegType != null) {
+                        return this.customer.TaxRegType === "1";
+                    }
+                    return false;
+                },
+                isResponInsp: function isResponInsp() {
+                    if (this.customer.TaxRegType != null) {
+                        return this.customer.TaxRegType != "1";
+                    }
+                    return false;
+                },
+                inInsertMode: function inInsertMode() {
+                    if (this.personObj) return false;
+                    return true;
+                },
+                getCustomerTaxRegTypes: function getCustomerTaxRegTypes() {
+                    var settingsType = this.$store.getters.getSetting.CustomerIDTypes;
+                    if (settingsType) {
+                        var codes = settingsType.split(",");
+                        var filtertypes = [];
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = this.$store.getters.getCustomerTaxReg[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var regType = _step.value;
+
+                                if (codes.indexOf(regType.value.toString()) !== -1) filtertypes.push(regType);
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+
+                        return filtertypes;
+                    }
+                    return this.$store.getters.getCustomerTaxReg;
+                }
+            };
+        }
+    }, {
+        key: "triggerTaxNrType",
+        value: function triggerTaxNrType() {
+            var label = "CUIT";
+            if (this.customer.TaxRegType === "1") {
+                label = "DNI";
+            }
+            this.getTaxNrLabel = label;
+        }
+    }, {
+        key: "triggerSaveAction",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(eventAddress) {
+                var address, openMap, data, response;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (!this.$store.state.screenState) this.$store.dispatch('toogleLockScreen', this.tr('Processing'));
+
+                                this.checkPersonFields();
+                                if (this.AddCompanyAddressFlag) {
+                                    this.checkAddressFields();
+                                }
+
+                                if (!(this.alertError || this.alertErrorAddress)) {
+                                    _context.next = 6;
+                                    break;
+                                }
+
+                                window.scrollTo(0, 0);
+                                return _context.abrupt("return");
+
+                            case 6:
+                                address = this.customerAddress;
+
+                                if (eventAddress) address = eventAddress;
+                                openMap = address.normalize;
+
+                                if (!openMap) {
+                                    _context.next = 14;
+                                    break;
+                                }
+
+                                this.$store.dispatch('toogleLockScreen');
+                                this.emitEvent("addressNeedConfirmations", address);
+                                _context.next = 29;
+                                break;
+
+                            case 14:
+                                this.alertError = [];
+                                this.alertErrorAddress = [];
+
+                                if (!(this.alertError.length === 0 && this.alertErrorAddress === 0)) {
+                                    _context.next = 29;
+                                    break;
+                                }
+
+                                data = {
+                                    personData: this.person,
+                                    customerData: this.customer,
+                                    createCustomer: true,
+                                    customerAddress: address,
+                                    addAddressFlag: this.AddCompanyAddressFlag
+                                };
+
+                                window.scrollTo(0, 0);
+                                _context.prev = 19;
+                                _context.next = 22;
+                                return axios.post('/ecommerce/api/newPerson', data);
+
+                            case 22:
+                                response = _context.sent;
+
+                                if (response) {
+                                    this._response = response;
+                                    if (this._response.data.success) {
+                                        this.person.Code = this._response.data.personCode;
+                                        this.alertError = [];
+                                        this.clearForm();
+                                        this.closeModal();
+                                        if (!this.isLogged) this.emitEvent('registerSuccess');
+                                    } else {
+                                        if (Array.isArray(this._response.data.errors)) {
+                                            if (typeof this._response.data.errors[0] === 'string') this.alertError = this._response.data.errors[0];else if (this._response.data.errors[0].code) this.alertError = [this._response.data.errors[0].code, this._response.data.errors[0].params.FieldName];
+                                        } else this.alertError = this._response.data.errors;
+                                        window.scrollTo(0, 0);
+                                    }
+                                }
+                                _context.next = 29;
+                                break;
+
+                            case 26:
+                                _context.prev = 26;
+                                _context.t0 = _context["catch"](19);
+
+                                this.alertError = "Server Response" + _context.t0;
+
+                            case 29:
+                                if (this.$store.state.screenState) this.$store.dispatch('toogleLockScreen');
+
+                            case 30:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this, [[19, 26]]);
+            }));
+
+            function triggerSaveAction(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return triggerSaveAction;
+        }()
+    }, {
+        key: "confirmAddressTrigger",
+        value: function confirmAddressTrigger(address) {
+            if (address.Address === this.customerAddress.Address) this.customerAddress = address;
+        }
+    }, {
+        key: "buildAddress",
+        value: function buildAddress() {
+            var newAddress = '';
+            if (this.customerAddress.Street) {
+                newAddress = this.customerAddress.Street + " ";
+            }
+            if (this.customerAddress.StreetNumber) {
+                newAddress += this.customerAddress.StreetNumber + " ";
+            }
+            if (this.customerAddress.Floor) {
+                newAddress += this.customerAddress.Floor + " ";
+            }
+            if (this.customerAddress.Apartment) newAddress += this.customerAddress.Apartment + " ";
+
+            this.customerAddress.Address = newAddress;
+        }
+    }, {
+        key: "clearForm",
+        value: function clearForm() {
+            var force = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+            this.alertError = [];
+            this.alertErrorAddress = [];
+            if (this.inInsertMode && force) return;
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = Object.keys(this.person)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var dataEntry = _step2.value;
+
+                    this.person[dataEntry] = null;
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = Object.keys(this.customer)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var _dataEntry = _step3.value;
+
+                    this.customer[_dataEntry] = null;
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+
+            this.$store.dispatch('clearSelectsLinkto');
+            this.updateSelectValues();
+        }
+    }, {
+        key: "addressPasteField",
+        value: function addressPasteField(data, sourceName, target) {
+            this.customerAddress[target] = data.linkToData[0][sourceName];
+            //console.log('Customer Updated',data.linkToData[sourceName],sourceName,target,this.customerAddress[target], this.customerAddress);
+        }
+    }, {
+        key: "updateSelectValues",
+        value: function updateSelectValues() {
+            //console.log("Select Link Pate",arguments);
+            this.customerAddress.Country = this.$store.getters.getSelectLinkToValue('modalPerson_Country');
+            //this.person.JobPosition = this.$store.getters.getSelectLinkToValue('modalPerson_JobPosition');
+            //this.person.WebAccessGroup = this.$store.getters.getSelectLinkToValue('modalPerson_WebAccessGroup');
+            //this.customer.DefaultCenterCost = this.$store.getters.getSelectLinkToValue('modalPerson_CenterCost');
+            //this.person.CustCode = this.$store.getters.getSelectLinkToValue('modalPerson_Customer');
+            //this.customerAddress.ProvinceCode = this.$store.getters.getSelectLinkToValue('modalPerson_Province');
+            //this.customerAddress.City = this.$store.getters.getSelectLinkToValue('modalPerson_City');
+            //this.customer.LocalityCode = this.$store.getters.getSelectLinkToValue('modalPerson_Locality');
+            //this.customerAddress.ZipCode = this.$store.getters.getSelectLinkToValue('modalPerson_ZipCode');
+            // console.log('Customer Updated', this.customerAddress);
+        }
+    }, {
+        key: "checkAddressFields",
+        value: function checkAddressFields() {
+            if (this.AddCompanyAddressFlag) {
+                if (!this.customerAddress.Street) this.alertErrorAddress = ['Please fill the field {{$1}}', "Street"];
+                if (!this.customerAddress.StreetNumber) this.alertErrorAddress = ['Please fill the field {{$1}}', "Number"];
+                if (!this.customerAddress.City) this.alertErrorAddress = ['Please fill the field {{$1}}', "City"];
+                if (!this.customerAddress.ProvinceCode) this.alertErrorAddress = ['Please fill the field {{$1}}', "Province"];
+            }
+        }
+    }, {
+        key: "checkPersonFields",
+        value: function checkPersonFields() {
+            switch ("") {
+                case this.person.Name:
+                    this.alertError = ['Please fill the field {{$1}}', "Name"];
+                    break;
+                case this.person.LastName:
+                    this.alertError = ['Please fill the field {{$1}}', "Last Name"];
+                    break;
+                case this.person.Phone:
+                    this.alertError = ['Please fill the field {{$1}}', "Phone"];
+                    break;
+                case this.person.Email:
+                    this.alertError = ['Please fill the field {{$1}}', "Email"];
+                    break;
+                case this.person.WebUser:
+                    this.alertError = ['Please fill the field {{$1}}', "User"];
+                    break;
+                case this.person.WebPassword:
+                    this.alertError = ['Please fill the field {{$1}}', "Password"];
+                    break;
+            }
+
+            if (this.useLastName2 && this.person.LastName2 === "") this.alertError = ['Please fill the field {{$1}}', "Mothers Maiden Name"];
+
+            if (this.person.Gender === null) this.alertError = ['Please fill the field {{$1}}', "Gender"];
+
+            var mailReg = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            console.log("CHECK MAIL", mailReg.test(this.person.Email));
+            if (!mailReg.test(this.person.Email)) this.alertError = ['FORMATVALUEERR', "Email"];
+
+            var strongRegex = new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})");
+            var mediumRegex = new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
+
+            if (!strongRegex.test(this.person.WebPassword) && !mediumRegex.test(this.person.WebPassword)) this.alertError = ["Password must include uppercase, lowercase and number"];
+            if (this.person.WebPassword.length < 6) this.alertError = ["Password length must be greater than {{$1}}", "5"];
+
+            if (this.confirmPassword) if (this.person.WebPassword != this.person.WebPassword2) this.alertError = ["Password doesn't match"];
+
+            if (!this.phonePattern.test(this.person.Phone)) this.alertError = ["FORMATVALUEERR", "Phone"];
+
+            if (!this.customer.TaxRegNr) this.alertError = ['Please fill the field {{$1}}', this.getTaxNrLabel];
+        }
+    }, {
+        key: "registerNewPerson",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                this.checkPersonFields();
+                                if (!this.alertError && this.AddCompanyAddressFlag) {
+                                    this.checkAddressFields();
+                                }
+                                if (this.alertError.length === 0 && this.alertErrorAddress === 0) {
+                                    this.triggerSaveAction();
+                                } else window.scrollTo(0, 0);
+
+                            case 3:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function registerNewPerson() {
+                return _ref2.apply(this, arguments);
+            }
+
+            return registerNewPerson;
+        }()
+    }, {
+        key: "closeModal",
+        value: function closeModal() {
+            $("#PersonModal").modal('toggle');
+        }
+    }, {
+        key: "loadTaxNr",
+        value: function loadTaxNr() {
+            axios.post('/ecommerce/api/getRecordByFilter', {
+                record: 'Customer',
+                filter: {
+                    TaxRegNr: this.TaxRegNr
+                }
+            }).then(function (response) {
+                // eslint-disable-next-line no-console
+                console.log(response);
+            }).catch(function (error) {
+                // eslint-disable-next-line no-console
+                console.log(error);
+            });
+        }
+    }, {
+        key: "processEvent",
+        value: function processEvent() {
+            // eslint-disable-next-line no-console
+            console.log("Receive Event From Container");
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                triggerTaxNrType: this.triggerTaxNrType,
+                triggerSaveAction: this.triggerSaveAction,
+                confirmAddressTrigger: this.confirmAddressTrigger,
+                buildAddress: this.buildAddress,
+                clearForm: this.clearForm,
+                addressPasteField: this.addressPasteField,
+                updateSelectValues: this.updateSelectValues,
+                checkAddressFields: this.checkAddressFields,
+                checkPersonFields: this.checkPersonFields,
+                registerNewPerson: this.registerNewPerson,
+                closeModal: this.closeModal,
+                loadTaxNr: this.loadTaxNr,
+                processEvent: this.processEvent
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<form autocomplete=\"off\">\n                 <div class=\"col-sm-12\" v-if=\"alertError.length>0\">\n                      <div ref='errorRegisterFrom' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" >\n                           <strong>{{tr(alertError)}}!</strong>\n                           <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertError=[]\">\n                            <span aria-hidden=\"true\">&times;</span>\n                           </button>\n                       </div>\n                   </div>\n                   <div class=\"row\" :class=\"customClass\">\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                                <label for=\"firstname\" class=\"form-label\">{{tr('Name')}}</label>\n                                <input id=\"personName\" v-model=\"person.Name\" type=\"text\" class=\"form-control\">\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                                <label for=\"lastname\" class=\"form-label\">{{tr('Last Name')}}</label>\n                                <input id=\"personLastName\" v-model=\"person.LastName\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\" >\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\" v-if=\"useLastName2\">\n                            <div class=\"form-group\">\n                                <label for=\"lastname\" class=\"form-label\">{{tr('Mothers Maiden Name')}}</label>\n                                <input id=\"personLastName2\" v-model=\"person.LastName2\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\" >\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                                <label for=\"personPhone\" class=\"form-label\">{{tr('Phone')}}</label>\n                                <input id=\"personPhone\" v-model=\"person.Phone\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\" :placeholder=\"tr('ECOMPHONEMASK')\" :pattern=\"phonePattern.source\" >\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                                <label for=\"personGender\" class=\"form-label\">{{tr('Gender')}}</label>\n                                <select id=\"personGender\" v-model=\"person.Gender\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\" >\n                                    <option value=\"0\" >{{tr('Male')}}</option>\n                                    <option value=\"1\" >{{tr('Female')}}</option>\n                                    <option value=\"2\" >{{tr('Transgender Female')}}</option>\n                                    <option value=\"3\" >{{tr('Transgender Male')}}</option>\n                                    <option value=\"4\" >{{tr('Gender Variant or Non-Conforming')}}</option>\n                                    <option value=\"5\" >{{tr('Not Listed')}}</option>\n                                    <option value=\"6\"> {{tr('Prefer Not to Answer')}}</option> \n                                </select>\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                               <label for=\"personMail\" class=\"form-label\">{{tr('Mail')}} (Se utilizar\xE1 como Usuario)</label>\n                               <input id=\"personMail\" v-model=\"person.Email\" type=\"email\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                         </div>\n                        </div>\n                        <div class=\"col-sm-6\" v-if=\"!inInsertMode\">\n                            <div class=\"form-group\">\n                               <label for=\"WebAccessGroup\" class=\"form-label\">{{tr('Web Access Group')}}</label>\n                               <selectLinkToComponent recordKey=\"modalPerson\" :table=\"'WebAccessGroup'\" :paste=\"'Code'\" showField=\"Code\" :selected=\"person.WebAccessGroup\" :filters=\"{ CustCode:$store.state.session.fields.CustCode }\"  v-on:update-value=\"updateSelectValues\"> </selectLinkToComponent>\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6 d-none\">\n                            <div class=\"form-group\">\n                               <label for=\"WebUser\" class=\"form-label\">{{tr('User')}}</label>\n                               <input id=\"WebUser\" v-model=\"person.WebUser\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                           </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                               <label for=\"WebPassword\" class=\"form-label\">{{tr('Password')}}</label>\n                               <input id=\"WebPassword\" v-model=\"person.WebPassword\" type=\"password\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"new-password\" data-trigger=\"focus\" data-container=\"body\" data-toggle=\"tooltip\" data-placement=\"top\" :title=\"tr('It must contain at least 6 digits, capital letter, lowercase letter and number')\">\n                             </div>\n                        </div>\n                        <div class=\"col-sm-6\" v-if=\"confirmPassword\">\n                            <div class=\"form-group\">\n                               <label for=\"WebPassword\" class=\"form-label\">{{tr('Confirm Password')}}</label>\n                               <input id=\"WebPassword\" v-model=\"person.WebPassword2\"  type=\"password\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"new-password\">\n                           </div>\n                        </div>\n                        <div class=\"col-sm-6\" v-if=\"!inInsertMode\">\n                            <div class=\"form-group\">\n                               <label class=\"form-label\">{{tr('User Activation')}}</label>\n                               <div class=\"custom-control custom-checkbox mb-3\">\n                                  <input id=\"EnableCheck\" class=\"custom-control-input\" type=\"checkbox\" v-model=\"person.WebEnabled\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  <label for=\"EnableCheck\" class=\"custom-control-label\">{{tr('Enabled')}}</label>\n                               </div>\n                            </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <div class=\"form-group\">\n                               <label for=\"customerTaxRegType\" class=\"form-label\">{{tr('Inscription')}}</label>\n                               <select id=\"customerTaxRegType\" v-model=\"customer.TaxRegType\" type=\"text\" class=\"form-control\"  v-on:change.after=\"triggerTaxNrType\"  :disabled=\"getCustomerTaxRegTypes.length==1\">\n                                    <option value=\"null\" >{{tr(\"Select One\")}}</option>\n                                    <template v-for=\"regType of getCustomerTaxRegTypes\">\n                                        <option :value=\"regType.value\" >{{tr(regType.label)}}</option>\n                                    </template>\n                                </select>\n                             </div>\n                        </div>\n                        <div class=\"col-sm-6\">\n                            <template v-if=\"isResponInsp\">\n                                <div class=\"form-group\">\n                                    <label for=\"customerTaxRegNr\" class=\"form-label\">{{getTaxNrLabel}}</label>\n                                    <input id=\"customerTaxRegNr\" v-model=\"customer.TaxRegNr\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                </div>\n                            </template>\n                            <template v-else>\n                                <div class=\"form-group\">\n                                    <label for=\"customerTaxRegNr\" class=\"form-label\">{{getTaxNrLabel}}</label>\n                                    <input id=\"customerTaxRegNr\" v-model=\"customer.TaxRegNr\" type=\"number\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                </div>\n                            </template>\n                            \n                         </div>\n                         <div class=\"col-sm-6\"  v-if=\"customer.TaxRegType==null\">\n                            <div class=\"form-group\">\n                               <div class=\"alert alert-info\" role=\"alert\">\n                                    {{tr('Please select a Tax Type to complete necessary data')}}.\n                                </div>\n                             </div>\n                         </div>\n                        <template v-if=\"isResponInsp\">\n                             <div class=\"col-sm-6\">\n                                <div class=\"form-group\">\n                                   <label for=\"customerName\" class=\"form-label\">{{tr('Business Name')}}</label>\n                                   <input id=\"customerName\" v-model=\"customer.Name\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                 </div>\n                             </div>\n                       </template>\n                </div>\n                <div class=\"block-header\">\n                    <h5 class=\"text-center\">{{tr('ECOMADDRESS')}}</h5>\n                </div>\n                <hr>\n                <template v-if=\"!isResponInsp && !addressRequired\">\n                    <div class=\"custom-control custom-checkbox ml-2\" :class=\"{disabled:isResponInsp}\">\n                          <input type=\"checkbox\" class=\"custom-control-input\" id=\"AddCompanyAddressFlag\" v-model=\"AddCompanyAddressFlag\" :disabled=\"isResponInsp\">\n                          <label class=\"custom-control-label\" for=\"AddCompanyAddressFlag\">{{tr('Do you want to add address now? You can do it later')}}.</label>\n                    </div>\n                </template>\n                \n                <template v-if=\"AddCompanyAddressFlag\">\n                            <div class=\"col-sm-12\" v-if=\"alertErrorAddress.length>0\">\n                             <div ref='errorRegisterFrom' class=\"alert alert-danger alert-dismissible fade show\" role=\"alert\" >\n                                   <strong>{{tr(alertErrorAddress)}}!</strong>\n                                   <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" @click=\"alertErrorAddress=[]\">\n                                    <span aria-hidden=\"true\">&times;</span>\n                                   </button>\n                               </div>\n                              </div>\n                            <div class=\"row mt-4\">\n                                <div class=\"col-sm-12\" >\n                                    <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Street')}}</label>\n                                       <input id=\"selectedAddressStreet\" v-model=\"customerAddress.Street\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                    </div>\n                                </div>\n                                <div class=\"col-sm-12 col-md-3\" >\n                                  <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Number')}}</label>\n                                       <input id=\"selectedAddressNumber\" v-model=\"customerAddress.StreetNumber\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                </div>\n                                <div class=\"col-12 col-md-3\" >\n                                  <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Floor')}} ({{tr('Optional')}})</label>\n                                       <input id=\"selectedAddressFlat\" v-model=\"customerAddress.Floor\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                </div>\n                                <div class=\"col-12 col-md-6\" >\n                                  <div class=\"form-group\" >\n                                       <label for=\"selectedAddress\" class=\"form-label\">{{tr('Apartment')}} ({{tr('Optional')}})</label>\n                                       <input id=\"selectedAddressApartment\" v-model=\"customerAddress.Apartment\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                  </div>\n                                </div>\n                                <div class=\"col-sm-12 d-none\" >\n                                    <div class=\"form-group\" >\n                                       <label for=\"customerAddress\" class=\"form-label\">{{tr('Address')}}</label>\n                                       <textarea id=\"customerAddress\" v-model=\"customerAddress.Address\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                       </textarea>\n                                    </div>\n                                </div>\n                                <div class=\"col-sm-6\" v-if=\"showCountry\">\n                                    <div class=\"form-group\">\n                                        <label for=\"customerCountry\" class=\"form-label\">{{tr('Country')}}</label>\n                                        <selectLinkToComponent  v-model=\"customerAddress.Country\" recordKey=\"modalPerson\"  :table=\"'Country'\" :paste=\"'Code'\" :showField=\"'Name'\" :selected=\"customerAddress.Country\"  @update-value-full=\"(data)=> addressPasteField(data,'Name','CountryName' )\"> </selectLinkToComponent>\n                                    </div>\n                                </div>\n                                <div class=\"col-sm-6\">\n                                    <div class=\"form-group\">\n                                        <label class=\"form-label\">{{tr(\"Province\")}}</label>\n                                        <selectLinkToComponent v-model=\"customerAddress.ProvinceCode\" recordKey=\"modalPerson\" :table=\"'Province'\" :paste=\"'Code'\" :showField=\"'Name'\" :filters=\"provinceFilter\" :selected=\"customerAddress.ProvinceCode\"  @update-value-full=\"(data)=> addressPasteField(data,'Name','Province' )\"> </selectLinkToComponent>\n                                    </div>\n                                </div>\n                                <div class=\"col-sm-6\">\n                                    <div class=\"form-group\">\n                                        <label class=\"form-label\">{{tr('City')}}</label>\n                                        <selectLinkToComponent v-model=\"customerAddress.City\" recordKey=\"modalPerson\"  :table=\"'City'\" :paste=\"'Code'\" :showField=\"'Code'\"  :filters=\"cityFilter\" :selected=\"customerAddress.City\" > </selectLinkToComponent>\n                                     </div>\n                                </div>\n                                <div class=\"col-sm-6\">\n                                    <label class=\"form-label\">{{tr('Locality')}}</label>\n                                    <input id=\"customLocality\" v-model=\"customerAddress.Locality\" type=\"text\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                </div>\n                                <div class=\"col-sm-6\">\n                                    <label class=\"form-label\">{{tr('ZipCode')}}</label>\n                                    <input id=\"customZipCode\" v-model=\"customerAddress.ZipCode\" type=\"number\" class=\"form-control\" aria-autocomplete=\"none\" autocomplete=\"none\">\n                                </div>\n                           </div>\n                    </template>\n                <hr>\n              </form>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "PersonGenericComponentB2C";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "PersonGenericComponentB2C";
+        }
+    }]);
+
+    return PersonGenericComponentB2C;
+}(Component);
+
+PersonGenericComponentB2C.registerComponent();
+//# sourceMappingURL=PersonGenericComponent.js.map

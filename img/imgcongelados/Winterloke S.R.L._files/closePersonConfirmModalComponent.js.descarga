@@ -1,0 +1,64 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var closePersonConfirmModalComponent = function (_Component) {
+    _inherits(closePersonConfirmModalComponent, _Component);
+
+    function closePersonConfirmModalComponent() {
+        _classCallCheck(this, closePersonConfirmModalComponent);
+
+        return _possibleConstructorReturn(this, (closePersonConfirmModalComponent.__proto__ || Object.getPrototypeOf(closePersonConfirmModalComponent)).apply(this, arguments));
+    }
+
+    _createClass(closePersonConfirmModalComponent, [{
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                currentCustomerPerson: function currentCustomerPerson() {
+                    return this.$store.getters.getCurrentCustomerPerson;
+                }
+
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                DisablePerson: this.DisablePerson
+            };
+        }
+    }, {
+        key: "DisablePerson",
+        value: function DisablePerson() {
+            this.$store.dispatch('ChangeActivationCustomerPerson', this.currentCustomerPerson.Code);
+            this.$store.dispatch('showNotificacion', { title: '', message: "Usuario " + this.currentCustomerPerson.WebUser + " desactivado", type: 'success' });
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"modal fade item-detail-modal\" id=\"ClosePersonModal\" tabindex=\"-1\" role=\"dialog\">\n                  <div class=\"modal-dialog modal-lg\" role=\"document\">\n                      <div class=\"modal-content\">\n                          <div class=\"modal-header\">\n                              <h5 class=\"modal-title\">{{tr(\"Confirm\")}}</h5>\n                              <button type=\"button\" class=\"close\" data-dismiss=\"modal\" aria-label=\"Close\">\n                                  <span aria-hidden=\"true\">&times;</span>\n                              </button>\n                          </div>\n                          <div class=\"modal-body\" v-if=\"currentCustomerPerson\">\n                             <h5>{{tr(\"Are you sure to disable this Person?\")}}</h5></br>\n                             <h6>{{tr(\"Code\")+': '+currentCustomerPerson.Code }}</h6>\n                             <h6>{{tr(\"Name\")+': '+currentCustomerPerson.Name+' '+currentCustomerPerson.LastName  }}</h6>\n                          </div>\n                          <div class=\"modal-footer\">\n                               <button class=\"btn secondary-btn\" data-dismiss=\"modal\" @click=\"DisablePerson()\"><i class=\"far fa-thumbs-up\"></i> {{tr('Yes')}}</button>\n                               <button class=\"btn secondary-btn\" data-dismiss=\"modal\"><i class=\"fas fa-times-circle\"></i> {{tr('No')}}</button>    \n                          </div>                          \n                      </div>\n                  </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "closePersonConfirmModalComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "closePersonConfirmModalComponent";
+        }
+    }]);
+
+    return closePersonConfirmModalComponent;
+}(Component);
+
+closePersonConfirmModalComponent.registerComponent();
+//# sourceMappingURL=closePersonConfirmModalComponent.js.map

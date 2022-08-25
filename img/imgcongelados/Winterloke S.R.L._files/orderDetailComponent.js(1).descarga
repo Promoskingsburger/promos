@@ -1,0 +1,330 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var orderDetailComponentB2C = function (_Component) {
+    _inherits(orderDetailComponentB2C, _Component);
+
+    function orderDetailComponentB2C() {
+        _classCallCheck(this, orderDetailComponentB2C);
+
+        return _possibleConstructorReturn(this, (orderDetailComponentB2C.__proto__ || Object.getPrototypeOf(orderDetailComponentB2C)).apply(this, arguments));
+    }
+
+    _createClass(orderDetailComponentB2C, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['SOSerNr', "paymentStatus", "paymentStatusCode", "goBackView"];
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                viewMode: true,
+                backup: null,
+                refreshFlag: 1,
+                isOrderLoading: true
+            };
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                'SOSerNr': function SOSerNr(to, from) {
+                    //console.log(this.currentOrder);
+                    this.$store.dispatch('orderDetail', this.SOSerNr);
+                },
+                'refreshFlag': function refreshFlag() {
+                    //console.log(this.currentOrder);
+                    this.$store.dispatch('orderDetail', this.SOSerNr);
+                }
+            };
+        }
+    }, {
+        key: "created",
+        value: function created() {
+            return function () {
+                if (this.SOSerNr) this.loadSalesOrder();else this.emitEvent('reset-order-view');
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                if (this.$route.query.action === "editOrder") this.viewMode = false;
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                showItemImage: function showItemImage() {
+                    return this.$store.getters.showItemImageInDetail;
+                },
+                showDiscount: function showDiscount() {
+                    return this.$store.getters.getSetting.ShowDiscountInOrderDetail;
+                },
+                orderNeedLiberation: function orderNeedLiberation() {
+                    return this.currentOrder.fields.OrderStatus === this.$store.getters.getSetting.PreAutorizationStatus;
+                },
+                currentOrder: function currentOrder() {
+                    return this.$store.getters.getCurrentOrder;
+                },
+                currentOrderStatus: function currentOrderStatus() {
+                    return this.$store.getters.getSetting.OrderStatusList;
+                },
+                editable: function editable() {
+                    if (this.currentOrder.fields.Status || this.currentOrder.fields.Closed) return false;
+                    if (this.isUserOnlyModifier() || this.isUserLiberator() || this.currentOrder.fields.Contact === this.$store.state.session.fields.Code) {
+                        return true;
+                    }
+                    return false;
+                },
+                liberator: function liberator() {
+                    if (!this.viewMode) return false;
+                    return this.isUserLiberator();
+                },
+                copier: function copier() {
+                    if (this.isUserOnlyModifier()) return false;
+                    if (this.currentOrder.fields.Contact === this.$store.state.session.fields.Code) return true;
+                    return this.$store.getters.getUserIsAdmin;
+                }
+            };
+        }
+    }, {
+        key: "orderPay",
+        value: function orderPay() {
+            var _this2 = this;
+
+            if (this.currentOrder.fields.Closed != 1) return this.$store.getters.getSetting.PayTermRow.filter(function (x) {
+                return x.fields.RequireOnlinePayment && x.fields.PayTermCode === _this2.currentOrder.fields.PayTerm;
+            }).length > 0;
+            return false;
+        }
+    }, {
+        key: "orderPayed",
+        value: function orderPayed() {
+            return this.paymentStatus === 1 && this.paymentStatusCode === "approved";
+        }
+    }, {
+        key: "isUserOnlyModifier",
+        value: function isUserOnlyModifier() {
+            return this.$store.state.onlyModifiedCodes.indexOf(this.currentOrder.fields.Contact) != -1 || this.$store.state.CenterOnlyModifiedCodes.indexOf(this.currentOrder.fields.CenterCost) != -1;
+        }
+    }, {
+        key: "isUserLiberator",
+        value: function isUserLiberator() {
+            //console.log("Liberatior Action ",this.$store.state.liberatorCodes,this.data.Contact);
+            return this.$store.state.liberatorCodes.indexOf(this.currentOrder.fields.Contact) != -1 || this.$store.state.CenterLiberators.indexOf(this.currentOrder.fields.CenterCost) != -1;
+        }
+    }, {
+        key: "goBack",
+        value: function goBack() {
+            this.emitEvent('reset-order-view');
+        }
+    }, {
+        key: "itemQtyIncrement",
+        value: function itemQtyIncrement(orderItem) {
+            orderItem.fields.Qty = parseInt(orderItem.fields.Qty) + 1;
+            this.updateSubTotals();
+        }
+    }, {
+        key: "itemQtyDecrement",
+        value: function itemQtyDecrement(orderItem) {
+            if (parseInt(orderItem.fields.Qty) > 0) orderItem.fields.Qty = parseInt(orderItem.fields.Qty) - 1;
+            if (orderItem.fields.Qty === 0) {
+                // eslint-disable-next-line no-alert
+                var canDelete = confirm("Delete Item");
+                if (canDelete) this.deleteItemInOrder(orderItem);else orderItem.fields.Qty = 1;
+            }
+            this.updateSubTotals();
+        }
+    }, {
+        key: "deleteItemInOrder",
+        value: function deleteItemInOrder(orderItem) {
+            //console.log('Before',this.currentOrder.fields.Items);
+            this.$store.dispatch('deleteItemCurrenOrder', orderItem);
+            //console.log('After',this.currentOrder.fields.Items);
+        }
+    }, {
+        key: "copyOrder",
+        value: function copyOrder() {
+            //console.log('custom-actions: ', this.data, this.index,this.column);
+            this.$store.dispatch('copyOrder', { orderId: this.currentOrder.fields.SerNr });
+        }
+    }, {
+        key: "updateSubTotals",
+        value: function updateSubTotals() {
+            var totalWithIVA = 0;
+            var totalWithOutIVA = 0;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = this.currentOrder.fields.Items[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var item = _step.value;
+
+                    item.fields.RowNet = item.fields.Price * item.fields.Qty;
+                    item.fields.RowTotal = item.fields.VATPrice * item.fields.Qty;
+                    totalWithIVA += item.fields.RowTotal;
+                    totalWithOutIVA += item.fields.RowNet;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            this.currentOrder.fields.SubTotal = totalWithOutIVA;
+            this.currentOrder.fields.Total = totalWithIVA;
+        }
+    }, {
+        key: "changeMode",
+        value: function changeMode() {
+            this.viewMode = !this.viewMode;
+        }
+    }, {
+        key: "saveOrder",
+        value: function () {
+            var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var result;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                _context.next = 2;
+                                return this.$store.dispatch('saveCurrentOrder');
+
+                            case 2:
+                                result = _context.sent;
+
+                                if (!result.success) {
+                                    this.$store.commit('updateCurrentOrder', this.backup);
+                                    this.refreshFlag = this.refreshFlag + 1;
+                                }
+                                this.changeMode();
+
+                            case 5:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function saveOrder() {
+                return _ref.apply(this, arguments);
+            }
+
+            return saveOrder;
+        }()
+    }, {
+        key: "cancelEdit",
+        value: function cancelEdit() {
+            this.loadSalesOrder();
+            this.changeMode();
+        }
+    }, {
+        key: "orderAction",
+        value: function orderAction(action) {
+            var _this3 = this;
+
+            this.isOrderLoading = true;
+            this.$store.dispatch('orderAction', { action: action, sernr: this.currentOrder.fields.SerNr, date: this.currentOrder.fields.TransDate }).then(function (actionResponse) {
+                _this3.loadSalesOrder();
+            });
+        }
+    }, {
+        key: "getVATCode",
+        value: function getVATCode(item) {
+            var VATCode = this.$store.state.vatCodeMap.get(item.fields.VATCode);
+            if (VATCode && VATCode.Percent) return VATCode.Percent;
+            return 0;
+        }
+    }, {
+        key: "loadSalesOrder",
+        value: function loadSalesOrder() {
+            var _this4 = this;
+
+            //console.log('ComponetCreated')
+            this.isOrderLoading = true;
+            var self = this;
+            this.$store.dispatch('orderDetail', this.SOSerNr).then(function (orderObj) {
+                if (orderObj.order) {
+                    self.backup = Object.assign({}, orderObj.order);
+                    self.isOrderLoading = false;
+                } else {
+                    _this4.$store.dispatch('showNotificacion', { title: "Information", message: "Order " + self.SOSerNr + " not found", type: 'warning' });
+                    _this4.$router.go(-1);
+                }
+            });
+        }
+    }, {
+        key: "getUrlData",
+        value: function getUrlData() {
+            return window.btoa(this.currentOrder.fields.SerNr);
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                getUrlData: this.getUrlData,
+                orderPay: this.orderPay,
+                orderPayed: this.orderPayed,
+                isUserOnlyModifier: this.isUserOnlyModifier,
+                isUserLiberator: this.isUserLiberator,
+                goBack: this.goBack,
+                itemQtyIncrement: this.itemQtyIncrement,
+                itemQtyDecrement: this.itemQtyDecrement,
+                deleteItemInOrder: this.deleteItemInOrder,
+                copyOrder: this.copyOrder,
+                updateSubTotals: this.updateSubTotals,
+                changeMode: this.changeMode,
+                saveOrder: this.saveOrder,
+                cancelEdit: this.cancelEdit,
+                orderAction: this.orderAction,
+                getVATCode: this.getVATCode,
+                loadSalesOrder: this.loadSalesOrder
+            };
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div id=\"container\" class=\"order-detail\" v-if=\"refreshFlag>0\">\n                <div class=\"container-fluid px-0 px-sm-3\">\n                    <div class=\"col-12 px-1 px-md-3\">\n                         <template v-if=\"isOrderLoading\">\n                              <div class=\"loading\">\n                                  <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                              </div>\n                          </template>\n                         <template v-else>\n                            <div class=\"row\">\n                              <div class=\"col-12 px-1 px-md-3\">\n                                <div v-if=\"currentOrder\">\n                                   <h5 class=\"title\">\n                                        <button class=\"btn secondary-btn\" @click='goBack'><i class=\"icon fas fa-chevron-left\"></i>{{tr('Back')}}</button>\n                                        <span class=\"center mt-2 mt-sm-0 d-block d-sm-inline\">{{tr('Sales Order')}} {{currentOrder.fields.SerNr}}</span>\n                                   </h5>\n\n                                   <div class=\"col-12 px-0 px-sm-3 mt-3 mb-4\">\n                                       <div class=\"stepwizard order-status\">\n                                           <div class=\"stepwizard-row\">\n                                               <div v-for=\"status in currentOrderStatus\" class=\"stepwizard-step\" :style=\"{'width': 100 / currentOrderStatus.length + '%'}\">\n                                                   <p>{{status.fields.StateTitle}}</p>\n                                                   <button :class=\"{'btn disabled': true, 'active': status.fields.StateStatus === currentOrder.fields.OrderStatus}\" :disabled=\"true\">\n                                                      <i :class=\"['fas',  (status.fields.StateIcon) ? 'fa-' + status.fields.StateIcon : 'fa-check']\"></i>\n                                                   </button>\n                                               </div>\n                                           </div>\n                                       </div>\n                                   </div>\n\n                                   <div class=\"row order-customer-info\">\n                                      <div class=\"col-12 col-sm-6\">\n                                          <label>{{tr(\"Customer\")}}:</label> <strong> {{currentOrder.fields.CustName}}</strong>\n                                      </div>\n                                      <div v-if=\"currentOrder.fields.ContactName\" class=\"col-12 col-sm-6\">\n                                          <label>{{tr(\"Contact\")}}:</label> <strong> {{currentOrder.fields.ContactName}}</strong>\n                                      </div>\n                                      <div class=\"col-12 col-sm-6\">\n                                          <label>{{tr(\"Delivery Address\")}}:</label> <strong> {{currentOrder.fields.DelAddress}}</strong>\n                                      </div>\n                                      <div class=\"col-12 col-sm-6\">\n                                          <label>{{tr(\"TransDate\")}}:</label> <strong> {{currentOrder.fields.TransDate}}</strong>\n                                      </div>\n                                      <div class=\"col-12 col-sm-6\">\n                                          <label>{{tr(\"Order Status\")}}:</label> <strong> {{currentOrder.fields.OrderStatus}}</strong>\n                                      </div>\n                                      <div class=\"col-12 col-sm-6\">\n                                            <label>{{tr(\"Expiration Date\")}}:</label> <strong> {{currentOrder.fields.DueDate}}</strong>\n                                      </div>\n                                   </div>\n                                   <div class=\"custom-actions-row\">\n                                        <div class=\"custom-actions-default\">\n                                            <template v-if=\"orderPay()\">\n                                                <router-link  :key=\"'actions-pay-'+currentOrder.fields.SerNr\" :to=\"'/payment/'+getUrlData()\" class=\"btn btn-custom mb-1\" v-show=\"!orderPayed()\" :title=\"tr('Pay Now')\" >\n                                                    <i class=\"icon far fa-credit-card\"></i> {{tr('Pay Now')}}\n                                                </router-link>\n                                                <button class=\"btn mb-1\" :key=\"'actions-reject-'+currentOrder.fields.SerNr\"  v-show=\"!orderPayed()\"  @click.stop=\"orderAction('invalidate')\" :title=\"tr('Invalidate')\" >\n                                                    <i class=\"icon fa fa-minus\"></i> {{tr('Reject')}}\n                                                </button>\n                                            </template>\n                                            <button key=\"copy-action\" :title=\"tr('Copy')\" @click.stop=\"copyOrder()\" v-if=\"copier\" class=\"btn mb-1\">\n                                                <i class=\"icon fa fa-copy\"></i> {{tr('Copy')}}\n                                            </button>\n                                        </div>\n                                   </div>\n                                   <div class=\"table-responsive\">\n                                        <table v-if=\"viewMode\" class=\"table table-striped\">\n                                             <thead>\n                                                <tr>\n                                                    <th v-if=\"showItemImage\"></th>\n                                                    <th>{{tr('Code')}}</th>\n                                                    <th width=\"35%\">{{tr('Products')}}</th>\n                                                    <th>{{tr('UM')}}</th>\n                                                    <th class=\"text-center\">{{tr('Qty')}}</th>\n                                                    <th class=\"text-right\">{{tr('Price')}} IVA Inc</th>\n                                                    <template v-if=\"showDiscount\">\n                                                        <th class=\"text-right\">{{tr('Discount')}} %</th>\n                                                    </template>\n                                                    <th>IVA</th>\n                                                    <th class=\"text-right\">{{tr('Total')}} IVA Inc</th>\n                                                </tr>\n                                             </thead>\n                                             <tbody>\n                                                <tr v-for=\"item of currentOrder.fields.Items\">\n                                                    <td v-if=\"showItemImage\" width=\"5%\">\n                                                        <template v-if=\"$store.getters.getItemByCode(item.fields.ArtCode).images || !$store.getters.getItemByCode($store.getters.getItemByCode(item.fields.ArtCode).Father)\">\n                                                            <itemSliderComponent :item=\"$store.getters.getItemByCode(item.fields.ArtCode)\" :container=\"false\" :showCarusel=\"false\"></itemSliderComponent>\n                                                        </template>\n                                                        <template v-else>\n                                                            <itemSliderComponent :item=\"$store.getters.getItemByCode($store.getters.getItemByCode(item.fields.ArtCode).Father)\" :container=\"false\" :showCarusel=\"false\"></itemSliderComponent>\n                                                        </template>\n                                                    </td>\n                                                    <td>{{item.fields.ArtCode}}</td>\n                                                    <td width=\"35%\">{{item.fields.Name}}</td>\n                                                    <td>{{item.fields.Unit}}</td>\n                                                    <td class=\"text-center\">{{item.fields.Qty}} </td>\n                                                    <td class=\"text-right\">$ {{formatFloat(item.fields.VATPrice)}}</td>\n                                                    <template v-if=\"showDiscount\">\n                                                    <td class=\"text-right\">\n                                                        <template v-if=\"item.fields.Discount\">\n                                                            {{formatFloat(item.fields.Discount)}} %\n                                                        </template>\n                                                    </td>\n                                                    </template>\n                                                    <td>{{getVATCode(item)}} %</td>\n                                                    <td  class=\"text-right\">$ {{formatFloat(item.fields.RowTotal)}}</td>\n                                                </tr>\n                                             </tbody>\n                                             <tfoot class=\"table-info\">\n                                                 <td v-if=\"showItemImage\"></td>\n                                                 <td :colspan=\"showDiscount ? 5 : 4\" class=\"text-right\">\n                                                     <strong>SubTotal:</strong>\n                                                    {{formatFloat(currentOrder.fields.SubTotal)}}\n                                                 </td>\n                                                 <td class=\"text-right\">\n                                                    <strong>{{tr('Taxes')}}:</strong>\n                                                    {{formatFloat(currentOrder.fields.TotalTax)}}\n                                                 </td>\n                                                 <td class=\"text-right\">\n                                                    <strong>{{tr('IVA')}}:</strong>\n                                                    {{formatFloat(currentOrder.fields.VATTotal)}}\n                                                 </td>\n                                                 <td class=\"text-right\">\n                                                    <strong>Total</strong>\n                                                    {{formatFloat(currentOrder.fields.Total)}}\n                                                 </td>\n                                             </tfoot>\n                                        </table>\n                                        <table v-if=\"!viewMode\" class=\"table table-striped\">\n                                             <thead>\n                                                <tr>\n                                                    <th v-if=\"showItemImage\"></th>\n                                                    <th>{{tr('Code')}}</th>\n                                                    <th width=\"35%\">{{tr('Products')}}</th>\n                                                    <th>{{tr('UM')}}</th>\n                                                    <th>{{tr('Qty')}}</th>\n                                                    <th>{{tr('Price')}} IVA Inc</th>\n                                                    <th>{{tr('Total')}} IVA Inc</th>\n                                                    <th>{{tr('Delete')}}</th>\n                                                </tr>\n                                             </thead>\n                                             <tbody>\n                                                <tr v-for=\"item of currentOrder.fields.Items\">\n                                                    <td v-if=\"showItemImage\" width=\"5%\"><itemSliderComponent :item=\"$store.getters.getItemByCode(item.fields.ArtCode)\" :container=\"false\" :showCarusel=\"false\"></itemSliderComponent></td>\n                                                    <td>{{item.fields.ArtCode}}</td>\n                                                    <td width=\"35%\">{{item.fields.Name}}</td>\n                                                    <td>{{item.fields.Unit}}</td>\n                                                    <td class=\"row\">\n                                                        <span  class=\"col-2\" @click=\"itemQtyIncrement(item)\"><i class=\"fas fa-angle-up waves-effect\" ></i></span>\n                                                        <input class=\"col-8\" type=\"text\" min=\"1\" v-model=\"item.fields.Qty\" placeholder=\"0\" @change=\"updateSubTotals\">\n                                                        <span  class=\"col-2\"@click=\"itemQtyDecrement(item)\"><i class=\"fas fa-angle-down waves-effect\" ></i></span>\n                                                    </td>\n                                                    <td>$ {{formatFloat(item.fields.VATPrice)}}</td>\n                                                    <td>$ {{formatFloat(item.fields.RowTotal)}}</td>\n                                                    <td><span @click=\"deleteItemInOrder(item)\" ><i class=\"far fa-trash-alt\" ></i></span></td>\n                                                </tr>\n                                             </tbody>\n                                             <tfoot class=\"table-info\">\n                                                 <td v-if=\"showItemImage\"></td>\n                                                 <td class=\"text-right\"><strong>SubTotal:</strong></td>\n                                                 <td>{{formatFloat(currentOrder.fields.SubTotal)}}</td>\n                                                 <td class=\"text-right\"><strong>{{tr('Taxes')}}:</strong></td>\n                                                 <td>{{formatFloat(currentOrder.fields.TotalTax)}}</td>\n                                                 <td class=\"text-right\"><strong>{{tr('IVA')}}:</strong></td>\n                                                 <td>{{formatFloat(currentOrder.fields.VATTotal)}}</td>\n                                                 <td class=\"text-right\"><strong>Total</strong></td>\n                                                 <td>{{formatFloat(currentOrder.fields.Total)}}</td>\n                                             </tfoot>\n                                        </table>\n                                    </div>\n                                </div>\n                              </div>\n                            </div>\n                          </template>\n                    </div>\n                </div>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "orderDetailComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "orderDetailComponent";
+        }
+    }]);
+
+    return orderDetailComponentB2C;
+}(Component);
+
+orderDetailComponentB2C.registerComponent();
+//# sourceMappingURL=orderDetailComponent.js.map

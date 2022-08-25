@@ -1,0 +1,139 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/*global Component */
+var homeItemCardComponent = function (_Component) {
+    _inherits(homeItemCardComponent, _Component);
+
+    function homeItemCardComponent() {
+        _classCallCheck(this, homeItemCardComponent);
+
+        return _possibleConstructorReturn(this, (homeItemCardComponent.__proto__ || Object.getPrototypeOf(homeItemCardComponent)).apply(this, arguments));
+    }
+
+    _createClass(homeItemCardComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return {
+                section: {
+                    type: Object,
+                    required: true
+                },
+                items: {
+                    type: Array,
+                    required: true
+                },
+                title: {
+                    type: String,
+                    required: true
+                },
+                titleCenter: {
+                    type: Boolean,
+                    default: false
+                },
+                hideTitle: {
+                    type: Boolean,
+                    default: false
+                },
+                fullScreen: {
+                    type: Boolean,
+                    default: false
+                }
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                itemsPerPage: $(window).width() <= 991 ? 1 : 4,
+                initPage: 0,
+                animate: true,
+                interval: 8000,
+                animateEvent: null
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return function () {
+                this.animateCallback.bind(this);
+                this.$nextTick(function () {
+                    if (this.animate) this.animateCallback();
+                });
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                maxPages: function maxPages() {
+                    if (Array.isArray(this.items)) return this.items.length;
+                    return 0;
+                },
+                controlActivate: function controlActivate() {
+                    return this.maxPages > this.itemsPerPage;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                itemCarouselMoveLeft: this.itemCarouselMoveLeft,
+                itemCarouselMoveRight: this.itemCarouselMoveRight,
+                animateCallback: this.animateCallback,
+                animateStop: this.animateStop
+            };
+        }
+    }, {
+        key: "itemCarouselMoveLeft",
+        value: function itemCarouselMoveLeft() {
+            if (this.initPage - 1 >= 0) this.initPage -= 1;
+        }
+    }, {
+        key: "itemCarouselMoveRight",
+        value: function itemCarouselMoveRight() {
+            if (this.initPage + 1 + this.itemsPerPage > this.maxPages) this.initPage = 0;else this.initPage += 1;
+        }
+    }, {
+        key: "animateCallback",
+        value: function animateCallback() {
+            if (this.controlActivate) {
+                this.itemCarouselMoveRight();
+                this.animateEvent = setTimeout(this.animateCallback, this.interval);
+            }
+        }
+    }, {
+        key: "animateStop",
+        value: function animateStop() {
+            clearTimeout(this.animateEvent);
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div :key=\"'item'+section.internalId+title+'container'\" class=\"container-fluid\" >\n                    <div ref=\"homeItemCarousel\" class=\" row\">\n                        <div  :class=\"{'col-10':!fullScreen,'offset-1':!fullScreen,'col':fullScreen}\">\n                           <h2 class=\"col-12 section-title\" :class=\"{'text-center':titleCenter}\" v-if=\"!hideTitle\">{{tr(title)}} ({{items.length}})</h2>\n                           <div class=\"item-carousel-inner row justify-content-center\"  @mouseover=\"animateStop\" @mouseleave=\"animateCallback\">\n                                <template v-for=\"item of items.slice(initPage,initPage+itemsPerPage)\">\n                                  <div :key=\"'itemcard-'+section.internalId+'-'+item.Code\"  class=\"col-12 col-md-6 col-lg-3\">\n                                       <div class=\"produktliste oo-item-container oo-item-container-normal\" >\n                                            <itemViewModuleComponent :item=\"item\" :showCrossOutPrice=\"true\"></itemViewModuleComponent>\n                                        </div>\n                                  </div>\n                                </template>\n                          </div>\n                          <div class=\"row justify-content-center itemcard-control-container\" v-if=\"controlActivate\">\n                              <a :key=\"title+'left'\" class=\"itemcard-control itemcard-control-prev\" href=\"javascript:void(0)\" :title=\"tr('Previous')\" @click=\"itemCarouselMoveLeft\">\n                                          <i class=\"fa fa-lg fa-chevron-left\"></i>\n                              </a>\n                              <a :key=\"title+'right'\" class=\"itemcard-control itemcard-control-next\" href=\"javascript:void(0)\" :title=\"tr('Next')\" @click=\"itemCarouselMoveRight\">\n                                        <i class=\"fa fa-lg fa-chevron-right\"></i>\n                              </a>\n                          </div>\n                        </div>\n                    </div>\n              </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "homeItemCardComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "homeItemCardComponent";
+        }
+    }]);
+
+    return homeItemCardComponent;
+}(Component);
+
+homeItemCardComponent.registerComponent();
+//# sourceMappingURL=homeItemCardComponent.js.map

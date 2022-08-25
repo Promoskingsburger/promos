@@ -1,0 +1,104 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component */
+var badgesPageB2C = function (_Component) {
+    _inherits(badgesPageB2C, _Component);
+
+    function badgesPageB2C() {
+        _classCallCheck(this, badgesPageB2C);
+
+        return _possibleConstructorReturn(this, (badgesPageB2C.__proto__ || Object.getPrototypeOf(badgesPageB2C)).apply(this, arguments));
+    }
+
+    _createClass(badgesPageB2C, [{
+        key: "updated",
+        value: function updated() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                if (!this.isLogged) {
+                                    this.$store.dispatch('setRedirectLogin', "badges");
+                                    this.$store.dispatch('activePreserveCar', true);
+                                    this.$router.push("login");
+                                }
+
+                            case 1:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                viewIsLoading: function viewIsLoading() {
+                    return !this.$store.getters.getItemsFullLoader;
+                }
+            };
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                loadCategories: this.loadCategories,
+                selectCategory: this.selectCategory
+            };
+        }
+    }, {
+        key: "loadCategories",
+        value: function loadCategories() {
+            var root = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+            var lvl = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+            this.$store.dispatch('loadCategories', root, lvl);
+        }
+    }, {
+        key: "selectCategory",
+        value: function selectCategory(category) {
+            if (category) {
+                this.loadItems(category.code);
+                //console.log("updateCategory select category",category)
+                this.$router.push('/category/' + category.Name);
+                this.$store.dispatch('updateCategory', category);
+            } else {
+                this.$store.dispatch('updateCategory', {});
+                this.loadItems();
+            }
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div>\n                  <headerSectionComponent></headerSectionComponent>\n                  <NotificationComponent></NotificationComponent>\n                  <div class=\"container-fluid\">\n                      <div class=\"section-main\">\n                          <div class=\"row\">\n                              <div class=\"col-12\">\n                                  <template v-if=\"viewIsLoading\">\n                                      <div class=\"loading\">\n                                          <i class=\"fas fa-circle-notch fa-spin fa-3x\"></i>\n                                      </div>\n                                  </template>\n                                  <template v-else>\n                                      <CarModalComponent></CarModalComponent>\n                                  </template>\n                              </div>\n                          </div>\n                      </div>\n                  </div>\n                <footerSectionComponent></footerSectionComponent>\n            </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "badgesPage";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "badgesPage";
+        }
+    }]);
+
+    return badgesPageB2C;
+}(Component);
+
+badgesPageB2C.registerComponent();
+//# sourceMappingURL=badgesPage.js.map

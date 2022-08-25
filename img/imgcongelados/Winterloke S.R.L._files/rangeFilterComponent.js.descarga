@@ -1,0 +1,352 @@
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+/* global Component, uuidv4 */
+var rangeFilterComponent = function (_Component) {
+    _inherits(rangeFilterComponent, _Component);
+
+    function rangeFilterComponent() {
+        _classCallCheck(this, rangeFilterComponent);
+
+        return _possibleConstructorReturn(this, (rangeFilterComponent.__proto__ || Object.getPrototypeOf(rangeFilterComponent)).apply(this, arguments));
+    }
+
+    _createClass(rangeFilterComponent, [{
+        key: "getProps",
+        value: function getProps() {
+            return ['filterField', 'open_by_default'];
+        }
+    }, {
+        key: "getWatch",
+        value: function getWatch() {
+            return {
+                '$route': 'generateIntervals',
+                '$store.state.itemTimeFlag': 'generateIntervals',
+                '$store.state.itemUpdate': 'calculateResults'
+            };
+        }
+    }, {
+        key: "data",
+        value: function data() {
+            return {
+                display: true,
+                isMobile: $(window).width() <= 560,
+                show_clearfilter: false,
+                filterIntervals: [],
+                renderView: false,
+                inView: 0
+            };
+        }
+    }, {
+        key: "getComputed",
+        value: function getComputed() {
+            return {
+                isCurrency: function isCurrency() {
+                    return this.filterField.ItemField.search(/price/gmi) !== -1;
+                },
+                filterName: function filterName() {
+                    return this.filterField.ItemField;
+                },
+                intervalBegin: function intervalBegin() {
+                    return this.filterIntervals[0][2].name;
+                },
+                intervalEnd: function intervalEnd() {
+                    return this.filterIntervals[this.filterIntervals.length - 1][2].name;
+                }
+            };
+        }
+    }, {
+        key: "mounted",
+        value: function mounted() {
+            return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                var self;
+                return regeneratorRuntime.wrap(function _callee$(_context) {
+                    while (1) {
+                        switch (_context.prev = _context.next) {
+                            case 0:
+                                self = this;
+
+                                this.generateIntervals();
+                                if (this.open_by_default != 'undefined') {
+                                    this.display = this.open_by_default;
+                                } else {
+                                    this.display = !this.isMobile;
+                                    $(window).resize(function () {
+                                        self.isMobile = $(window).width() <= 560;
+                                        self.display = !self.isMobile;
+                                    });
+                                }
+
+                            case 3:
+                            case "end":
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+        }
+    }, {
+        key: "getMethods",
+        value: function getMethods() {
+            return {
+                generateIntervals: this.generateIntervals,
+                calculateResults: this.calculateResults,
+                resetCountInterval: this.resetCountInterval,
+                launchFilter: this.launchFilter,
+                clearFilter: this.clearFilter,
+                fetchData: this.fetchData
+            };
+        }
+    }, {
+        key: "generateIntervals",
+        value: function generateIntervals() {
+            if (!this.filterField || !this.filterField.FilterCollection) return [[0, 100]];
+
+            var interval = this.filterField.FilterCollection.split(',');
+            var lastElement = null;
+            if (interval.length > 0) lastElement = interval[interval.length - 1];else lastElement = interval[0];
+            var rangeInterval = [];
+            var last = null;
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                for (var _iterator = interval[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    var inter = _step.value;
+
+                    //let operator = null;
+                    var filter = {};
+                    filter.name = uuidv4();
+                    filter.type = 'rangeFilter';
+                    filter.itemCount = 0;
+                    filter.hiddens = new Map();
+                    filter.active = false;
+                    if (last == null) {
+                        if (inter == 0) continue;
+                        filter.name = "range-" + this.filterField.ItemField + "-less-" + inter;
+                        filter.condition = "parseFloat(x." + this.filterField.ItemField + ")<=" + inter;
+                        filter.result = true;
+                        rangeInterval.push([0, inter, filter]);
+                    } else {
+                        filter.name = "range-" + this.filterField.ItemField + "-between-" + inter + "-" + last;
+                        filter.condition = "parseFloat(x." + this.filterField.ItemField + ")<=" + inter + " && parseFloat(x." + this.filterField.ItemField + ")>=" + last;
+                        filter.result = true;
+                        rangeInterval.push([last, inter, filter, 'range' + uuidv4()]);
+                    }
+                    last = inter;
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+
+            var Endfilter = {};
+            Endfilter.type = 'rangeFilter';
+            Endfilter.itemCount = 0;
+            Endfilter.hiddens = new Map();
+            Endfilter.active = false;
+            Endfilter.name = "range-" + this.filterField.ItemField + "-end-" + lastElement;
+            Endfilter.condition = "parseFloat(x." + this.filterField.ItemField + ")>" + lastElement;
+            Endfilter.result = true;
+            rangeInterval.push([lastElement, lastElement, Endfilter]);
+            this.filterIntervals = rangeInterval;
+            this.calculateResults();
+        }
+    }, {
+        key: "calculateResults",
+        value: function calculateResults() {
+            var items = this.$store.getters.getItems;
+            this.resetCountInterval();
+            var _iteratorNormalCompletion2 = true;
+            var _didIteratorError2 = false;
+            var _iteratorError2 = undefined;
+
+            try {
+                for (var _iterator2 = items.filter(function (e) {
+                    return e.visible == true;
+                })[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                    var x = _step2.value;
+                    var _iteratorNormalCompletion3 = true;
+                    var _didIteratorError3 = false;
+                    var _iteratorError3 = undefined;
+
+                    try {
+                        for (var _iterator3 = this.filterIntervals[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                            var interval = _step3.value;
+
+                            var cond = interval[2].condition;
+                            var result = interval[2].result;
+                            try {
+                                var isVisible = eval(cond) == result;
+                                if (isVisible) {
+                                    this.inView = this.inView + 1;
+                                    interval[2].itemCount = interval[2].itemCount + 1;
+                                }
+                            } catch (error) {
+                                // eslint-disable-next-line no-console
+                                console.log('Error in range filter', error, x, interval);
+                            }
+                        }
+                    } catch (err) {
+                        _didIteratorError3 = true;
+                        _iteratorError3 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                _iterator3.return();
+                            }
+                        } finally {
+                            if (_didIteratorError3) {
+                                throw _iteratorError3;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                _didIteratorError2 = true;
+                _iteratorError2 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                        _iterator2.return();
+                    }
+                } finally {
+                    if (_didIteratorError2) {
+                        throw _iteratorError2;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "resetCountInterval",
+        value: function resetCountInterval() {
+            var _iteratorNormalCompletion4 = true;
+            var _didIteratorError4 = false;
+            var _iteratorError4 = undefined;
+
+            try {
+                for (var _iterator4 = this.filterIntervals[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    var interval = _step4.value;
+
+                    interval[2].itemCount = 0;
+                }
+            } catch (err) {
+                _didIteratorError4 = true;
+                _iteratorError4 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                        _iterator4.return();
+                    }
+                } finally {
+                    if (_didIteratorError4) {
+                        throw _iteratorError4;
+                    }
+                }
+            }
+        }
+    }, {
+        key: "launchFilter",
+        value: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(filters) {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                filters[2].active = true & filters[2].active;
+                                this.show_clearfilter = true;
+                                //console.log('New Filter',filters[2]);
+                                _context2.next = 4;
+                                return this.$store.dispatch('addFilter', filters[2]);
+
+                            case 4:
+                                this.emitEvent("filter-select");
+
+                            case 5:
+                            case "end":
+                                return _context2.stop();
+                        }
+                    }
+                }, _callee2, this);
+            }));
+
+            function launchFilter(_x) {
+                return _ref2.apply(this, arguments);
+            }
+
+            return launchFilter;
+        }()
+    }, {
+        key: "clearFilter",
+        value: function () {
+            var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                        switch (_context3.prev = _context3.next) {
+                            case 0:
+                                this.show_clearfilter = false;
+                                _context3.next = 3;
+                                return this.$store.dispatch('restoreFilter');
+
+                            case 3:
+                            case "end":
+                                return _context3.stop();
+                        }
+                    }
+                }, _callee3, this);
+            }));
+
+            function clearFilter() {
+                return _ref3.apply(this, arguments);
+            }
+
+            return clearFilter;
+        }()
+    }, {
+        key: "fetchData",
+        value: function fetchData() {
+            this.renderView = !this.renderView;
+            this.calculateResults();
+        }
+    }, {
+        key: "getTemplate",
+        value: function getTemplate() {
+            return "<div class=\"filter\" v-show=\"inView>0\">\n                    <p class=\"filter-title\" @click=\"display = !display\">\n                        {{tr(filterField.ItemField)}}\n                        <span v-show=\"display\" class=\"right\"><i class=\"icon fas fa-minus\"></i></span>\n                        <span v-show=\"!display\" class=\"right\"><i class=\"icon fas fa-plus\"></i></span>\n                    </p>\n                    <section class=\"filter-options\" :class=\"{'visible-filter': display}\" @click=\"display = !isMobile\">\n                        <ul class=\"unstyled\">\n                          <template v-for=\"interval of filterIntervals\">\n                                <template v-if=\"interval[2].itemCount>0\">\n                                    <li :key=\"'li-'+interval[2].name\" v-if=\"interval[2].name == intervalBegin\" >\n                                        <div class=\"custom-control custom-checkbox\">\n                                            <input :key=\"'input1-'+interval[2].name\" class=\"custom-control-input\" v-model=\"interval[2].active\"  type=\"checkbox\" :id=\"interval[2].name\"  :name=\"interval[2].name\" @click=\"launchFilter(interval)\"/>\n                                            <label :key=\"'label-'+interval[2].name\"  :for=\"interval[2].name\" class=\"custom-control-label\">Hasta \n                                                 <template v-if=\"isCurrency\">$</template>{{interval[1]}} ({{interval[2].itemCount}})\n                                            </label>\n                                        </div>\n                                    </li>\n                                    <li :key=\"'li-'+interval[2].name\" v-else-if=\"interval[2].name == intervalEnd\" >\n                                        <div class=\"custom-control custom-checkbox\">\n                                            <input :key=\"'input2-'+interval[2].name\" class=\"custom-control-input\" v-model=\"interval[2].active\" type=\"checkbox\" :id=\"interval[2].name\" :name=\"interval[2].name\"  @click=\"launchFilter(interval)\"/>\n                                            <label :key=\"'label2-'+interval[2].name\" :for=\"interval[2].name\" class=\"custom-control-label\" >M\xE1s de <template v-if=\"isCurrency\">$</template>{{interval[1]}} ({{interval[2].itemCount}})</label>\n                                        </div>\n                                    </li>\n                                    <li :key=\"'li-'+interval[2].name\" v-else>\n                                        <div class=\"custom-control custom-checkbox\">\n                                            <input :key=\"'input3-'+interval[2].name\" class=\"custom-control-input\" v-model=\"interval[2].active\" type=\"checkbox\" :id=\"interval[2].name\" @click=\"launchFilter(interval)\" />\n                                            <label :key=\"'label3-'+interval[2].name\" :for=\"interval[2].name\" class=\"custom-control-label\"><template v-if=\"isCurrency\">$</template>{{interval[0]}} a <template v-if=\"isCurrency\">$</template>{{interval[1]}} ({{interval[2].itemCount}})</label>\n                                        </div>\n                                    </li>\n                                </template>\n                          </template>\n                        </ul>\n                    </section>\n                </div>";
+        }
+    }], [{
+        key: "name",
+        value: function name() {
+            return "rangeFilterComponent";
+        }
+    }, {
+        key: "componentName",
+        value: function componentName() {
+            return "rangeFilterComponent";
+        }
+    }]);
+
+    return rangeFilterComponent;
+}(Component);
+
+rangeFilterComponent.registerComponent();
+//# sourceMappingURL=rangeFilterComponent.js.map
